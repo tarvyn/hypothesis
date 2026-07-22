@@ -141,6 +141,19 @@
   .r-flag.ai{border-left-color:var(--ai)}
   .r-arr{font-family:var(--font-m);font-size:12px;color:var(--txt-mid);margin-bottom:12px}
   .r-arr b{color:var(--txt)}
+  .r-evidence{padding:14px 15px;border:1px solid color-mix(in srgb,var(--rc) 38%,var(--line));border-radius:11px;background:color-mix(in srgb,var(--rc) 7%,var(--surface));font-size:13px;line-height:1.55;color:var(--txt)}
+  .r-evidence .scope{display:inline-block;margin-bottom:8px;font-family:var(--font-m);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--rc);border:1px solid color-mix(in srgb,var(--rc) 40%,var(--line));border-radius:999px;padding:3px 8px}
+  .r-evidence .source{display:block;margin-top:9px;font-family:var(--font-m);font-size:9.5px;line-height:1.45;color:var(--txt-dim)}
+  .comp-grid{display:flex;flex-wrap:wrap;gap:7px}
+  .comp{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:5px 9px;background:rgba(255,255,255,.018);font-family:var(--font-m);font-size:10px;color:var(--txt-mid)}
+  .comp::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--txt-dim)}
+  .comp.direct::before{background:var(--sec)}
+  .comp.native::before{background:var(--dev)}
+  .comp.adjacent::before{background:var(--ai)}
+  .comp-key{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;font-family:var(--font-m);font-size:9px;color:var(--txt-dim)}
+  .comp-key span{display:inline-flex;align-items:center;gap:5px}
+  .comp-key i{width:5px;height:5px;border-radius:50%;background:var(--txt-dim)}
+  .comp-key .direct{background:var(--sec)}.comp-key .native{background:var(--dev)}.comp-key .adjacent{background:var(--ai)}
 
   @media (max-width:820px){
     .lane{grid-template-columns:1fr}
@@ -200,7 +213,7 @@
   <div class="foot">
     <div class="note">
       <h3>Reading the maturity layer</h3>
-      <div class="mrow"><i style="background:var(--m-core)"></i><span><b>Core — strength.</b> Proven, market-leading, the cash engine — and still compounding: core APM re-accelerated to mid-30s% growth and the AI wave expands core demand (more hosts, GPUs, logs), not just adjacents.</span></div>
+      <div class="mrow"><i style="background:var(--m-core)"></i><span><b>Core — strength.</b> Proven, market-leading, the cash engine — and still compounding: core Application Performance Monitoring (APM) re-accelerated to mid-30s% growth and the AI wave expands core demand (more hosts, GPUs, logs), not just adjacents.</span></div>
       <div class="mrow"><i style="background:var(--m-proven)"></i><span><b>Proven expansion.</b> Working land-and-expand; mostly settled, moderate upside.</span></div>
       <div class="mrow"><i style="background:var(--m-contested)"></i><span><b>Contested bet.</b> Challenger in a big market; real upside, monetization still early (Security suite is ~3% of revenue despite broad penetration).</span></div>
       <div class="mrow"><i style="background:var(--m-option)"></i><span><b>Optionality.</b> Early, thin, speculative — highest variance, tiny revenue today. Several graduated to GA in 2026 (GPU Monitoring, MCP Server, Experiments, Bits AI Security Analyst).</span></div>
@@ -209,7 +222,7 @@
       <h3>Hard facts · latest reported</h3>
       <p><span class="hd">FY2025 (10-K, Dec-31-2025)</span> — revenue $3.427B · NRR ~120% (TTM), GRR mid-high 90s · 84% of customers use 2+ products, 55% 4+, 33% 6+, 18% 8+, 9% 10+ · 4,310 customers at $100k+ ARR ≈ 90% of ARR · one reportable segment, no per-product financials.</p>
       <p><span class="hd">Q1-2026 (reported 7 May 2026)</span> — revenue $1.006B, +32% y/y (accelerating) · NRR low-120s · 56% use 4+, 35% 6+, 20% 8+ · FY26 guide $4.30–4.34B, 22–23% non-GAAP op margin.</p>
-      <p><span class="dir">PRODUCT-LEVEL ARR</span> — company-stated on earnings calls (Infra &gt;$1.6B, Logs &gt;$1B, APM+DEM &gt;$1B), not audited segment data. Rule: <b>numbers for a DCF from the 10-K/10-Q</b>; product-level from calls with that caveat.</p>
+      <p><span class="dir">PRODUCT-LEVEL ARR</span> — company-stated on earnings calls (Infra &gt;$1.6B, Logs &gt;$1B, Application Performance Monitoring (APM) + Digital Experience Monitoring (DEM) &gt;$1B), not audited segment data. Rule: <b>numbers for a DCF from the 10-K/10-Q</b>; product-level from calls with that caveat.</p>
     </div>
     <div class="note">
       <h3>How to read positioning</h3>
@@ -219,7 +232,7 @@
     </div>
   </div>
 
-  <p class="src">Sources: Datadog 2026 Investor Day (held 12 Feb 2026; operating data as of Dec-2025; Gartner market data per 4Q25/Dec-2025 updates) · FY2025 10-K · Q4-2025 and Q1-2026 earnings (7 May 2026) · company press releases through May 2026. Product naming as of Q1-2026. Descriptions and competitor notes are plain-language summaries for orientation, not investment advice.</p>
+  <p class="src">Sources: Datadog 2026 Investor Day (held 12 Feb 2026; operating data as of Dec-2025; Gartner market data per 4Q25/Dec-2025 updates) · FY2025 10-K · Q4-2025 and Q1-2026 earnings (7 May 2026) · company press releases through May 2026 · Reflexivity Investment Themes via Interactive Brokers, retrieved 22 Jul 2026. Reflexivity is used only for qualitative traction and competitive context; its underlying source modals have not yet been captured. Product naming as of Q1-2026. Descriptions and competitor notes are plain-language summaries for orientation, not investment advice.</p>
 </div>
 
 <div id="backdrop"></div>
@@ -258,9 +271,9 @@ const DATA = [
      what:"Ingests, stores, and makes searchable every log line your systems emit — app logs, access logs, errors — from thousands of services, with fast full-text search.",
      ex:"A checkout fails intermittently. You search all logs for that one request ID across every microservice in a single query, instead of SSH-ing into ten machines to grep.",
      why:"Logs are where the 'why' of a problem lives, and having them beside your metrics and traces — click from a slow trace straight to its logs — is a huge time-saver in an incident. Log volume grows with usage, making it a strong expansion line.",
-     edge:"Leader, but the most price-pressured of the three pillars: logs are expensive to store, and cheaper options (Grafana Loki, Elastic, OpenSearch) compete hard on cost. Datadog's answer is tiered storage — ingest everything, index only what you need (Flex Logs, itself approaching $100M ARR) — plus the value of having logs correlated with the rest of the platform. You pay a premium for the correlation, not the storage. BYOC-style deployment (data staying in the customer's own storage) further defuses the cost objection at some margin cost."},
+     edge:"Leader, but the most price-pressured of the three pillars: logs are expensive to store, and cheaper options (Grafana Loki, Elastic, OpenSearch) compete hard on cost. Datadog's answer is tiered storage — ingest everything, index only what you need (Flex Logs, itself approaching $100M ARR) — plus the value of having logs correlated with the rest of the platform. You pay a premium for the correlation, not the storage. BYOC (Bring Your Own Cloud)-style deployment, where data stays in the customer's own storage, further defuses the cost objection at some margin cost."},
     {n:"APM", arr:"APM+DEM >$1B ARR",
-     what:"Distributed tracing that follows one request across every service, function, and database call in your backend and shows exactly where the time went.",
+     what:"Application Performance Monitoring (APM) uses distributed tracing to follow one request across every service, function, and database call in your backend and show exactly where the time went.",
      ex:"An endpoint is slow. The flame graph reveals the request spent 2.4s on a single N+1 query buried three services deep — you see the exact span, not just 'the service is slow.'",
      why:"In microservices, 'which service is slow' is genuinely hard, and APM answers it in seconds — mapping directly to developer productivity and to customer-facing latency. It's the natural upsell on top of Infrastructure Monitoring.",
      edge:"Strong leader — and still compounding: core APM growth re-accelerated into the mid-30% range as of the latest quarters. The moat is that APM data is most useful stitched to your infra metrics and logs — which Datadog already holds. It competes with Dynatrace, New Relic, and open-source stacks built on OpenTelemetry (Grafana Tempo, Honeycomb). OpenTelemetry is the thing to watch: as instrumentation becomes a vendor-neutral standard, it lowers switching costs and lets cheaper backends compete — a slow threat to APM's stickiness."},
@@ -274,7 +287,7 @@ const DATA = [
     {n:"Synthetic Testing", border:true,
      what:"Scripted robots that act like users on a schedule — load your login page, run a checkout, hit an API — from locations worldwide, alerting when something breaks or slows.",
      ex:"Every minute from five regions a robot logs in and adds an item to cart. At 3am it fails from Frankfurt, paging you about a regional outage before any real user is awake to hit it.",
-     why:"It catches problems in quiet hours and validates critical flows continuously, not just when a user happens to try — and gives uptime SLAs real teeth. It pairs with RUM: real users plus proactive checks.",
+     why:"It catches problems in quiet hours and validates critical flows continuously, not just when a user happens to try — and gives uptime Service-Level Agreements (SLAs) real teeth. It pairs with RUM: real users plus proactive checks.",
      edge:"Competes with Pingdom, Checkly, Grafana Synthetic Monitoring. Standalone synthetics is commoditized and price-sensitive; Datadog's advantage is that a failing test drops you straight into the APM trace and infra metrics of the failing request. The value is the integration, not the checks themselves."},
     {n:"Mobile App Testing", border:true,
      what:"Automated end-to-end tests for iOS/Android apps, run on real devices, checking that key flows still work across OS versions and hardware.",
@@ -412,7 +425,7 @@ const DATA = [
      what:"Runs browser and end-to-end tests at scale, across environments and in parallel, as part of the release pipeline — reusing the same tech as Synthetic Testing.",
      ex:"On every deploy it runs your critical user journeys across browsers in parallel and gates the release if a key flow breaks.",
      why:"Automated pre-release testing catches regressions before users do, and running it in the pipeline makes 'tested' the default, not a manual step. It links testing to the same platform that watches production.",
-     edge:"Competes with Cypress, Playwright-based services, BrowserStack, and Sauce Labs. Datadog's angle is unifying synthetics, testing, and monitoring so one test artifact spans pre-prod and prod. A tooling-rich, contested space; Datadog competes on consolidation."},
+     edge:"Competes directly with Cypress Cloud, BrowserStack, and Sauce Labs, and indirectly with in-house testing stacks built around Playwright. Datadog's angle is managed execution, codeless authoring, and unifying synthetics, testing, and production monitoring so one test artifact spans pre-prod and prod. A tooling-rich, contested space; Datadog competes on consolidation rather than replacing Playwright itself."},
     {n:"IDE Plugins",
      what:"Brings Datadog's production signals into your editor (VS Code, JetBrains) — the errors, slow spans, and security issues attached to the exact function you're viewing.",
      ex:"While editing a service you see inline that this method throws the most errors in prod and its p99 latency spiked yesterday — context you'd otherwise hunt for in a dashboard.",
@@ -432,7 +445,7 @@ const DATA = [
      what:"An AI coding assistant wired into your live telemetry — it can read real production errors, traces, and metrics to help write, debug, and fix code with actual runtime context.",
      ex:"Given a production error, it proposes a fix informed by the real stack trace and the input that triggered it — not just a guess from reading the source.",
      why:"Assistants that know how your code behaves in production, not just how it reads, can fix real problems. Part of the 'AI teammate' and 'close the software loop' thesis.",
-     edge:"An AI layer over the delivery suite, competing in the crowded coding-assistant space (Cursor, Copilot) but differentiating on production context. Assess it as an amplifier of the platform's data advantage, not a standalone product."},
+     edge:"Competes directly with Sentry Seer in production-aware debugging and remediation, and indirectly with general-purpose coding agents including OpenAI Codex, Anthropic Claude Code, GitHub Copilot, Cursor, and GitLab Duo. Bits AI Dev differentiates by starting from live Datadog telemetry, identifying production issues autonomously, and carrying the workflow through root-cause analysis, tested code changes, and a pull request. Datadog MCP also makes external coding agents potential complements, weakening the exclusivity of this advantage."},
    ]},
    {name:"Service Management", pos:"Challenger", mat:"contested", products:[
     {n:"On-Call",
@@ -504,6 +517,66 @@ const DATA = [
  },
 ];
 
+const TRACTION = {
+  "Infrastructure Monitoring":{scope:"Product",text:"> $1.6B ARR. Expansion vectors cited include Storage Management, Kubernetes autoscaling and GPU monitoring design partnerships."},
+  "Log Management":{scope:"Product",text:"> $1B ARR; Flex Logs is approaching $100M ARR. Reflexivity links the product to nearly 100 enterprise consolidation wins and to Cloud SIEM efficiency."},
+  "APM":{scope:"APM + DEM",text:"The combined Application Performance Monitoring (APM) and Digital Experience Monitoring (DEM) suite has crossed $1B ARR. APM was described as the fastest-growing core product, with growth in the mid-30% range and inclusion in an eight-figure expansion."},
+  "Real User Monitoring":{scope:"DEM suite",text:"APM + DEM has crossed $1B ARR. Recent DEM investment highlighted Path Analytics and RUM without Limits as attach drivers for the broader APM suite."},
+  "Network Monitoring":{scope:"Product",text:"A per-host expansion product inside the observability platform. Recent positioning links Network Performance Monitoring with Path Analytics across digital experience workflows."},
+  "Cloud Cost Management":{scope:"Product",text:"Still ancillary rather than a primary revenue driver, but it has appeared in a nearly seven-figure consolidation deal and a Fortune 500 expansion focused on cost visibility and governance."},
+  "LLM Observability":{scope:"Product",text:"> 1,000 customers in Q1-2026 after roughly 10× client growth in six months. Reflexivity also cites 4× growth in processed LLM spans and inclusion in a seven-figure expansion."},
+  "Data Observability":{scope:"Product",text:"Early commercial traction includes a nearly seven-figure European consolidation deal and an eight-figure Latin American financial-services expansion."},
+  "Cloud Security":{scope:"Security suite",text:"Security ARR growth was described in the mid-50% range. Cloud SIEM and newer security modules have been included in seven-figure enterprise consolidation deals."},
+  "Cloud SIEM":{scope:"Security suite",text:"A central security-suite wedge: Reflexivity cites displacement of established SIEM vendors and inclusion in seven-figure consolidation agreements."},
+  "Datadog MCP Server":{scope:"Product",text:"Tool calls increased 11× sequentially while the product was in preview with thousands of customers; the map reflects its subsequent general availability."},
+  "On-Call":{scope:"Service Management suite",text:"Reflexivity associates the service-management portfolio with more than 3,000 customers and a nearly seven-figure European consolidation agreement."},
+  "Bits AI SRE Agent":{scope:"Bits AI family",text:"> 2,000 trial and paying customers conducting incident investigations. The Bits AI family has also appeared in seven-figure enterprise expansions."},
+};
+
+const COMPETITIVE_SETS = {
+  "Infrastructure Monitoring":[["Dynatrace","direct"],["New Relic","direct"],["IBM Instana","direct"],["AWS CloudWatch","native"],["Azure Monitor","native"],["Google Cloud Operations","native"],["Oracle Cloud","native"]],
+  "Log Management":[["Elastic","direct"],["Splunk","direct"],["Grafana Loki","direct"],["OpenSearch","native"],["CrowdStrike LogScale","adjacent"],["Snowflake","adjacent"]],
+  "APM":[["Dynatrace","direct"],["New Relic","direct"],["Cisco AppDynamics","direct"],["IBM Instana","direct"],["Grafana Tempo","direct"],["Honeycomb","direct"],["Oracle APM","native"]],
+  "Real User Monitoring":[["New Relic Browser","direct"],["Dynatrace","direct"],["Microsoft Clarity","adjacent"],["Google Web Vitals","native"]],
+  "Synthetic Testing":[["Pingdom","direct"],["Checkly","direct"],["Grafana Synthetic Monitoring","direct"]],
+  "Mobile App Testing":[["BrowserStack","direct"],["Sauce Labs","direct"]],
+  "Session Replay":[["FullStory","direct"],["Hotjar","direct"],["LogRocket","direct"],["Microsoft Clarity","native"]],
+  "Experimentation":[["Optimizely","direct"],["LaunchDarkly","direct"],["Statsig","direct"],["Amplitude Experiment","direct"]],
+  "Network Monitoring":[["Kentik","direct"],["Cisco ThousandEyes","direct"],["Netscout","direct"],["Cloudflare","adjacent"]],
+  "Continuous Profiler":[["Grafana Pyroscope","direct"],["Language-native profilers","native"]],
+  "Error Tracking":[["Sentry","direct"],["Bugsnag","direct"],["Rollbar","direct"]],
+  "Database Monitoring":[["SolarWinds DPA","direct"],["Percona","direct"],["Cloud-native DB insights","native"]],
+  "Cloud Cost Management":[["VMware CloudHealth","direct"],["IBM Apptio Cloudability","direct"],["Kubecost","direct"],["AWS / Azure / GCP cost tools","native"]],
+  "Observability Pipelines":[["Cribl","direct"],["OpenTelemetry Collector","native"],["Fluent Bit","native"]],
+  "Data Streams Monitoring":[["Confluent","adjacent"],["Cloud-native queue metrics","native"]],
+  "LLM Observability":[["Arize","direct"],["LangSmith","direct"],["Weights & Biases","direct"],["Helicone","direct"]],
+  "GPU Monitoring":[["NVIDIA tooling","native"],["Hyperscaler GPU monitoring","native"],["ML-platform observability","adjacent"]],
+  "AI Agents Console":[["LangSmith","adjacent"],["Arize","adjacent"],["Weights & Biases","adjacent"]],
+  "Data Observability":[["Monte Carlo","direct"],["Bigeye","direct"],["Snowflake","adjacent"]],
+  "Cloud Security":[["Wiz","direct"],["Palo Alto Prisma Cloud","direct"],["CrowdStrike Falcon Cloud","direct"],["Qualys","direct"],["Tenable","direct"],["SentinelOne","adjacent"]],
+  "Code Security":[["Snyk","direct"],["GitHub Advanced Security","direct"],["Checkmarx","direct"],["GitLab","adjacent"]],
+  "Cloud SIEM":[["Splunk","direct"],["Microsoft Sentinel","direct"],["Elastic Security","direct"],["Rapid7 InsightIDR","direct"],["CrowdStrike LogScale","direct"],["Fortinet","adjacent"]],
+  "Data Security":[["BigID","direct"],["Cyera","direct"]],
+  "Security: AI Guard":[["Lakera","direct"],["Protect AI","direct"],["Palo Alto Networks","adjacent"],["Cloudflare","adjacent"]],
+  "Bits AI Security Analyst":[["Microsoft Security Copilot","adjacent"],["CrowdStrike Charlotte AI","adjacent"],["Hyperscaler SIEM copilots","native"]],
+  "CI Visibility":[["GitHub Actions analytics","native"],["CircleCI Insights","native"],["GitLab","direct"]],
+  "Test Optimization":[["GitHub / GitLab CI analytics","native"],["Specialist flaky-test tools","direct"]],
+  "Continuous Testing":[["Cypress Cloud","direct"],["BrowserStack","direct"],["Sauce Labs","direct"]],
+  "IDE Plugins":[["Editor-native observability extensions","native"]],
+  "Feature Flags":[["LaunchDarkly","direct"],["Split","direct"],["Unleash","direct"]],
+  "Datadog MCP Server":[["Vendor-native MCP servers","adjacent"],["Hyperscaler operations agents","native"]],
+  "Bits AI Dev Agent":[["Sentry Seer","direct"],["OpenAI Codex","adjacent"],["Anthropic Claude Code","adjacent"],["GitHub Copilot","adjacent"],["Cursor","adjacent"],["GitLab Duo","adjacent"]],
+  "On-Call":[["PagerDuty","direct"],["Atlassian Opsgenie","direct"],["ServiceNow","adjacent"]],
+  "Incident Management":[["incident.io","direct"],["FireHydrant","direct"],["PagerDuty","direct"],["Atlassian","direct"],["ServiceNow","adjacent"]],
+  "Event Management":[["BigPanda","direct"],["Moogsoft","direct"],["PagerDuty AIOps","direct"],["ServiceNow ITOM","direct"]],
+  "Resource Catalog":[["Backstage","direct"],["Cortex","direct"],["OpsLevel","direct"],["ServiceNow CMDB","adjacent"]],
+  "Internal Developer Portal":[["Backstage","direct"],["Humanitec","direct"],["Port","direct"],["Atlassian Compass","adjacent"]],
+  "Workflow Automation":[["Rundeck","direct"],["PagerDuty Automation","direct"],["ServiceNow Flow Designer","adjacent"]],
+  "App Builder":[["Retool","direct"],["ServiceNow App Engine","adjacent"]],
+  "Bits AI SRE Agent":[["PagerDuty","adjacent"],["Dynatrace Davis AI","adjacent"],["ServiceNow AIOps","adjacent"]],
+  "Product Analytics":[["Amplitude","direct"],["Mixpanel","direct"],["PostHog","direct"],["Heap","direct"],["Google Analytics","native"]],
+};
+
 const dot = c => c==="f" ? '<i class="dotf"></i>' : c==="o" ? '<i class="doto"></i>' : '<span style="color:var(--txt-dim)">—</span>';
 
 const ITEMS = [];
@@ -525,7 +598,7 @@ lanes.innerHTML = DATA.map(cat=>`
           <div class="grid">
             ${s.products.map(p=>{
               const i=ITEMS.length;
-              ITEMS.push({...p, catName:cat.catName, catColor:cat.color, mat:s.mat, pos:s.pos});
+              ITEMS.push({...p, traction:TRACTION[p.n], competitors:COMPETITIVE_SETS[p.n]||[], catName:cat.catName, catColor:cat.color, mat:s.mat, pos:s.pos});
               return `<button class="cell ${p.ai?'ai':''} ${p.border?'border':''}" data-i="${i}">
                 ${p.ai?'<span class="ai-dot"></span>':''}<span>${p.n}</span>${p.arr?`<span class="arr">${p.arr}</span>`:''}
               </button>`;
@@ -561,6 +634,10 @@ function openItem(i,cell){
   let html="";
   html+=`<div class="r-sec"><h4>What it does</h4><p>${esc(it.what)}</p><div class="r-ex"><b>For example</b>${esc(it.ex)}</div></div>`;
   html+=`<div class="r-sec"><h4>Why it matters</h4><p>${esc(it.why)}</p></div>`;
+  if(it.traction) html+=`<div class="r-sec"><h4>Commercial traction</h4><div class="r-evidence"><span class="scope">${esc(it.traction.scope)}</span><br>${esc(it.traction.text)}<span class="source">Reflexivity / IBKR synthesis · provider context, not audited product-level financials</span></div></div>`;
+  if(it.competitors.length){
+    html+=`<div class="r-sec"><h4>Competitive set</h4><div class="comp-grid">${it.competitors.map(([name,type])=>`<span class="comp ${type}">${esc(name)}</span>`).join("")}</div><div class="comp-key"><span><i class="direct"></i>Direct</span><span><i class="native"></i>Native / bundled</span><span><i class="adjacent"></i>Adjacent</span></div></div>`;
+  }
   html+=`<div class="r-sec pos"><h4>${POSTITLE[it.pos]}</h4><p>${esc(it.edge)}</p></div>`;
   let flags="";
   if(it.arr) flags+=`<div class="r-arr">ARR: <b>${esc(it.arr)}</b> <span style="color:var(--txt-dim)">(company-stated on earnings calls; not audited segment data)</span></div>`;
