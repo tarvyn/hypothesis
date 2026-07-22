@@ -157,16 +157,18 @@
 </head>
 <body>
 <div class="wrap">
-  <div class="eyebrow"><span>Portfolio guide · <b>DDOG</b></span></div>
+  <div class="eyebrow"><span>Portfolio guide · <b>DDOG</b> · current as of Q1-2026</span></div>
   <h1>The Datadog stack, <em>explained</em></h1>
   <p class="lede">
-    Every product, in plain language for someone who knows the surface. The <b>spine</b> is Gartner's stable market categories; the <b>skin</b> is Datadog's product suites; <b>AI</b> is a cross-cutting tag, not a category; the <b>maturity</b> overlay grades each suite by strength and upside. <b>Tap any product</b> — you get what it does, a concrete example, why a customer pays for it, and why it's a strength or a challenger bet.
+    Every product, in plain language for someone who knows the surface. The <b>spine</b> is Gartner's stable market categories; the <b>skin</b> is Datadog's product suites; <b>AI</b> is a cross-cutting tag, not a category; the <b>maturity</b> overlay grades each suite by strength and upside. <b>Tap any product</b> — you get what it does, a concrete example, why a customer pays for it, and why it's a strength or a challenger bet. This is a living guide: names, numbers, and statuses reflect the latest reported quarter (Q1-2026, reported 7 May 2026), not a single event snapshot.
   </p>
   <div class="thesis">
     <span class="chip"><span class="k">4</span> stable categories</span>
     <span class="chip"><span class="k">3</span> Gartner super-markets</span>
-    <span class="chip"><span class="k">25</span> products (Dec-25)</span>
+    <span class="chip"><span class="k">25+</span> products</span>
     <span class="chip">AI = <span class="k">tag</span>, not TAM</span>
+    <span class="chip">NRR <span class="k">low-120%</span> · TTM</span>
+    <span class="chip">Q1-26 rev <span class="k">$1.006B</span> · +32%</span>
   </div>
 
   <div class="bar">
@@ -198,16 +200,16 @@
   <div class="foot">
     <div class="note">
       <h3>Reading the maturity layer</h3>
-      <div class="mrow"><i style="background:var(--m-core)"></i><span><b>Core — strength.</b> Proven, market-leading, the cash engine. High defensibility, low remaining upside.</span></div>
+      <div class="mrow"><i style="background:var(--m-core)"></i><span><b>Core — strength.</b> Proven, market-leading, the cash engine — and still compounding: core APM re-accelerated to mid-30s% growth and the AI wave expands core demand (more hosts, GPUs, logs), not just adjacents.</span></div>
       <div class="mrow"><i style="background:var(--m-proven)"></i><span><b>Proven expansion.</b> Working land-and-expand; mostly settled, moderate upside.</span></div>
-      <div class="mrow"><i style="background:var(--m-contested)"></i><span><b>Contested bet.</b> Challenger in a big market; real upside, unproven monetization.</span></div>
-      <div class="mrow"><i style="background:var(--m-option)"></i><span><b>Optionality.</b> Early, thin, speculative — highest variance, tiny revenue today.</span></div>
+      <div class="mrow"><i style="background:var(--m-contested)"></i><span><b>Contested bet.</b> Challenger in a big market; real upside, monetization still early (Security suite is ~3% of revenue despite broad penetration).</span></div>
+      <div class="mrow"><i style="background:var(--m-option)"></i><span><b>Optionality.</b> Early, thin, speculative — highest variance, tiny revenue today. Several graduated to GA in 2026 (GPU Monitoring, MCP Server, Experiments, Bits AI Security Analyst).</span></div>
     </div>
     <div class="note">
-      <h3>Anchor discipline</h3>
-      <p><span class="hd">HARD (10-K)</span> — total revenue, US / international split, customer cohorts, dollar-based net retention. Datadog reports as <b>one segment</b>, with no per-product financials.</p>
-      <p><span class="dir">DIRECTIONAL (deck)</span> — everything at product level. Direction yes; absolute numbers into a model, no.</p>
-      <p>Rule: <b>structure and TAM</b> from here; <b>numbers for a DCF</b> from the 10-K / 10-Q.</p>
+      <h3>Hard facts · latest reported</h3>
+      <p><span class="hd">FY2025 (10-K, Dec-31-2025)</span> — revenue $3.427B · NRR ~120% (TTM), GRR mid-high 90s · 84% of customers use 2+ products, 55% 4+, 33% 6+, 18% 8+, 9% 10+ · 4,310 customers at $100k+ ARR ≈ 90% of ARR · one reportable segment, no per-product financials.</p>
+      <p><span class="hd">Q1-2026 (reported 7 May 2026)</span> — revenue $1.006B, +32% y/y (accelerating) · NRR low-120s · 56% use 4+, 35% 6+, 20% 8+ · FY26 guide $4.30–4.34B, 22–23% non-GAAP op margin.</p>
+      <p><span class="dir">PRODUCT-LEVEL ARR</span> — company-stated on earnings calls (Infra &gt;$1.6B, Logs &gt;$1B, APM+DEM &gt;$1B), not audited segment data. Rule: <b>numbers for a DCF from the 10-K/10-Q</b>; product-level from calls with that caveat.</p>
     </div>
     <div class="note">
       <h3>How to read positioning</h3>
@@ -217,7 +219,7 @@
     </div>
   </div>
 
-  <p class="src">Source: Datadog “2026 Investor Day” (Dec-2025) · descriptions and competitor notes are plain-language summaries for orientation, not investment advice · core-pillar ARR estimated from the slide-184 axis.</p>
+  <p class="src">Sources: Datadog 2026 Investor Day (held 12 Feb 2026; operating data as of Dec-2025; Gartner market data per 4Q25/Dec-2025 updates) · FY2025 10-K · Q4-2025 and Q1-2026 earnings (7 May 2026) · company press releases through May 2026. Product naming as of Q1-2026. Descriptions and competitor notes are plain-language summaries for orientation, not investment advice.</p>
 </div>
 
 <div id="backdrop"></div>
@@ -247,21 +249,21 @@ const DATA = [
   anchor:{val:"$28B", none:false, conf:"f", lab:"TAM · 2026E · Gartner"},
   suites:[
    {name:"Core (3 pillars)", pos:"Leader", mat:"core", products:[
-    {n:"Infrastructure Monitoring", arr:"~$1.6B ARR",
+    {n:"Infrastructure Monitoring", arr:">$1.6B ARR",
      what:"Tracks the health of everything your code runs on — servers, VMs, containers, Kubernetes pods, cloud services — as live metrics (CPU, memory, disk, network, uptime), with 800+ ready-made integrations.",
      ex:"A Kubernetes node quietly runs out of memory at 2am. It shows the pod restarts and the memory-climb graph and pages you before customers ever see 500 errors.",
-     why:"You can't run cloud systems blind, so this is usually the first Datadog product a company buys. It's priced per host, so revenue grows automatically as customers move more workloads to cloud and containers.",
+     why:"You can't run cloud systems blind, so this is usually the first Datadog product a company buys. Pricing is usage-linked (per host), but through a mix of annual and multi-year subscriptions, committed usage, monthly usage, and overages — so growing workloads create an expansion vector rather than automatic revenue: customers can and do optimize usage, renegotiate commitments, and change architecture.",
      edge:"Datadog is the clear leader. The advantage is breadth plus a single pane: one agent, hundreds of integrations, and metrics/traces/logs correlated together — versus stitching separate tools. It competes with the hyperscalers' own tools (CloudWatch, Azure Monitor) and Dynatrace/New Relic; the hyperscalers are cheaper and 'good enough' for single-cloud shops, which caps how much Datadog can charge."},
-    {n:"Log Management", arr:"~$1.0B ARR",
+    {n:"Log Management", arr:">$1.0B ARR",
      what:"Ingests, stores, and makes searchable every log line your systems emit — app logs, access logs, errors — from thousands of services, with fast full-text search.",
      ex:"A checkout fails intermittently. You search all logs for that one request ID across every microservice in a single query, instead of SSH-ing into ten machines to grep.",
      why:"Logs are where the 'why' of a problem lives, and having them beside your metrics and traces — click from a slow trace straight to its logs — is a huge time-saver in an incident. Log volume grows with usage, making it a strong expansion line.",
-     edge:"Leader, but the most price-pressured of the three pillars: logs are expensive to store, and cheaper options (Grafana Loki, Elastic, OpenSearch) compete hard on cost. Datadog's answer is tiered storage — ingest everything, index only what you need — plus the value of having logs correlated with the rest of the platform. You pay a premium for the correlation, not the storage."},
-    {n:"APM", arr:"~$0.85B ARR",
+     edge:"Leader, but the most price-pressured of the three pillars: logs are expensive to store, and cheaper options (Grafana Loki, Elastic, OpenSearch) compete hard on cost. Datadog's answer is tiered storage — ingest everything, index only what you need (Flex Logs, itself approaching $100M ARR) — plus the value of having logs correlated with the rest of the platform. You pay a premium for the correlation, not the storage. BYOC-style deployment (data staying in the customer's own storage) further defuses the cost objection at some margin cost."},
+    {n:"APM", arr:"APM+DEM >$1B ARR",
      what:"Distributed tracing that follows one request across every service, function, and database call in your backend and shows exactly where the time went.",
      ex:"An endpoint is slow. The flame graph reveals the request spent 2.4s on a single N+1 query buried three services deep — you see the exact span, not just 'the service is slow.'",
      why:"In microservices, 'which service is slow' is genuinely hard, and APM answers it in seconds — mapping directly to developer productivity and to customer-facing latency. It's the natural upsell on top of Infrastructure Monitoring.",
-     edge:"Strong leader. The moat is that APM data is most useful stitched to your infra metrics and logs — which Datadog already holds. It competes with Dynatrace, New Relic, and open-source stacks built on OpenTelemetry (Grafana Tempo, Honeycomb). OpenTelemetry is the thing to watch: as instrumentation becomes a vendor-neutral standard, it lowers switching costs and lets cheaper backends compete — a slow threat to APM's stickiness."},
+     edge:"Strong leader — and still compounding: core APM growth re-accelerated into the mid-30% range as of the latest quarters. The moat is that APM data is most useful stitched to your infra metrics and logs — which Datadog already holds. It competes with Dynatrace, New Relic, and open-source stacks built on OpenTelemetry (Grafana Tempo, Honeycomb). OpenTelemetry is the thing to watch: as instrumentation becomes a vendor-neutral standard, it lowers switching costs and lets cheaper backends compete — a slow threat to APM's stickiness."},
    ]},
    {name:"Digital Experience Monitoring", pos:"Challenger", mat:"proven", products:[
     {n:"Real User Monitoring", border:true,
@@ -288,7 +290,7 @@ const DATA = [
      what:"Runs A/B and multivariate tests — serve variant A to half your users and B to the other half, then measure which drives the target metric — driven by feature flags with the statistics built in.",
      ex:"You test a green vs. blue 'Buy' button; it reports green lifts conversion 3% with statistical significance, so you ship it to everyone.",
      why:"It replaces opinion-based product decisions with measured ones and reuses the flagging infrastructure teams already have. A natural extension of feature flags into decision-making.",
-     edge:"New and contested — competes with Optimizely, LaunchDarkly, Statsig, and Amplitude Experiment. Datadog's angle is that experiments tied to full observability plus product analytics can measure not just conversion but the performance and error impact of a change. Early days; not a leader."},
+     edge:"Launched to general availability as 'Datadog Experiments' in 2026 — competes with Optimizely, LaunchDarkly, Statsig, and Amplitude Experiment. Datadog's angle is that experiments tied to full observability plus product analytics can measure not just conversion but the performance and error impact of a change, with observability guardrails on every rollout. Newly GA; still a challenger against entrenched experimentation platforms."},
    ]},
    {name:"Wider Observability", pos:"Leader", mat:"proven", products:[
     {n:"Network Monitoring",
@@ -337,14 +339,14 @@ const DATA = [
      what:"Monitors the GPUs powering AI/ML workloads — utilization, memory, temperature, bottlenecks — so you know whether your very expensive silicon is working or stalling.",
      ex:"A training job is slow and costing thousands a day. It shows the GPUs are only 30% utilized because the data-loading pipeline can't feed them fast enough.",
      why:"GPUs are scarce and extremely expensive, so wasted GPU time is wasted money — and the need grows with every AI workload. It ties into the same cost story as FinOps.",
-     edge:"Early and specialized, competing with NVIDIA's own tooling and ML-platform observability. It's a bet that AI infrastructure monitoring becomes a standard need — small today, strategically aligned with the AI wave."},
+     edge:"Generally available since Q1-2026 and no longer just a bet: major hyperscalers are adopting Datadog for GPU/observability in AI-training environments — a break from their historical in-house builds. Competes with NVIDIA's own tooling and ML-platform observability. Still early in revenue terms, but the strategic signal (hyperscalers as customers) is unusually strong for a product this young."},
     {n:"AI Agents Console", ai:true,
      what:"Observability for autonomous AI agents — visualizing the multi-step reasoning and actions an agent takes, so you can see what it decided, which tools it called, and where it went wrong.",
      ex:"A customer-service agent issues a refund it shouldn't. The console shows the exact step and reasoning chain that led there.",
      why:"As companies deploy agents that act on their own, 'why did it do that?' becomes critical for trust, safety, and debugging — exactly the observability problem, one layer up. It anchors Datadog's whole 'observe autonomy' thesis.",
      edge:"Very early, aligned with the CTO's vision that observability is the control layer for AI autonomy; competitors are nascent. Pure optionality — potentially significant if agents go mainstream, negligible if they don't."},
     {n:"Data Observability", ai:true, border:true,
-     what:"Monitors the health and quality of the data flowing through pipelines and warehouses — missing values, schema changes, freshness/staleness, volume anomalies.",
+     what:"A suite (not a single product): Data Quality Monitoring plus Jobs Monitoring, with catalog and lineage capabilities. Together they watch the health of data flowing through pipelines and warehouses — missing values, schema changes, freshness/staleness, volume anomalies, and failing pipeline jobs. Adjacent to (but distinct from) Data Streams Monitoring, which tracks the transport layer (queues/streams) rather than data quality.",
      ex:"A dashboard shows revenue at zero. It reveals an upstream table stopped updating overnight because a schema change broke ingestion — the data is wrong, not the business.",
      why:"Bad data silently corrupts analytics and AI models ('garbage in, garbage out'); catching it early prevents wrong decisions. Increasingly essential as companies depend on data and ML.",
      edge:"New for Datadog and adjacent to a distinct market led by Monte Carlo and Bigeye — a border case between observability and data-quality. A reasonable extension since Datadog sees the pipelines, but it's an entrant here, not a leader."},
@@ -382,11 +384,11 @@ const DATA = [
      ex:"A user tries to jailbreak your chatbot into revealing another customer's data. AI Guard detects the injection pattern and blocks the response.",
      why:"AI features open brand-new attack surfaces that classic security tools don't cover; as companies ship AI, they need protection built for it. It rides the AI and security waves at once.",
      edge:"Very new, part of an emerging category (Lakera, Protect AI). A forward bet that 'AI security' becomes standard — small today, clearly on-trend."},
-    {n:"Bits AI Security Agent", ai:true,
-     what:"An AI assistant that investigates security alerts the way a human analyst would — pulling context, correlating signals, explaining what likely happened, and suggesting next steps.",
-     ex:"An alert fires at 2am. Instead of paging a human, the agent gathers related logs and changes, writes 'likely a compromised API key from this IP,' and recommends revoking it.",
-     why:"Security teams are drowning in alerts and short-staffed; an agent that triages and explains saves scarce analyst time. Part of Datadog's 'AI teammate' story.",
-     edge:"An AI layer over the security suite — assess it as an amplifier that makes the whole bundle stickier, not a standalone product. It competes with AI-SOC startups, and its value depends entirely on the underlying security data being good."},
+    {n:"Bits AI Security Analyst", ai:true,
+     what:"An AI agent that investigates security alerts the way a senior SOC analyst would — pulling context, correlating signals, explaining what likely happened, and delivering a verdict with next steps. Generally available since March 2026 as part of Cloud SIEM, and also offered as a standalone agent deployable in other SIEMs.",
+     ex:"An alert fires at 2am. Instead of paging a human, the agent gathers related logs and changes, writes 'likely a compromised API key from this IP,' and recommends revoking it — Datadog claims investigation time cut by up to 98%.",
+     why:"Security teams are drowning in alerts and short-staffed; an agent that triages and explains saves scarce analyst time. Part of Datadog's 'AI teammate' story — and the standalone-in-any-SIEM option is a notable wedge into competitors' installed bases.",
+     edge:"An AI layer over the security suite — assess it as an amplifier that makes the whole bundle stickier, not a standalone product. It competes with AI-SOC startups and hyperscaler SIEM copilots, and its value depends on the underlying security data being good. The 98%/30-second claims are vendor-stated, not independently verified."},
    ]},
   ]
  },
@@ -425,7 +427,7 @@ const DATA = [
      what:"An adapter implementing the Model Context Protocol so AI assistants can query your Datadog data in natural language — an agent can ask 'what's erroring in prod right now?' and get real, live answers.",
      ex:"From your AI coding assistant you ask 'why did checkout latency spike this morning?' and it pulls the actual Datadog traces to answer.",
      why:"It makes Datadog's data usable by the emerging wave of AI agents, keeping Datadog relevant as AI becomes the interface to tooling. Strategically important for staying in the workflow.",
-     edge:"Forward-looking and on-trend — but note the two-edged nature: it also opens Datadog's data to frontier AI models, which could let an outside agent plus a thin layer capture value Datadog would rather keep. An important item to watch for the moat."},
+     edge:"Generally available since Q1-2026 with management citing rapidly growing adoption — but note the two-edged nature: it also opens Datadog's data to frontier AI models, which could let an outside agent plus a thin layer capture value Datadog would rather keep. The single most important item to watch for the moat."},
     {n:"Bits AI Dev Agent", ai:true,
      what:"An AI coding assistant wired into your live telemetry — it can read real production errors, traces, and metrics to help write, debug, and fix code with actual runtime context.",
      ex:"Given a production error, it proposes a fix informed by the real stack trace and the input that triggered it — not just a guess from reading the source.",
@@ -453,7 +455,7 @@ const DATA = [
      ex:"An incident hits an unfamiliar service. The catalog instantly tells you who owns it, what it depends on, and what depends on it — so you know who to call and what's at risk.",
      why:"In large orgs nobody knows the whole system; a live catalog answers 'what do we run and who owns it,' foundational for ops, security, and onboarding. Increasingly expected in platform engineering.",
      edge:"Overlaps with internal developer portals — Backstage (the open-source standard from Spotify) and Cortex/OpsLevel. Datadog's edge is auto-population from real telemetry rather than manual upkeep, which is Backstage's weakness. Solid within the platform-engineering trend, but competing with a very popular free option."},
-    {n:"Internal Developer Platform",
+    {n:"Internal Developer Portal",
      what:"A self-service layer that lets developers provision services, environments, and resources themselves within guardrails — instead of filing tickets to ops.",
      ex:"A developer clicks to scaffold a new service with monitoring, CI, and permissions pre-wired to company standards — minutes instead of a multi-day ops request.",
      why:"Platform engineering (self-service plus guardrails) is a major trend for scaling engineering without scaling ops headcount. It positions Datadog inside that movement.",
@@ -561,7 +563,7 @@ function openItem(i,cell){
   html+=`<div class="r-sec"><h4>Why it matters</h4><p>${esc(it.why)}</p></div>`;
   html+=`<div class="r-sec pos"><h4>${POSTITLE[it.pos]}</h4><p>${esc(it.edge)}</p></div>`;
   let flags="";
-  if(it.arr) flags+=`<div class="r-arr">Directional ARR: <b>${esc(it.arr)}</b> <span style="color:var(--txt-dim)">(read off the deck's axis)</span></div>`;
+  if(it.arr) flags+=`<div class="r-arr">ARR: <b>${esc(it.arr)}</b> <span style="color:var(--txt-dim)">(company-stated on earnings calls; not audited segment data)</span></div>`;
   if(it.ai) flags+=`<div class="r-flag ai"><b>AI layer.</b> Rides on top of an existing product — weigh it as an amplifier of that product's data advantage, not as its own market.</div>`;
   if(it.border) flags+=`<div class="r-flag"><b>Border product.</b> Could reasonably sit in another category; kept here by a fixed convention so comparisons stay consistent over time.</div>`;
   if(flags) html+=`<div class="r-sec">${flags}</div>`;
