@@ -46,6 +46,24 @@ const MOAT_CONVICTION = {
   },
 };
 
+const EVIDENCE_CONFIDENCE = {
+  high:{
+    label:"High",
+    short:"H",
+    rationale:"Metric-specific evidence is direct, well-scoped, and sufficiently strong to support the point estimate.",
+  },
+  medium:{
+    label:"Medium",
+    short:"M",
+    rationale:"Evidence is relevant and scoped, but remains directional, incomplete, or not independently corroborated.",
+  },
+  low:{
+    label:"Low",
+    short:"L",
+    rationale:"The point estimate relies mainly on portfolio taxonomy, vendor positioning, or map analyst judgment.",
+  },
+};
+
 const MOAT_MECHANISM_EXPLANATION = {
   data_gravity:"The product can benefit when the relevant telemetry is already retained in Datadog, reducing the incremental work needed to activate another use case.",
   cross_signal:"Its value can increase when logs, metrics, traces, security events, and workflow context are analyzed together instead of in separate tools.",
@@ -717,6 +735,56 @@ setMeta([
   moatConviction:"weak",
 });
 
+// Security Suite pilot: keep the point estimate separate from how credible the
+// supporting evidence is. Scores are deliberately evidence-gated where Datadog
+// does not disclose product-level adoption, growth, or competitive outcomes.
+const SECURITY_EVIDENCE_PILOT = {
+  "Cloud Security":{
+    maturity:"validated",
+    position:"challenger",
+    momentum:"insufficient",
+    moatConviction:"credible",
+    evidenceConfidence:{maturity:"low",position:"low",momentum:"low",moatConviction:"low"},
+  },
+  "Code Security":{
+    maturity:"validated",
+    position:"challenger",
+    momentum:"insufficient",
+    moatConviction:"emerging",
+    evidenceConfidence:{maturity:"low",position:"low",momentum:"low",moatConviction:"low"},
+  },
+  "Cloud SIEM":{
+    maturity:"proven",
+    position:"challenger",
+    momentum:"insufficient",
+    moatConviction:"credible",
+    evidenceConfidence:{maturity:"medium",position:"low",momentum:"low",moatConviction:"low"},
+  },
+  "Data Security":{
+    maturity:"validated",
+    position:"challenger",
+    momentum:"insufficient",
+    moatConviction:"emerging",
+    evidenceConfidence:{maturity:"low",position:"low",momentum:"low",moatConviction:"low"},
+  },
+  "Security: AI Guard":{
+    maturity:"option",
+    position:"unproven",
+    momentum:"insufficient",
+    moatConviction:"weak",
+    evidenceConfidence:{maturity:"medium",position:"low",momentum:"low",moatConviction:"low"},
+  },
+  "Bits AI Security Analyst":{
+    maturity:"validated",
+    position:"unproven",
+    momentum:"insufficient",
+    moatConviction:"emerging",
+    evidenceConfidence:{maturity:"low",position:"low",momentum:"low",moatConviction:"low"},
+  },
+};
+
+Object.entries(SECURITY_EVIDENCE_PILOT).forEach(([name,values]) => setMeta([name],values));
+
 const BOUNDARY_CONVENTIONS = {
   "Real User Monitoring":{
     canonicalCategory:"obs",
@@ -1014,7 +1082,41 @@ const buildAssessmentEvidence = (product,meta,legacyEvidence,q1Evidence) => {
 
   let momentumRationale;
   let momentumSources;
-  if(latest){
+  const momentumKey = meta.momentum || "insufficient";
+  if(meta.evidenceConfidence && momentumKey === "insufficient"){
+    momentumRationale = "Insufficient evidence means the available product or suite signal does not establish a product-specific adoption or growth direction.";
+    momentumSources = [
+      assessmentSource(
+        "sec-10k-2025",
+        "Business and segment reporting",
+        "Datadog reports substantially all revenue as subscription software sales and does not provide stand-alone product revenue in the filing.",
+        "parsed_summary",
+        {role:"limitation",scope:"company"}
+      ),
+      assessmentSource(
+        "datadog-investor-day-2026",
+        "Product taxonomy; no stand-alone product financials",
+        `${product.n} is visible in the portfolio taxonomy, but the presentation does not provide a product-level growth series.`,
+        "note",
+        {role:"limitation",scope:"portfolio taxonomy"}
+      ),
+    ];
+    if(traction){
+      momentumSources.push(
+        assessmentSource(
+          "reflexivity-ibkr-2026",
+          traction.locator,
+          traction.claim,
+          "parsed_summary",
+          {
+            role:"context",
+            scope:traction.scope,
+            caveat:"This is a suite-level or directional signal. It is not sufficient to establish a product-specific momentum rating.",
+          }
+        )
+      );
+    }
+  } else if(latest){
     momentumRationale = `${latest.claim} Directional only; no product revenue is disclosed.`;
     momentumSources = [assessmentSource("datadog-q1-2026-call",latest.locator,latest.excerpt,latest.excerptType,{
       role:"supporting",
@@ -1029,7 +1131,7 @@ const buildAssessmentEvidence = (product,meta,legacyEvidence,q1Evidence) => {
       scope:traction.scope,
       caveat:"Normalized summary from subscriber research; use it as directional evidence rather than a verbatim company disclosure.",
     })];
-  } else if((meta.momentum || "insufficient") === "stable"){
+  } else if(momentumKey === "stable"){
     momentumRationale = "Stable means no product-specific acceleration or deterioration was disclosed; the product remains an established part of the current suite.";
     momentumSources = [
       assessmentSource(
@@ -1045,7 +1147,7 @@ const buildAssessmentEvidence = (product,meta,legacyEvidence,q1Evidence) => {
         "The live product page supports continued portfolio presence, not the absence or presence of growth acceleration."
       ),
     ];
-  } else if((meta.momentum || "insufficient") === "improving"){
+  } else if(momentumKey === "improving"){
     momentumRationale = "Improving is an author assessment based on recent launch cadence and expanded suite placement; Datadog does not disclose stand-alone product growth.";
     momentumSources = [
       assessmentSource(
@@ -1113,7 +1215,7 @@ const buildAssessmentEvidence = (product,meta,legacyEvidence,q1Evidence) => {
   return {
     maturity:{
       rationale:maturityRationale,
-      confidence:maturityEvidence ? "medium" : "low",
+      confidence:meta.evidenceConfidence?.maturity || (maturityEvidence ? "medium" : "low"),
       asOf:"2026-Q1",
       sources:[
         maturitySource,
@@ -1126,19 +1228,19 @@ const buildAssessmentEvidence = (product,meta,legacyEvidence,q1Evidence) => {
     },
     position:{
       rationale:positionRationale,
-      confidence:competitorNames.length ? "medium" : "low",
+      confidence:meta.evidenceConfidence?.position || (competitorNames.length ? "medium" : "low"),
       asOf:"2026-Q1",
       sources:positionSources,
     },
     momentum:{
       rationale:momentumRationale,
-      confidence:latest || traction ? "medium" : "low",
+      confidence:meta.evidenceConfidence?.momentum || (latest || traction ? "medium" : "low"),
       asOf:"2026-Q1",
       sources:momentumSources,
     },
     moatConviction:{
       rationale:moatRationale,
-      confidence:["strong","credible"].includes(moatKey) ? "medium" : "low",
+      confidence:meta.evidenceConfidence?.moatConviction || (["strong","credible"].includes(moatKey) ? "medium" : "low"),
       asOf:"2026-Q1",
       sources:moatSources,
     },
@@ -1183,6 +1285,7 @@ const normalizeProducts = () => {
       moat:meta.moat || ["bundle"],
       moatConviction:meta.moatConviction || "emerging",
       moatConvictionRationale:MOAT_CONVICTION[meta.moatConviction || "emerging"].rationale,
+      evidenceConfidence:meta.evidenceConfidence || null,
       dcf:meta.dcf || ["nrr"],
       capabilities:meta.capabilities || [],
       canonicalCategory:meta.canonicalCategory || firstCategory[product.n],
@@ -1213,6 +1316,7 @@ window.PRODUCT_MAP = {
   position:POSITION,
   momentum:MOMENTUM,
   moatConviction:MOAT_CONVICTION,
+  evidenceConfidence:EVIDENCE_CONFIDENCE,
   entityTypes:ENTITY_TYPES,
   relatedEntities:RELATED_ENTITIES,
   platformEnablers:PLATFORM_ENABLERS,

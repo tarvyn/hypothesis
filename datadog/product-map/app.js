@@ -21,7 +21,7 @@
     {id:"maturity",short:"MAT",label:"Maturity",definitions:model.maturity},
     {id:"position",short:"POS",label:"Position",definitions:model.position},
     {id:"momentum",short:"MOM",label:"Momentum",definitions:model.momentum},
-    {id:"moatConviction",short:"MOAT",label:"Moat conviction",definitions:model.moatConviction},
+    {id:"moatConviction",short:"MOAT",label:"Moat strength",definitions:model.moatConviction},
   ];
 
   const FILTERS = [
@@ -152,24 +152,39 @@
   }
 
   function renderLegend(){
-    legend.innerHTML = SCORECARD.map(item =>
+    const scoreKeys = SCORECARD.map(item =>
       `<span class="score-key"><b>${esc(item.short)}</b>${esc(item.label)}</span>`
     ).join("");
+    legend.innerHTML = `${scoreKeys}
+      <span class="confidence-key" title="High, medium, or low confidence in the evidence supporting the point estimate">
+        <span class="evidence-confidence confidence-high">H</span>
+        <span class="evidence-confidence confidence-medium">M</span>
+        <span class="evidence-confidence confidence-low">L</span>
+        <span>evidence · Security pilot</span>
+      </span>`;
   }
 
   function scoreMeter(item,definition){
     const value = definition.definitions[item[definition.id]];
     const unknown = value.score === null;
+    const confidence = item.evidenceConfidence?.[definition.id] || null;
+    const confidenceDefinition = confidence ? model.evidenceConfidence[confidence] : null;
     const segments = Array.from({length:value.max},(_,index) =>
       `<i class="${unknown ? "unknown" : index < value.score ? "active" : ""}"></i>`
     ).join("");
-    return `<span class="score-row ${unknown ? "is-unknown" : ""}"
-      title="${esc(definition.label)}: ${esc(value.label)}"
-      aria-label="${esc(definition.label)}: ${esc(value.label)}"
+    const confidenceCopy = confidenceDefinition
+      ? ` · evidence confidence: ${confidenceDefinition.label}`
+      : "";
+    return `<span class="score-row ${unknown ? "is-unknown" : ""} ${confidence ? `has-confidence confidence-${confidence}` : ""}"
+      title="${esc(definition.label)}: ${esc(value.label)}${esc(confidenceCopy)}"
+      aria-label="${esc(definition.label)}: ${esc(value.label)}${esc(confidenceCopy)}"
       style="--score-color:${value.color}">
       <span class="score-label">${esc(definition.short)}</span>
       <span class="score-track" aria-hidden="true">${segments}</span>
       <span class="score-value">${esc(value.label)}</span>
+      ${confidenceDefinition
+        ? `<span class="evidence-confidence confidence-${esc(confidence)}" title="Evidence confidence: ${esc(confidenceDefinition.label)}">${esc(confidenceDefinition.short)}</span>`
+        : `<span class="evidence-confidence is-unrated" aria-hidden="true"></span>`}
     </span>`;
   }
 
@@ -325,11 +340,17 @@
   function assessmentCard(item,definition,heading){
     const value = definition.definitions[item[definition.id]];
     const evidence = item.assessmentEvidence[definition.id];
+    const confidence = model.evidenceConfidence[evidence.confidence];
     return `<article class="assessment" style="--assessment:${value.color}">
       <span class="assessment-label">${esc(heading)}</span>
       <strong><i></i>${esc(value.label)}</strong>
       <p>${esc(evidence.rationale)}</p>
-      <div class="assessment-meta">${esc(evidence.asOf)} · ${esc(evidence.confidence)} confidence</div>
+      <div class="assessment-meta">
+        <span class="evidence-confidence confidence-${esc(evidence.confidence)}">${esc(confidence?.short || evidence.confidence.slice(0,1))}</span>
+        <span>${esc(confidence?.label || evidence.confidence)} evidence confidence</span>
+        <span>·</span>
+        <span>${esc(evidence.asOf)}</span>
+      </div>
       <div class="assessment-sources">
         <span class="assessment-sources-label">Evidence & reasoning · ${evidence.sources.length}</span>
         ${evidence.sources.map(source => sourceCitation(source,true)).join("")}
@@ -349,7 +370,7 @@
       tag(model.maturity[item.maturity]?.label,true,model.maturity[item.maturity]?.color),
       tag(model.position[item.position]?.label,true,model.position[item.position]?.color),
       tag(model.momentum[item.momentum]?.label),
-      tag(`${model.moatConviction[item.moatConviction]?.label} moat`,true,model.moatConviction[item.moatConviction]?.color),
+      tag(`${model.moatConviction[item.moatConviction]?.label} moat strength`,true,model.moatConviction[item.moatConviction]?.color),
       item.workloads.includes("ai") ? tag("AI layer",true,"var(--ai)") : "",
     ].join("");
 
@@ -404,7 +425,7 @@
           ${assessmentCard(item,SCORECARD[0],"Commercial maturity")}
           ${assessmentCard(item,SCORECARD[1],"Competitive position")}
           ${assessmentCard(item,SCORECARD[2],"Momentum")}
-          ${assessmentCard(item,SCORECARD[3],"Moat conviction")}
+          ${assessmentCard(item,SCORECARD[3],"Moat strength")}
         </div>
       </div>
       <div class="r-sec">
@@ -413,7 +434,7 @@
       </div>
       ${item.competitors.length ? `<div class="r-sec"><h4>Competitive set</h4><div class="comp-grid">${item.competitors.map(([name,type]) => `<span class="comp ${esc(type)}">${esc(name)}</span>`).join("")}</div></div>` : ""}
       <div class="r-sec"><h4>Moat assessment</h4>
-        <div class="r-callout"><b>${esc(model.moatConviction[item.moatConviction].label)} conviction</b>${esc(item.moatConvictionRationale)}</div>
+        <div class="r-callout"><b>${esc(model.moatConviction[item.moatConviction].label)} strength</b>${esc(item.moatConvictionRationale)}</div>
         <div class="moat-mechanisms"><span>Mechanisms</span>${tagList(item.moat,MOAT)}</div>
       </div>
       <div class="r-sec"><h4>Commercial tags</h4>
