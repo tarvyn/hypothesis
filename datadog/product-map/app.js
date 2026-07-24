@@ -32,32 +32,12 @@
 
   const CATEGORY_LABELS = Object.fromEntries(model.categories.map(category => [category.id, category.catName]));
 
-  const VIEW_MODES = {
-    category:{
-      label:"Categories",
-      explainer:"Stable Gartner-linked market backbone. The color does not move when Datadog renames suites.",
-    },
-    maturity:{
-      label:"Maturity",
-      explainer:"Commercial validation only: scaled, proven, validated early, or preview/option.",
-    },
-    position:{
-      label:"Position",
-      explainer:"Relative competitive standing, kept separate from commercial maturity.",
-    },
-    momentum:{
-      label:"Momentum",
-      explainer:"Latest evidence direction. It can change each quarter without rewriting maturity.",
-    },
-    moat:{
-      label:"Moat",
-      explainer:"Primary mechanism that makes a product harder to displace or improves the platform.",
-    },
-    dcf:{
-      label:"DCF",
-      explainer:"Primary model lever informed by product evidence—never invented product revenue.",
-    },
-  };
+  const SCORECARD = [
+    {id:"maturity",short:"MAT",label:"Maturity",definitions:model.maturity},
+    {id:"position",short:"POS",label:"Position",definitions:model.position},
+    {id:"momentum",short:"MOM",label:"Momentum",definitions:model.momentum},
+    {id:"moatConviction",short:"MOAT",label:"Moat conviction",definitions:model.moatConviction},
+  ];
 
   const FILTERS = [
     {
@@ -128,7 +108,7 @@
     },
   ];
 
-  const state = {view:"category",filters:new Set(),selected:null};
+  const state = {filters:new Set(),selected:null};
   const refs = {};
   const allItems = [];
   const esc = value => String(value ?? "")
@@ -136,7 +116,6 @@
   const pretty = value => String(value).replace(/_/g," ").replace(/\b\w/g,letter => letter.toUpperCase());
 
   const headlineStats = document.getElementById("headline-stats");
-  const viewModes = document.getElementById("view-modes");
   const filters = document.getElementById("filters");
   const clearFilters = document.getElementById("clear-filters");
   const explainer = document.getElementById("active-explainer");
@@ -165,10 +144,6 @@
     `<span class="chip">NRR <b>low-120%</b> · TTM</span>`,
   ].join("");
 
-  viewModes.innerHTML = Object.entries(VIEW_MODES).map(([id,definition]) =>
-    `<button type="button" data-view="${id}" aria-pressed="${state.view === id}">${esc(definition.label)}</button>`
-  ).join("");
-
   filters.innerHTML = FILTERS.map(filter =>
     `<button class="filter" type="button" data-filter="${filter.id}" aria-pressed="false" aria-describedby="overlay-help-${filter.id}">
       <span>${esc(filter.label)}</span>
@@ -192,43 +167,30 @@
     }).join("");
   }
 
-  function viewColor(item){
-    if(state.view === "category") return item.categoryColor;
-    if(state.view === "maturity") return model.maturity[item.maturity]?.color || "var(--txt-dim)";
-    if(state.view === "position") return model.position[item.position]?.color || "var(--txt-dim)";
-    if(state.view === "momentum") return model.momentum[item.momentum]?.color || "var(--txt-dim)";
-    if(state.view === "moat") return MOAT[item.moat[0]]?.color || "var(--txt-dim)";
-    if(state.view === "dcf") return DCF[item.dcf[0]]?.color || "var(--txt-dim)";
-    return item.categoryColor;
-  }
-
-  function viewLabel(item){
-    if(state.view === "category") return item.categoryName;
-    if(state.view === "maturity") return model.maturity[item.maturity]?.label;
-    if(state.view === "position") return model.position[item.position]?.label;
-    if(state.view === "momentum") return model.momentum[item.momentum]?.label;
-    if(state.view === "moat") return MOAT[item.moat[0]]?.label;
-    if(state.view === "dcf") return DCF[item.dcf[0]]?.label;
-    return "";
-  }
-
-  function legendEntries(){
-    if(state.view === "category") return model.categories.map(category => ({label:category.catName,color:category.color}));
-    if(state.view === "maturity") return Object.values(model.maturity).map(item => ({label:item.label,color:item.color}));
-    if(state.view === "position") return Object.values(model.position).map(item => ({label:item.label,color:item.color}));
-    if(state.view === "momentum") return Object.values(model.momentum).map(item => ({label:item.label,color:item.color}));
-    if(state.view === "moat"){
-      const used = new Set(allItems.map(item => item.moat[0]));
-      return [...used].map(key => ({label:MOAT[key]?.label || pretty(key),color:MOAT[key]?.color || "var(--txt-dim)"}));
-    }
-    const used = new Set(allItems.map(item => item.dcf[0]));
-    return [...used].map(key => ({label:DCF[key]?.label || pretty(key),color:DCF[key]?.color || "var(--txt-dim)"}));
-  }
-
   function renderLegend(){
-    legend.innerHTML = legendEntries().map(item =>
-      `<span class="legend-item" style="--legend:${item.color}"><i></i>${esc(item.label)}</span>`
+    legend.innerHTML = SCORECARD.map(item =>
+      `<span class="score-key"><b>${esc(item.short)}</b>${esc(item.label)}</span>`
     ).join("");
+  }
+
+  function scoreMeter(item,definition){
+    const value = definition.definitions[item[definition.id]];
+    const unknown = value.score === null;
+    const segments = Array.from({length:value.max},(_,index) =>
+      `<i class="${unknown ? "unknown" : index < value.score ? "active" : ""}"></i>`
+    ).join("");
+    return `<span class="score-row ${unknown ? "is-unknown" : ""}"
+      title="${esc(definition.label)}: ${esc(value.label)}"
+      aria-label="${esc(definition.label)}: ${esc(value.label)}"
+      style="--score-color:${value.color}">
+      <span class="score-label">${esc(definition.short)}</span>
+      <span class="score-track" aria-hidden="true">${segments}</span>
+      <span class="score-value">${esc(value.label)}</span>
+    </span>`;
+  }
+
+  function productScorecard(item){
+    return `<span class="product-scorecard">${SCORECARD.map(definition => scoreMeter(item,definition)).join("")}</span>`;
   }
 
   function matchesFilters(item){
@@ -278,15 +240,13 @@
                   const key = `${category.id}-${slugKey(suite.name)}-${item.id}-${index}`;
                   refs[key] = item;
                   const match = matchesFilters(item);
-                  const color = viewColor(item);
-                  const positionColor = model.position[item.position]?.color || "var(--txt-dim)";
                   return `<button class="cell ${item.border ? "border" : ""} ${match && state.filters.size ? "is-match" : ""} ${!match ? "is-dimmed" : ""}"
-                    type="button" data-item="${esc(key)}" style="--cell-color:${color};--position-color:${positionColor}"
+                    type="button" data-item="${esc(key)}" style="--cell-color:${item.categoryColor}"
                     aria-label="Open ${esc(item.n)} details">
                     ${item.workloads.includes("ai") ? '<span class="ai-dot" aria-hidden="true"></span>' : ""}
                     <span class="cell-name">${esc(item.n)}</span>
-                    <span class="cell-meta"><i></i>${esc(viewLabel(item))}</span>
                     ${item.arr ? `<span class="arr">${esc(item.arr)}</span>` : ""}
+                    ${productScorecard(item)}
                   </button>`;
                 }).join("")}
               </div>
@@ -308,10 +268,7 @@
           `<p><b>${esc(filter.label)}</b><span>${esc(filter.purpose)}</span></p>`
         ).join("")}</div>`
       : `<span class="overlay-empty">Hover or focus an overlay for its purpose; select overlays to combine them.</span>`;
-    explainer.innerHTML = `
-      <div class="view-explanation"><b>${esc(VIEW_MODES[state.view].label)}:</b> ${esc(VIEW_MODES[state.view].explainer)}</div>
-      ${filterCopy}
-    `;
+    explainer.innerHTML = filterCopy;
     clearFilters.disabled = state.filters.size === 0;
   }
 
@@ -320,7 +277,6 @@
     renderEnablers();
     renderLanes();
     renderExplainer();
-    viewModes.querySelectorAll("button").forEach(button => button.setAttribute("aria-pressed",button.dataset.view === state.view));
     filters.querySelectorAll("button").forEach(button => button.setAttribute("aria-pressed",state.filters.has(button.dataset.filter)));
   }
 
@@ -348,6 +304,7 @@
       tag(model.maturity[item.maturity]?.label,true,model.maturity[item.maturity]?.color),
       tag(model.position[item.position]?.label,true,model.position[item.position]?.color),
       tag(model.momentum[item.momentum]?.label),
+      tag(`${model.moatConviction[item.moatConviction]?.label} moat`,true,model.moatConviction[item.moatConviction]?.color),
       item.workloads.includes("ai") ? tag("AI layer",true,"var(--ai)") : "",
     ].join("");
 
@@ -391,7 +348,7 @@
           <div class="assessment"><span>Commercial maturity</span><strong><i style="--assessment:${model.maturity[item.maturity].color}"></i>${esc(model.maturity[item.maturity].label)}</strong></div>
           <div class="assessment"><span>Competitive position</span><strong><i style="--assessment:${model.position[item.position].color}"></i>${esc(model.position[item.position].label)}</strong></div>
           <div class="assessment"><span>Momentum</span><strong><i style="--assessment:${model.momentum[item.momentum].color}"></i>${esc(model.momentum[item.momentum].label)}</strong></div>
-          <div class="assessment"><span>Suite mapping</span><strong>${esc(item.suiteMapping.suite)}</strong></div>
+          <div class="assessment"><span>Moat conviction</span><strong><i style="--assessment:${model.moatConviction[item.moatConviction].color}"></i>${esc(model.moatConviction[item.moatConviction].label)}</strong></div>
         </div>
       </div>
       <div class="r-sec">
@@ -399,7 +356,10 @@
         <p>${esc(item.edge)}</p>
       </div>
       ${item.competitors.length ? `<div class="r-sec"><h4>Competitive set</h4><div class="comp-grid">${item.competitors.map(([name,type]) => `<span class="comp ${esc(type)}">${esc(name)}</span>`).join("")}</div></div>` : ""}
-      <div class="r-sec"><h4>Moat mechanisms</h4>${tagList(item.moat,MOAT)}</div>
+      <div class="r-sec"><h4>Moat assessment</h4>
+        <div class="r-callout"><b>${esc(model.moatConviction[item.moatConviction].label)} conviction</b>${esc(item.moatConvictionRationale)}</div>
+        <div class="moat-mechanisms"><span>Mechanisms</span>${tagList(item.moat,MOAT)}</div>
+      </div>
       <div class="r-sec"><h4>DCF linkage</h4>${tagList(item.dcf,DCF)}</div>
       <div class="r-sec"><h4>Commercial tags</h4>
         <div class="tag-list">
@@ -427,14 +387,6 @@
     document.querySelectorAll(".cell.selected").forEach(node => node.classList.remove("selected"));
     state.selected = null;
   }
-
-  viewModes.addEventListener("click",event => {
-    const button = event.target.closest("[data-view]");
-    if(!button) return;
-    state.view = button.dataset.view;
-    closeReader();
-    render();
-  });
 
   filters.addEventListener("click",event => {
     const button = event.target.closest("[data-filter]");

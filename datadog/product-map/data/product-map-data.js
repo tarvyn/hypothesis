@@ -6,25 +6,44 @@ const MAT = {
 };
 
 const MATURITY = {
-  scaled:{color:"var(--m-core)",label:"Scaled"},
-  proven:{color:"var(--m-proven)",label:"Proven"},
-  validated:{color:"var(--m-contested)",label:"Validated early"},
-  option:{color:"var(--m-option)",label:"Preview / option"},
+  scaled:{color:"var(--m-core)",label:"Scaled",score:4,max:4},
+  proven:{color:"var(--m-proven)",label:"Proven",score:3,max:4},
+  validated:{color:"var(--m-contested)",label:"Validated early",score:2,max:4},
+  option:{color:"var(--m-option)",label:"Preview / option",score:1,max:4},
 };
 
 const POSITION = {
-  leader:{color:"#2ed6a0",label:"Leader"},
-  strong_challenger:{color:"#4aa3e0",label:"Strong challenger"},
-  challenger:{color:"#f5b13f",label:"Challenger"},
-  niche:{color:"#a78bfa",label:"Niche"},
-  unproven:{color:"#6b7398",label:"Unproven"},
+  leader:{color:"#2ed6a0",label:"Leader",score:5,max:5},
+  strong_challenger:{color:"#4aa3e0",label:"Strong challenger",score:4,max:5},
+  challenger:{color:"#f5b13f",label:"Challenger",score:3,max:5},
+  niche:{color:"#a78bfa",label:"Niche",score:2,max:5},
+  unproven:{color:"#6b7398",label:"Unproven",score:1,max:5},
 };
 
 const MOMENTUM = {
-  improving:{color:"#2ed6a0",label:"Improving"},
-  stable:{color:"#4aa3e0",label:"Stable"},
-  watch:{color:"#f5b13f",label:"Watch"},
-  insufficient:{color:"#6b7398",label:"Insufficient evidence"},
+  improving:{color:"#2ed6a0",label:"Improving",score:3,max:3},
+  stable:{color:"#4aa3e0",label:"Stable",score:2,max:3},
+  watch:{color:"#f5b13f",label:"Watch",score:1,max:3},
+  insufficient:{color:"#6b7398",label:"Insufficient evidence",score:null,max:3},
+};
+
+const MOAT_CONVICTION = {
+  strong:{
+    color:"#2ed6a0",label:"Strong",score:4,max:4,
+    rationale:"Scaled adoption and multiple reinforcing mechanisms make the differentiation difficult to reproduce or displace.",
+  },
+  credible:{
+    color:"#4aa3e0",label:"Credible",score:3,max:4,
+    rationale:"Platform context and workflow integration create meaningful differentiation, though the advantage is not fully category-defining.",
+  },
+  emerging:{
+    color:"#f5b13f",label:"Emerging",score:2,max:4,
+    rationale:"The moat mechanism is plausible, but adoption, switching-cost, or durability evidence is still incomplete.",
+  },
+  weak:{
+    color:"#ff5c8a",label:"Weak",score:1,max:4,
+    rationale:"Current differentiation is mostly completeness or bundling; durable switching costs are not yet demonstrated.",
+  },
 };
 
 const ENTITY_TYPES = {
@@ -377,6 +396,7 @@ const setMeta = (names, values) => names.forEach(name => {
     motion:["expand"],
     workloads:[],
     moat:["bundle"],
+    moatConviction:"emerging",
     dcf:["nrr"],
     capabilities:[],
     ...PRODUCT_META[name],
@@ -542,6 +562,25 @@ setMeta(["On-Call","Incident Management"], {
 
 setMeta(["Cloud Security","Cloud SIEM","Data Security","Bits AI Security Analyst"], {
   workloads:[...(PRODUCT_META["Cloud Security"]?.workloads || []),"regulated"],
+});
+
+setMeta(["Infrastructure Monitoring","Log Management","APM"], {
+  moatConviction:"strong",
+});
+
+setMeta([
+  "Real User Monitoring","Network Monitoring","Continuous Profiler",
+  "Database Monitoring","Observability Pipelines","Cloud Security",
+  "Cloud SIEM","CI Visibility","Incident Management",
+], {
+  moatConviction:"credible",
+});
+
+setMeta([
+  "Mobile App Testing","AI Agents Console","Security: AI Guard",
+  "Bits AI Dev Agent","App Builder",
+], {
+  moatConviction:"weak",
 });
 
 const BOUNDARY_CONVENTIONS = {
@@ -727,6 +766,8 @@ const normalizeProducts = () => {
         ...(meta.workloads || []),
       ].filter((value,index,array) => array.indexOf(value) === index),
       moat:meta.moat || ["bundle"],
+      moatConviction:meta.moatConviction || "emerging",
+      moatConvictionRationale:MOAT_CONVICTION[meta.moatConviction || "emerging"].rationale,
       dcf:meta.dcf || ["nrr"],
       capabilities:meta.capabilities || [],
       canonicalCategory:meta.canonicalCategory || firstCategory[product.n],
@@ -755,6 +796,7 @@ window.PRODUCT_MAP = {
   maturity:MATURITY,
   position:POSITION,
   momentum:MOMENTUM,
+  moatConviction:MOAT_CONVICTION,
   entityTypes:ENTITY_TYPES,
   relatedEntities:RELATED_ENTITIES,
   platformEnablers:PLATFORM_ENABLERS,

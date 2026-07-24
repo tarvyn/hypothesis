@@ -73,6 +73,8 @@
         "maturity",
         "position",
         "momentum",
+        "moatConviction",
+        "moatConvictionRationale",
         "canonicalCategory",
         "suiteMappings",
         "monetization",
@@ -89,6 +91,8 @@
         "maturity": {"enum": ["scaled", "proven", "validated", "option"]},
         "position": {"enum": ["leader", "strong_challenger", "challenger", "niche", "unproven"]},
         "momentum": {"enum": ["improving", "stable", "watch", "insufficient"]},
+        "moatConviction": {"enum": ["strong", "credible", "emerging", "weak"]},
+        "moatConvictionRationale": {"type": "string", "minLength": 1},
         "canonicalCategory": {"enum": ["obs", "sec", "dev", "pa"]},
         "suiteMappings": {
           "type": "array",

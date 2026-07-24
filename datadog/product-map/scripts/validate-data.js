@@ -27,6 +27,7 @@ const categoryIds = new Set(model.categories.map(category => category.id));
 const maturityIds = new Set(Object.keys(model.maturity));
 const positionIds = new Set(Object.keys(model.position));
 const momentumIds = new Set(Object.keys(model.momentum));
+const moatConvictionIds = new Set(Object.keys(model.moatConviction));
 const entityTypeIds = new Set(Object.keys(model.entityTypes));
 const seenNames = new Map();
 let references = 0;
@@ -49,6 +50,8 @@ for(const category of model.categories){
       assert(maturityIds.has(product.maturity), `${product.n}: invalid maturity ${product.maturity}`);
       assert(positionIds.has(product.position), `${product.n}: invalid position ${product.position}`);
       assert(momentumIds.has(product.momentum), `${product.n}: invalid momentum ${product.momentum}`);
+      assert(moatConvictionIds.has(product.moatConviction), `${product.n}: invalid moat conviction ${product.moatConviction}`);
+      assert(Boolean(product.moatConvictionRationale), `${product.n}: moat conviction rationale is required`);
       assert(entityTypeIds.has(product.entityType), `${product.n}: invalid entity type ${product.entityType}`);
       assert(categoryIds.has(product.canonicalCategory), `${product.n}: invalid canonical category`);
       assert(Array.isArray(product.moat) && product.moat.length > 0, `${product.n}: moat tags are required`);
