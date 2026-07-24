@@ -12,6 +12,7 @@
     "relatedEntities",
     "platformEnablers",
     "boundaryConventions",
+    "sources",
     "meta"
   ],
   "properties": {
@@ -27,6 +28,10 @@
     "platformEnablers": {
       "type": "array",
       "items": {"$ref": "#/$defs/platformEnabler"}
+    },
+    "sources": {
+      "type": "object",
+      "additionalProperties": {"$ref": "#/$defs/source"}
     },
     "meta": {
       "type": "object",
@@ -82,7 +87,8 @@
         "workloads",
         "moat",
         "dcf",
-        "evidence"
+        "evidence",
+        "assessmentEvidence"
       ],
       "properties": {
         "entityType": {
@@ -102,6 +108,11 @@
         "evidence": {
           "type": "array",
           "items": {"$ref": "#/$defs/evidence"}
+        },
+        "assessmentEvidence": {
+          "type": "object",
+          "required": ["maturity", "position", "momentum", "moatConviction"],
+          "additionalProperties": {"$ref": "#/$defs/assessmentEvidence"}
         }
       }
     },
@@ -112,6 +123,28 @@
     "evidence": {
       "type": "object",
       "required": ["claim", "source", "sourceClass", "scope", "confidence", "asOf"]
+    },
+    "assessmentEvidence": {
+      "type": "object",
+      "required": ["rationale", "confidence", "asOf", "sources"],
+      "properties": {
+        "sources": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["id", "locator"]
+          }
+        }
+      }
+    },
+    "source": {
+      "type": "object",
+      "required": ["label", "publisher", "date", "sourceClass", "access", "url"],
+      "properties": {
+        "access": {"enum": ["public", "subscriber", "internal"]},
+        "url": {"type": ["string", "null"]}
+      }
     },
     "relatedEntity": {
       "type": "object",

@@ -46,6 +46,69 @@ const MOAT_CONVICTION = {
   },
 };
 
+const SOURCE_REGISTRY = {
+  "sec-10k-2025":{
+    label:"Datadog FY2025 Form 10-K",
+    publisher:"Datadog / SEC",
+    date:"2026-02-18",
+    sourceClass:"company_audited",
+    access:"public",
+    url:"https://www.sec.gov/Archives/edgar/data/1561550/000162828026008819/ddog-20251231.htm",
+  },
+  "datadog-investor-day-2026":{
+    label:"Datadog Investor Day 2026",
+    publisher:"Datadog Investor Relations",
+    date:"2026-02-12",
+    sourceClass:"company_directional",
+    access:"public",
+    url:"https://investors.datadoghq.com/events/event-details/investor-day-2026/",
+  },
+  "datadog-q1-2026-call":{
+    label:"Datadog FQ1 2026 earnings call",
+    publisher:"Datadog Investor Relations",
+    date:"2026-05-07",
+    sourceClass:"company_directional",
+    access:"public",
+    url:"https://investors.datadoghq.com/static-files/b162f4b4-ae66-4fd2-bc41-92b4f9a877c9",
+  },
+  "datadog-product-site":{
+    label:"Datadog product portfolio",
+    publisher:"Datadog",
+    date:"2026-07-24",
+    sourceClass:"company_product",
+    access:"public",
+    url:"https://www.datadoghq.com/product/",
+  },
+  "morningstar-ddog-2026":{
+    label:"Morningstar Equity Analyst Report: Datadog",
+    publisher:"Morningstar via IBKR",
+    analyst:"Mark Giarelli",
+    date:"2026-05-07",
+    reportAsOf:"2026-07-18",
+    sourceClass:"third_party_research",
+    access:"subscriber",
+    url:"https://www.interactivebrokers.com/en/pricing/research-news-services.php",
+    rightsNote:"Citation-only. The report PDF is not hosted or redistributed.",
+  },
+  "reflexivity-ibkr-2026":{
+    label:"Reflexivity company research: Datadog",
+    publisher:"Reflexivity via IBKR",
+    date:"2026-07-22",
+    sourceClass:"third_party_research",
+    access:"subscriber",
+    url:"https://www.interactivebrokers.ie/portal/?loginType=1&action=ACCT_MGMT_MAIN&clt=0&RL=1#/quote/383858515/fundamentals/connections",
+    rightsNote:"Subscriber research. Only normalized summaries and locators are used.",
+  },
+  "author-assessment":{
+    label:"Author assessment",
+    publisher:"Product-map analysis",
+    date:"2026-07-24",
+    sourceClass:"author_judgment",
+    access:"internal",
+    url:null,
+  },
+};
+
 const ENTITY_TYPES = {
   product:{label:"Product"},
   product_family:{label:"Product family"},
@@ -686,6 +749,8 @@ const Q1_EVIDENCE = {
     {
       claim:"Initial hyperscaler training validation: one seven-figure and one eight-figure annualized AI-research deal included large parallel GPU-grid monitoring.",
       source:"Datadog FQ1 2026 earnings call",
+      sourceId:"datadog-q1-2026-call",
+      locator:"pp. 5-6; pp. 9-10",
       sourceClass:"company_directional",
       scope:"product_and_bundle",
       confidence:"medium",
@@ -696,6 +761,8 @@ const Q1_EVIDENCE = {
     {
       claim:"LLM Observability spans nearly tripled quarter over quarter.",
       source:"Datadog FQ1 2026 earnings call",
+      sourceId:"datadog-q1-2026-call",
+      locator:"p. 5",
       sourceClass:"company_directional",
       scope:"usage",
       confidence:"medium",
@@ -706,6 +773,8 @@ const Q1_EVIDENCE = {
     {
       claim:"MCP Server tool calls quadrupled quarter over quarter after general availability.",
       source:"Datadog FQ1 2026 earnings call",
+      sourceId:"datadog-q1-2026-call",
+      locator:"p. 5",
       sourceClass:"company_directional",
       scope:"usage",
       confidence:"medium",
@@ -716,6 +785,8 @@ const Q1_EVIDENCE = {
     {
       claim:"Bits AI SRE investigations more than doubled from December to March.",
       source:"Datadog FQ1 2026 earnings call",
+      sourceId:"datadog-q1-2026-call",
+      locator:"p. 5",
       sourceClass:"company_directional",
       scope:"usage",
       confidence:"medium",
@@ -726,12 +797,131 @@ const Q1_EVIDENCE = {
     {
       claim:"APM Recommendations now correlates APM, RUM, profiler, and database telemetry to explain actionable fixes.",
       source:"Datadog FQ1 2026 earnings call",
+      sourceId:"datadog-q1-2026-call",
+      locator:"p. 5",
       sourceClass:"company_directional",
       scope:"capability",
       confidence:"medium",
       asOf:"2026-Q1",
     },
   ],
+};
+
+const firstSentence = value => {
+  const normalized = String(value || "").replace(/\s+/g," ").trim();
+  const match = normalized.match(/^.*?[.!?](?=\s|$)/);
+  return match ? match[0] : normalized;
+};
+
+const compactText = (value,max=150) => {
+  const normalized = String(value || "").replace(/\s+/g," ").trim();
+  if(normalized.length <= max) return normalized;
+  const clipped = normalized.slice(0,max - 1);
+  return `${clipped.slice(0,clipped.lastIndexOf(" "))}…`;
+};
+
+const assessmentSource = (id,locator) => ({id,locator});
+
+const buildAssessmentEvidence = (product,meta,legacyEvidence,q1Evidence) => {
+  const traction = legacyEvidence[0];
+  const latest = q1Evidence[0];
+  const maturityEvidence = latest || traction;
+  const maturitySource = latest
+    ? assessmentSource("datadog-q1-2026-call",latest.locator)
+    : traction
+      ? assessmentSource("reflexivity-ibkr-2026",traction.locator)
+      : assessmentSource("datadog-investor-day-2026","Product taxonomy and suite mapping");
+
+  const maturityRationale = {
+    scaled:maturityEvidence
+      ? `Scaled: ${compactText(firstSentence(maturityEvidence.claim),145)}`
+      : "Scaled reflects established platform-scale adoption and a disclosed core-product role.",
+    proven:maturityEvidence
+      ? `Proven adoption: ${compactText(firstSentence(maturityEvidence.claim),145)}`
+      : "Proven reflects an established commercial product in Datadog's 2026 suite, although stand-alone revenue is not disclosed.",
+    validated:maturityEvidence
+      ? `Early validation: ${compactText(firstSentence(maturityEvidence.claim),145)} Stand-alone scale is undisclosed.`
+      : "Validated early reflects a launched product with a defined buyer and use case, but without disclosed stand-alone scale.",
+    option:"Preview / option reflects a newly introduced surface without disclosed repeatable adoption or product-level revenue.",
+  }[meta.maturity || "validated"];
+
+  const competitorNames = (COMPETITIVE_SETS[product.n] || []).slice(0,2).map(([name]) => name);
+  const competitiveBasis = competitorNames.length
+    ? `The comparison set includes ${competitorNames.join(", ")}.`
+    : "The available evidence does not establish a broad independent competitive set.";
+  const positionRationale = `Author assessment: ${compactText(firstSentence(product.edge),145)} ${competitiveBasis}`;
+  const positionSources = [
+    assessmentSource("author-assessment","Product and competitor comparison"),
+    assessmentSource("datadog-product-site",`${product.n} product positioning`),
+  ];
+  if(["leader","strong_challenger"].includes(meta.position)){
+    positionSources.push(assessmentSource("morningstar-ddog-2026","Competitive context, pp. 2-3"));
+  }
+
+  let momentumRationale;
+  let momentumSources;
+  if(latest){
+    momentumRationale = `${compactText(firstSentence(latest.claim),145)} Directional only; no product revenue is disclosed.`;
+    momentumSources = [assessmentSource("datadog-q1-2026-call",latest.locator)];
+  } else if(traction){
+    momentumRationale = `${compactText(firstSentence(traction.claim),145)} Based on subscriber research synthesis of company disclosures.`;
+    momentumSources = [assessmentSource("reflexivity-ibkr-2026",traction.locator)];
+  } else if((meta.momentum || "insufficient") === "stable"){
+    momentumRationale = "Stable means no product-specific acceleration or deterioration was disclosed; the product remains an established part of the current suite.";
+    momentumSources = [
+      assessmentSource("datadog-investor-day-2026","Product taxonomy and suite mapping"),
+      assessmentSource("datadog-product-site",`${product.n} product positioning`),
+    ];
+  } else if((meta.momentum || "insufficient") === "improving"){
+    momentumRationale = "Improving is an author assessment based on recent launch cadence and expanded suite placement; Datadog does not disclose stand-alone product growth.";
+    momentumSources = [
+      assessmentSource("author-assessment","Launch and suite-cadence interpretation"),
+      assessmentSource("datadog-investor-day-2026","Product taxonomy and launch context"),
+    ];
+  } else {
+    momentumRationale = "Insufficient evidence means Datadog has not disclosed enough product-level adoption or growth data to establish a direction.";
+    momentumSources = [
+      assessmentSource("sec-10k-2025","Business and segment reporting"),
+      assessmentSource("datadog-investor-day-2026","Product taxonomy; no stand-alone product financials"),
+    ];
+  }
+
+  const moatKey = meta.moatConviction || "emerging";
+  const moatNames = (meta.moat || ["bundle"]).map(key => key.replace(/_/g," ")).join(", ");
+  const moatRationale = `Author assessment: ${MOAT_CONVICTION[moatKey].rationale} The product-level case rests on ${moatNames}.`;
+  const moatSources = [
+    assessmentSource("author-assessment","Product-level moat interpretation"),
+    ["strong","credible"].includes(moatKey)
+      ? assessmentSource("morningstar-ddog-2026","Economic Moat, pp. 2-4; company-level corroboration")
+      : assessmentSource("datadog-product-site",`${product.n} integration and workflow claims`),
+  ];
+
+  return {
+    maturity:{
+      rationale:maturityRationale,
+      confidence:maturityEvidence ? "medium" : "low",
+      asOf:"2026-Q1",
+      sources:[maturitySource],
+    },
+    position:{
+      rationale:positionRationale,
+      confidence:competitorNames.length ? "medium" : "low",
+      asOf:"2026-Q1",
+      sources:positionSources,
+    },
+    momentum:{
+      rationale:momentumRationale,
+      confidence:latest || traction ? "medium" : "low",
+      asOf:"2026-Q1",
+      sources:momentumSources,
+    },
+    moatConviction:{
+      rationale:moatRationale,
+      confidence:["strong","credible"].includes(moatKey) ? "medium" : "low",
+      asOf:"2026-Q1",
+      sources:moatSources,
+    },
+  };
 };
 
 const normalizeProducts = () => {
@@ -745,8 +935,10 @@ const normalizeProducts = () => {
     const legacyEvidence = TRACTION[product.n]
       ? [{
           claim:TRACTION[product.n].text,
-          source:"Company disclosures / provider synthesis",
-          sourceClass:"company_directional",
+          source:"Reflexivity via IBKR / company disclosure synthesis",
+          sourceId:"reflexivity-ibkr-2026",
+          locator:`Brand & Product > ${product.n}`,
+          sourceClass:"third_party_research",
           scope:TRACTION[product.n].scope,
           confidence:"medium",
           asOf:"2025-FY to 2026-Q1",
@@ -784,6 +976,7 @@ const normalizeProducts = () => {
       }],
       competitors:COMPETITIVE_SETS[product.n] || [],
       evidence:[...legacyEvidence,...(Q1_EVIDENCE[product.n] || [])],
+      assessmentEvidence:buildAssessmentEvidence(product,meta,legacyEvidence,Q1_EVIDENCE[product.n] || []),
       boundary:BOUNDARY_CONVENTIONS[product.n],
     });
   })));
@@ -801,6 +994,7 @@ window.PRODUCT_MAP = {
   relatedEntities:RELATED_ENTITIES,
   platformEnablers:PLATFORM_ENABLERS,
   boundaryConventions:BOUNDARY_CONVENTIONS,
+  sources:SOURCE_REGISTRY,
   meta:{
     asOf:"2026-Q1",
     companyReportedProductCount:26,

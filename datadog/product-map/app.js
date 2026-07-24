@@ -292,6 +292,34 @@
     return model.relatedEntities.filter(entity => entity.parent === item.n);
   }
 
+  function sourceCitation(sourceRef,compact=false){
+    const source = model.sources[sourceRef.id];
+    if(!source) return "";
+    const label = source.url
+      ? `<a href="${esc(source.url)}" target="_blank" rel="noopener noreferrer">${esc(source.label)}<span aria-hidden="true"> ↗</span></a>`
+      : `<span class="source-name">${esc(source.label)}</span>`;
+    return `<div class="source-citation ${compact ? "is-compact" : ""}">
+      <div class="source-line">
+        ${label}
+        <span class="access-badge access-${esc(source.access)}">${esc(source.access === "subscriber" ? "Subscriber-only" : source.access)}</span>
+      </div>
+      <div class="source-locator">${esc(source.publisher)} · ${esc(source.date)} · ${esc(sourceRef.locator)}</div>
+      ${source.rightsNote && !compact ? `<div class="source-rights">${esc(source.rightsNote)}</div>` : ""}
+    </div>`;
+  }
+
+  function assessmentCard(item,definition,heading){
+    const value = definition.definitions[item[definition.id]];
+    const evidence = item.assessmentEvidence[definition.id];
+    return `<article class="assessment" style="--assessment:${value.color}">
+      <span class="assessment-label">${esc(heading)}</span>
+      <strong><i></i>${esc(value.label)}</strong>
+      <p>${esc(evidence.rationale)}</p>
+      <div class="assessment-meta">${esc(evidence.asOf)} · ${esc(evidence.confidence)} confidence</div>
+      <div class="assessment-sources">${evidence.sources.map(source => sourceCitation(source,true)).join("")}</div>
+    </article>`;
+  }
+
   function openReader(item,cell){
     state.selected = item;
     document.querySelectorAll(".cell.selected").forEach(node => node.classList.remove("selected"));
@@ -320,7 +348,9 @@
             <span>${esc(record.asOf)}</span><span>·</span><span>${esc(record.scope)}</span><span>·</span>
             <span>${esc(record.sourceClass)}</span><span>·</span><span>${esc(record.confidence)} confidence</span>
           </div>
-          <div class="evidence-meta"><span>${esc(record.source)}</span></div>
+          ${record.sourceId
+            ? sourceCitation({id:record.sourceId,locator:record.locator},true)
+            : `<div class="evidence-meta"><span>${esc(record.source)}</span></div>`}
         </div>`).join("")
       : `<div class="r-callout"><b>Evidence status</b>No product-level financial disclosure. Assessment relies on product position, competitive context, and suite logic.</div>`;
 
@@ -345,10 +375,10 @@
       <div class="r-sec">
         <h4>Product-level assessment</h4>
         <div class="assessment-grid">
-          <div class="assessment"><span>Commercial maturity</span><strong><i style="--assessment:${model.maturity[item.maturity].color}"></i>${esc(model.maturity[item.maturity].label)}</strong></div>
-          <div class="assessment"><span>Competitive position</span><strong><i style="--assessment:${model.position[item.position].color}"></i>${esc(model.position[item.position].label)}</strong></div>
-          <div class="assessment"><span>Momentum</span><strong><i style="--assessment:${model.momentum[item.momentum].color}"></i>${esc(model.momentum[item.momentum].label)}</strong></div>
-          <div class="assessment"><span>Moat conviction</span><strong><i style="--assessment:${model.moatConviction[item.moatConviction].color}"></i>${esc(model.moatConviction[item.moatConviction].label)}</strong></div>
+          ${assessmentCard(item,SCORECARD[0],"Commercial maturity")}
+          ${assessmentCard(item,SCORECARD[1],"Competitive position")}
+          ${assessmentCard(item,SCORECARD[2],"Momentum")}
+          ${assessmentCard(item,SCORECARD[3],"Moat conviction")}
         </div>
       </div>
       <div class="r-sec">

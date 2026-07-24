@@ -29,8 +29,19 @@ const positionIds = new Set(Object.keys(model.position));
 const momentumIds = new Set(Object.keys(model.momentum));
 const moatConvictionIds = new Set(Object.keys(model.moatConviction));
 const entityTypeIds = new Set(Object.keys(model.entityTypes));
+const assessmentIds = ["maturity","position","momentum","moatConviction"];
 const seenNames = new Map();
 let references = 0;
+
+assert(model.sources && Object.keys(model.sources).length > 0, "Source registry is required");
+for(const [id, sourceRecord] of Object.entries(model.sources || {})){
+  assert(
+    ["label","publisher","date","sourceClass","access"].every(key => Boolean(sourceRecord[key])),
+    `${id}: incomplete source registry record`
+  );
+  assert(["public","subscriber","internal"].includes(sourceRecord.access), `${id}: invalid access level`);
+  assert(sourceRecord.access === "internal" || Boolean(sourceRecord.url), `${id}: external source URL is required`);
+}
 
 assert(
   ["obs","sec","dev","pa"].every(id => categoryIds.has(id)) && categoryIds.size === 4,
@@ -57,6 +68,7 @@ for(const category of model.categories){
       assert(Array.isArray(product.moat) && product.moat.length > 0, `${product.n}: moat tags are required`);
       assert(Array.isArray(product.dcf) && product.dcf.length > 0, `${product.n}: DCF tags are required`);
       assert(Array.isArray(product.suiteMappings) && product.suiteMappings.length > 0, `${product.n}: suite mapping history is required`);
+      assert(Boolean(product.assessmentEvidence), `${product.n}: assessment evidence is required`);
 
       for(const mapping of product.suiteMappings || []){
         assert(Boolean(mapping.suite && mapping.validFrom && mapping.source), `${product.n}: incomplete suite mapping`);
@@ -66,6 +78,20 @@ for(const category of model.categories){
           ["claim","source","sourceClass","scope","confidence","asOf"].every(key => Boolean(evidence[key])),
           `${product.n}: incomplete evidence record`
         );
+        if(evidence.sourceId){
+          assert(Boolean(model.sources[evidence.sourceId]), `${product.n}: unknown evidence source ${evidence.sourceId}`);
+          assert(Boolean(evidence.locator), `${product.n}: evidence locator is required for ${evidence.sourceId}`);
+        }
+      }
+      for(const assessmentId of assessmentIds){
+        const assessment = product.assessmentEvidence?.[assessmentId];
+        assert(Boolean(assessment?.rationale), `${product.n}: ${assessmentId} rationale is required`);
+        assert(Boolean(assessment?.asOf && assessment?.confidence), `${product.n}: ${assessmentId} metadata is incomplete`);
+        assert(Array.isArray(assessment?.sources) && assessment.sources.length > 0, `${product.n}: ${assessmentId} sources are required`);
+        for(const sourceRef of assessment?.sources || []){
+          assert(Boolean(model.sources[sourceRef.id]), `${product.n}: ${assessmentId} has unknown source ${sourceRef.id}`);
+          assert(Boolean(sourceRef.locator), `${product.n}: ${assessmentId} source locator is required`);
+        }
       }
 
       const prior = seenNames.get(product.n);
