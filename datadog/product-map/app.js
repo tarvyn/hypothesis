@@ -15,21 +15,6 @@
     bundle:{label:"Bundle / consolidation",color:"#6b7398"},
   };
 
-  const DCF = {
-    new_logo:{label:"New logos",color:"#33c6e6"},
-    land_size:{label:"Initial land size",color:"#2ed6a0"},
-    usage_growth:{label:"Usage growth",color:"#7c6bf5"},
-    nrr:{label:"NRR / expansion",color:"#4aa3e0"},
-    grr:{label:"GRR / retention",color:"#55c2a9"},
-    growth_duration:{label:"Growth duration",color:"#f5b13f"},
-    new_tam:{label:"New TAM",color:"#a78bfa"},
-    tam_duration:{label:"TAM duration",color:"#9575cd"},
-    gross_margin_risk:{label:"Gross-margin risk",color:"#ff7a72"},
-    r_and_d_intensity:{label:"R&D intensity",color:"#ff5c8a"},
-    interface_risk:{label:"Interface risk",color:"#ef8f55"},
-    sales_cycle:{label:"Sales cycle",color:"#6b7398"},
-  };
-
   const CATEGORY_LABELS = Object.fromEntries(model.categories.map(category => [category.id, category.catName]));
 
   const SCORECARD = [
@@ -162,7 +147,6 @@
           <span class="entity-badge">${esc(model.entityTypes[item.entityType].label)}</span>
         </div>
         <p>${esc(item.description)}</p>
-        <div class="enabler-links">${item.dcf.map(key => `<span class="micro-tag">${esc(DCF[key]?.label || pretty(key))}</span>`).join("")}</div>
       </article>`;
     }).join("");
   }
@@ -292,7 +276,7 @@
     return model.relatedEntities.filter(entity => entity.parent === item.n);
   }
 
-  function sourceCitation(sourceRef,compact=false,expanded=false){
+  function sourceCitation(sourceRef,compact=false){
     const source = model.sources[sourceRef.id];
     if(!source) return "";
     const sourceUrl = sourceRef.url || source.url;
@@ -315,7 +299,7 @@
     const sourceLink = sourceUrl
       ? `<a href="${esc(sourceUrl)}" target="_blank" rel="noopener noreferrer">${esc(sourceLabel)}<span aria-hidden="true"> ↗</span></a>`
       : `<span class="source-name">${esc(sourceLabel)}</span>`;
-    return `<details class="source-citation ${compact ? "is-compact" : ""} role-${esc(sourceRef.role || "supporting")}" ${expanded ? "open" : ""}>
+    return `<details class="source-citation ${compact ? "is-compact" : ""} role-${esc(sourceRef.role || "supporting")}">
       <summary>
         <span class="evidence-role">${esc(roleLabels[sourceRef.role] || "Evidence")}</span>
         <span class="source-summary-name">${esc(sourceLabel)}</span>
@@ -347,8 +331,8 @@
       <p>${esc(evidence.rationale)}</p>
       <div class="assessment-meta">${esc(evidence.asOf)} · ${esc(evidence.confidence)} confidence</div>
       <div class="assessment-sources">
-        <span class="assessment-sources-label">Evidence & reasoning</span>
-        ${evidence.sources.map(source => sourceCitation(source,true,true)).join("")}
+        <span class="assessment-sources-label">Evidence & reasoning · ${evidence.sources.length}</span>
+        ${evidence.sources.map(source => sourceCitation(source,true)).join("")}
       </div>
     </article>`;
   }
@@ -432,7 +416,6 @@
         <div class="r-callout"><b>${esc(model.moatConviction[item.moatConviction].label)} conviction</b>${esc(item.moatConvictionRationale)}</div>
         <div class="moat-mechanisms"><span>Mechanisms</span>${tagList(item.moat,MOAT)}</div>
       </div>
-      <div class="r-sec"><h4>DCF linkage</h4>${tagList(item.dcf,DCF)}</div>
       <div class="r-sec"><h4>Commercial tags</h4>
         <div class="tag-list">
           ${[...item.monetization,...item.motion,...item.workloads].map(value => `<span class="detail-tag">${esc(pretty(value))}</span>`).join("")}
