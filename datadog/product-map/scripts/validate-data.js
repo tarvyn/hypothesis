@@ -34,6 +34,7 @@ const seenNames = new Map();
 let references = 0;
 
 assert(model.sources && Object.keys(model.sources).length > 0, "Source registry is required");
+assert(model.productSources && Object.keys(model.productSources).length > 0, "Product source registry is required");
 for(const [id, sourceRecord] of Object.entries(model.sources || {})){
   assert(
     ["label","publisher","date","sourceClass","access","hoverText","hoverType"].every(key => Boolean(sourceRecord[key])),
@@ -58,7 +59,17 @@ for(const category of model.categories){
     assert(suite.products.length > 0, `${category.catName} / ${suite.name}: at least one leaf is required`);
     for(const product of suite.products){
       references += 1;
+      const productSource = model.productSources?.[product.n];
       assert(Boolean(product.id), `${product.n}: stable id is required`);
+      assert(Boolean(productSource?.label && productSource?.url), `${product.n}: specific Datadog product source is required`);
+      assert(
+        productSource?.url !== model.sources["datadog-product-site"]?.url,
+        `${product.n}: generic Datadog product portfolio URL is not allowed`
+      );
+      assert(
+        /^https:\/\/(www\.)?(datadoghq\.com|docs\.datadoghq\.com)\//.test(productSource?.url || ""),
+        `${product.n}: product source must use an official Datadog URL`
+      );
       assert(maturityIds.has(product.maturity), `${product.n}: invalid maturity ${product.maturity}`);
       assert(positionIds.has(product.position), `${product.n}: invalid position ${product.position}`);
       assert(momentumIds.has(product.momentum), `${product.n}: invalid momentum ${product.momentum}`);
@@ -97,6 +108,10 @@ for(const category of model.categories){
             Boolean(sourceRef.excerpt || model.sources[sourceRef.id]?.hoverText),
             `${product.n}: ${assessmentId} hover excerpt is required`
           );
+          if(sourceRef.id === "datadog-product-site"){
+            assert(sourceRef.url === productSource?.url, `${product.n}: ${assessmentId} must use its specific Datadog URL`);
+            assert(Boolean(sourceRef.label), `${product.n}: ${assessmentId} product source label is required`);
+          }
         }
       }
 

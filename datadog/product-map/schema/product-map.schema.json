@@ -13,6 +13,7 @@
     "platformEnablers",
     "boundaryConventions",
     "sources",
+    "productSources",
     "meta"
   ],
   "properties": {
@@ -32,6 +33,17 @@
     "sources": {
       "type": "object",
       "additionalProperties": {"$ref": "#/$defs/source"}
+    },
+    "productSources": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["label", "url"],
+        "properties": {
+          "label": {"type": "string", "minLength": 1},
+          "url": {"type": "string", "pattern": "^https://"}
+        }
+      }
     },
     "meta": {
       "type": "object",
@@ -135,6 +147,8 @@
             "type": "object",
             "required": ["id", "locator"],
             "properties": {
+              "label": {"type": "string"},
+              "url": {"type": "string"},
               "excerptType": {"enum": ["quote", "parsed_summary", "note"]}
             }
           }

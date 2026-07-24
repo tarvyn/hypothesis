@@ -295,6 +295,8 @@
   function sourceCitation(sourceRef,compact=false){
     const source = model.sources[sourceRef.id];
     if(!source) return "";
+    const sourceUrl = sourceRef.url || source.url;
+    const sourceLabel = sourceRef.label || source.label;
     const excerpt = sourceRef.excerpt || source.hoverText;
     const excerptType = sourceRef.excerptType || source.hoverType;
     const excerptLabels = {
@@ -302,9 +304,9 @@
       parsed_summary:"Parsed summary · not a quote",
       note:"Source note",
     };
-    const label = source.url
-      ? `<a href="${esc(source.url)}" target="_blank" rel="noopener noreferrer">${esc(source.label)}<span aria-hidden="true"> ↗</span></a>`
-      : `<span class="source-name">${esc(source.label)}</span>`;
+    const label = sourceUrl
+      ? `<a href="${esc(sourceUrl)}" target="_blank" rel="noopener noreferrer">${esc(sourceLabel)}<span aria-hidden="true"> ↗</span></a>`
+      : `<span class="source-name">${esc(sourceLabel)}</span>`;
     return `<div class="source-citation ${compact ? "is-compact" : ""} ${excerpt ? "has-preview" : ""}">
       <div class="source-line">
         ${label}
@@ -315,7 +317,7 @@
       ${excerpt ? `<div class="source-quote" role="tooltip">
         <b>${esc(excerptLabels[excerptType] || "Source excerpt")}</b>
         ${excerptType === "quote" ? `<q>${esc(excerpt)}</q>` : `<span>${esc(excerpt)}</span>`}
-        <small>${esc(source.label)} · ${esc(sourceRef.locator)}</small>
+        <small>${esc(sourceLabel)} · ${esc(sourceRef.locator)}</small>
       </div>` : ""}
     </div>`;
   }

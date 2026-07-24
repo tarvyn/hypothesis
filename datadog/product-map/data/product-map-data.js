@@ -123,6 +123,50 @@ const SOURCE_REGISTRY = {
   },
 };
 
+const PRODUCT_SOURCES = {
+  "Infrastructure Monitoring":{label:"Infrastructure Monitoring",url:"https://www.datadoghq.com/product/infrastructure-monitoring/"},
+  "Log Management":{label:"Log Management",url:"https://www.datadoghq.com/product/log-management/"},
+  "APM":{label:"Application Performance Monitoring",url:"https://www.datadoghq.com/product/apm/"},
+  "Real User Monitoring":{label:"Real User Monitoring",url:"https://www.datadoghq.com/product/real-user-monitoring/"},
+  "Synthetic Testing":{label:"Synthetic Monitoring",url:"https://www.datadoghq.com/product/synthetic-monitoring/"},
+  "Mobile App Testing":{label:"Mobile App Testing",url:"https://www.datadoghq.com/product/mobile-app-testing/"},
+  "Session Replay":{label:"Session Replay",url:"https://www.datadoghq.com/product/session-replay/"},
+  "Experimentation":{label:"Experiments",url:"https://www.datadoghq.com/product/experiments/"},
+  "Network Monitoring":{label:"Network Monitoring",url:"https://www.datadoghq.com/product/network-monitoring/"},
+  "Continuous Profiler":{label:"Continuous Profiler",url:"https://www.datadoghq.com/product/code-profiling/"},
+  "Error Tracking":{label:"Error Tracking",url:"https://www.datadoghq.com/error-tracking/"},
+  "Database Monitoring":{label:"Database Monitoring",url:"https://www.datadoghq.com/product/database-monitoring/"},
+  "Cloud Cost Management":{label:"Cloud Cost Management",url:"https://www.datadoghq.com/product/cloud-cost-management/"},
+  "Observability Pipelines":{label:"Observability Pipelines",url:"https://www.datadoghq.com/product/observability-pipelines/"},
+  "Data Streams Monitoring":{label:"Data Streams Monitoring",url:"https://www.datadoghq.com/product/data-streams-monitoring/"},
+  "LLM Observability":{label:"Agent Observability",url:"https://www.datadoghq.com/products/ai/agent-observability/"},
+  "GPU Monitoring":{label:"GPU Monitoring",url:"https://www.datadoghq.com/product/gpu-monitoring/"},
+  "AI Agents Console":{label:"Agent Observability",url:"https://www.datadoghq.com/products/ai/agent-observability/"},
+  "Data Observability":{label:"Data Observability",url:"https://www.datadoghq.com/products/observability/data-observability/"},
+  "Cloud Security":{label:"Cloud Security",url:"https://www.datadoghq.com/product/cloud-security/"},
+  "Code Security":{label:"Code Security",url:"https://www.datadoghq.com/product/code-security/"},
+  "Cloud SIEM":{label:"Cloud SIEM",url:"https://www.datadoghq.com/product/cloud-siem/"},
+  "Data Security":{label:"Sensitive Data Scanner",url:"https://www.datadoghq.com/product/sensitive-data-scanner/"},
+  "Security: AI Guard":{label:"AI Guard",url:"https://docs.datadoghq.com/security/ai_guard/"},
+  "Bits AI Security Analyst":{label:"Bits Security Analyst",url:"https://www.datadoghq.com/product/ai/bits-security-analyst/"},
+  "CI Visibility":{label:"CI Pipeline Visibility",url:"https://www.datadoghq.com/product/ci-cd-monitoring/"},
+  "Test Optimization":{label:"Test Optimization",url:"https://www.datadoghq.com/product/test-optimization/"},
+  "Continuous Testing":{label:"Continuous Testing",url:"https://www.datadoghq.com/product/continuous-testing/"},
+  "IDE Plugins":{label:"IDE Plugins",url:"https://www.datadoghq.com/product/platform/ides/"},
+  "Feature Flags":{label:"Feature Flags",url:"https://www.datadoghq.com/product/feature-flags/"},
+  "Datadog MCP Server":{label:"MCP Server",url:"https://www.datadoghq.com/product/ai/mcp-server/"},
+  "Bits AI Dev Agent":{label:"Bits Code",url:"https://www.datadoghq.com/product/ai/bits-code/"},
+  "On-Call":{label:"Incident Response",url:"https://www.datadoghq.com/product/incident-response/"},
+  "Incident Management":{label:"Incident Response",url:"https://www.datadoghq.com/product/incident-response/"},
+  "Event Management":{label:"Event Management",url:"https://www.datadoghq.com/product/event-management/"},
+  "Resource Catalog":{label:"Software Catalog",url:"https://www.datadoghq.com/product/software-catalog/"},
+  "Internal Developer Portal":{label:"Internal Developer Portal",url:"https://www.datadoghq.com/product/internal-developer-portal/"},
+  "Workflow Automation":{label:"Workflow Automation",url:"https://www.datadoghq.com/product/workflow-automation/"},
+  "App Builder":{label:"App Builder",url:"https://www.datadoghq.com/product/app-builder/"},
+  "Bits AI SRE Agent":{label:"Bits Investigation",url:"https://www.datadoghq.com/product/ai/bits-investigation/"},
+  "Product Analytics":{label:"Product Analytics",url:"https://www.datadoghq.com/product/product-analytics/"},
+};
+
 const ENTITY_TYPES = {
   product:{label:"Product"},
   product_family:{label:"Product family"},
@@ -851,6 +895,18 @@ const assessmentSource = (id,locator,excerpt=null,excerptType=null) => ({
   ...(excerptType ? {excerptType} : {}),
 });
 
+const productSource = (product,locator) => {
+  const source = PRODUCT_SOURCES[product.n];
+  return {
+    id:"datadog-product-site",
+    label:`Datadog: ${source.label}`,
+    locator,
+    url:source.url,
+    excerpt:source.label,
+    excerptType:"quote",
+  };
+};
+
 const buildAssessmentEvidence = (product,meta,legacyEvidence,q1Evidence) => {
   const traction = legacyEvidence[0];
   const latest = q1Evidence[0];
@@ -881,7 +937,7 @@ const buildAssessmentEvidence = (product,meta,legacyEvidence,q1Evidence) => {
   const positionRationale = `Author assessment: ${compactText(firstSentence(product.edge),145)} ${competitiveBasis}`;
   const positionSources = [
     assessmentSource("author-assessment","Product and competitor comparison"),
-    assessmentSource("datadog-product-site",`${product.n} product positioning`),
+    productSource(product,`${product.n} product positioning`),
   ];
   if(["leader","strong_challenger"].includes(meta.position)){
     positionSources.push(assessmentSource("morningstar-ddog-2026","Competitive context, pp. 2-3"));
@@ -899,7 +955,7 @@ const buildAssessmentEvidence = (product,meta,legacyEvidence,q1Evidence) => {
     momentumRationale = "Stable means no product-specific acceleration or deterioration was disclosed; the product remains an established part of the current suite.";
     momentumSources = [
       assessmentSource("datadog-investor-day-2026","Product taxonomy and suite mapping"),
-      assessmentSource("datadog-product-site",`${product.n} product positioning`),
+      productSource(product,`${product.n} product positioning`),
     ];
   } else if((meta.momentum || "insufficient") === "improving"){
     momentumRationale = "Improving is an author assessment based on recent launch cadence and expanded suite placement; Datadog does not disclose stand-alone product growth.";
@@ -922,7 +978,7 @@ const buildAssessmentEvidence = (product,meta,legacyEvidence,q1Evidence) => {
     assessmentSource("author-assessment","Product-level moat interpretation"),
     ["strong","credible"].includes(moatKey)
       ? assessmentSource("morningstar-ddog-2026","Economic Moat, pp. 2-4; company-level corroboration")
-      : assessmentSource("datadog-product-site",`${product.n} integration and workflow claims`),
+      : productSource(product,`${product.n} integration and workflow claims`),
   ];
 
   return {
@@ -1026,6 +1082,7 @@ window.PRODUCT_MAP = {
   platformEnablers:PLATFORM_ENABLERS,
   boundaryConventions:BOUNDARY_CONVENTIONS,
   sources:SOURCE_REGISTRY,
+  productSources:PRODUCT_SOURCES,
   meta:{
     asOf:"2026-Q1",
     companyReportedProductCount:26,
