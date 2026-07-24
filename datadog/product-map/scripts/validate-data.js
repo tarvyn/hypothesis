@@ -36,10 +36,11 @@ let references = 0;
 assert(model.sources && Object.keys(model.sources).length > 0, "Source registry is required");
 for(const [id, sourceRecord] of Object.entries(model.sources || {})){
   assert(
-    ["label","publisher","date","sourceClass","access"].every(key => Boolean(sourceRecord[key])),
+    ["label","publisher","date","sourceClass","access","hoverText","hoverType"].every(key => Boolean(sourceRecord[key])),
     `${id}: incomplete source registry record`
   );
   assert(["public","subscriber","internal"].includes(sourceRecord.access), `${id}: invalid access level`);
+  assert(["quote","parsed_summary","note"].includes(sourceRecord.hoverType), `${id}: invalid hover excerpt type`);
   assert(sourceRecord.access === "internal" || Boolean(sourceRecord.url), `${id}: external source URL is required`);
 }
 
@@ -81,6 +82,7 @@ for(const category of model.categories){
         if(evidence.sourceId){
           assert(Boolean(model.sources[evidence.sourceId]), `${product.n}: unknown evidence source ${evidence.sourceId}`);
           assert(Boolean(evidence.locator), `${product.n}: evidence locator is required for ${evidence.sourceId}`);
+          assert(Boolean(evidence.excerpt && evidence.excerptType), `${product.n}: evidence hover excerpt is required`);
         }
       }
       for(const assessmentId of assessmentIds){
@@ -91,6 +93,10 @@ for(const category of model.categories){
         for(const sourceRef of assessment?.sources || []){
           assert(Boolean(model.sources[sourceRef.id]), `${product.n}: ${assessmentId} has unknown source ${sourceRef.id}`);
           assert(Boolean(sourceRef.locator), `${product.n}: ${assessmentId} source locator is required`);
+          assert(
+            Boolean(sourceRef.excerpt || model.sources[sourceRef.id]?.hoverText),
+            `${product.n}: ${assessmentId} hover excerpt is required`
+          );
         }
       }
 

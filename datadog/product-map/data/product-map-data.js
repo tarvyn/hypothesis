@@ -54,6 +54,8 @@ const SOURCE_REGISTRY = {
     sourceClass:"company_audited",
     access:"public",
     url:"https://www.sec.gov/Archives/edgar/data/1561550/000162828026008819/ddog-20251231.htm",
+    hoverText:"Substantially all of our revenue is from subscription software sales.",
+    hoverType:"quote",
   },
   "datadog-investor-day-2026":{
     label:"Datadog Investor Day 2026",
@@ -62,6 +64,8 @@ const SOURCE_REGISTRY = {
     sourceClass:"company_directional",
     access:"public",
     url:"https://investors.datadoghq.com/events/event-details/investor-day-2026/",
+    hoverText:"Investor Day 2026 — Feb 12, 2026 at 1:00 PM EST.",
+    hoverType:"quote",
   },
   "datadog-q1-2026-call":{
     label:"Datadog FQ1 2026 earnings call",
@@ -70,6 +74,8 @@ const SOURCE_REGISTRY = {
     sourceClass:"company_directional",
     access:"public",
     url:"https://investors.datadoghq.com/static-files/b162f4b4-ae66-4fd2-bc41-92b4f9a877c9",
+    hoverText:"Our customers' usage of AI within the Datadog platform continues to grow rapidly.",
+    hoverType:"quote",
   },
   "datadog-product-site":{
     label:"Datadog product portfolio",
@@ -78,6 +84,8 @@ const SOURCE_REGISTRY = {
     sourceClass:"company_product",
     access:"public",
     url:"https://www.datadoghq.com/product/",
+    hoverText:"Your servers, your clouds, your metrics, your apps, your team. Together.",
+    hoverType:"quote",
   },
   "morningstar-ddog-2026":{
     label:"Morningstar Equity Analyst Report: Datadog",
@@ -89,6 +97,8 @@ const SOURCE_REGISTRY = {
     access:"subscriber",
     url:"https://www.interactivebrokers.com/en/pricing/research-news-services.php",
     rightsNote:"Citation-only. The report PDF is not hosted or redistributed.",
+    hoverText:"We assign Datadog a Morningstar Economic Moat Rating of wide.",
+    hoverType:"quote",
   },
   "reflexivity-ibkr-2026":{
     label:"Reflexivity company research: Datadog",
@@ -98,6 +108,8 @@ const SOURCE_REGISTRY = {
     access:"subscriber",
     url:"https://www.interactivebrokers.ie/portal/?loginType=1&action=ACCT_MGMT_MAIN&clt=0&RL=1#/quote/383858515/fundamentals/connections",
     rightsNote:"Subscriber research. Only normalized summaries and locators are used.",
+    hoverText:"No verbatim source modal was captured in the IBKR extraction.",
+    hoverType:"note",
   },
   "author-assessment":{
     label:"Author assessment",
@@ -106,6 +118,8 @@ const SOURCE_REGISTRY = {
     sourceClass:"author_judgment",
     access:"internal",
     url:null,
+    hoverText:"Internal interpretation based on the linked company, product, and competitive evidence.",
+    hoverType:"note",
   },
 };
 
@@ -751,6 +765,8 @@ const Q1_EVIDENCE = {
       source:"Datadog FQ1 2026 earnings call",
       sourceId:"datadog-q1-2026-call",
       locator:"pp. 5-6; pp. 9-10",
+      excerpt:"using GPU monitoring on large parallel GPU grids.",
+      excerptType:"quote",
       sourceClass:"company_directional",
       scope:"product_and_bundle",
       confidence:"medium",
@@ -763,6 +779,8 @@ const Q1_EVIDENCE = {
       source:"Datadog FQ1 2026 earnings call",
       sourceId:"datadog-q1-2026-call",
       locator:"p. 5",
+      excerpt:"The number of spans sent to our LLM Observability product nearly tripled quarter-over-quarter.",
+      excerptType:"quote",
       sourceClass:"company_directional",
       scope:"usage",
       confidence:"medium",
@@ -775,6 +793,8 @@ const Q1_EVIDENCE = {
       source:"Datadog FQ1 2026 earnings call",
       sourceId:"datadog-q1-2026-call",
       locator:"p. 5",
+      excerpt:"the number of Datadog MCP Server tool calls, quadrupled quarter-over-quarter",
+      excerptType:"quote",
       sourceClass:"company_directional",
       scope:"usage",
       confidence:"medium",
@@ -787,6 +807,8 @@ const Q1_EVIDENCE = {
       source:"Datadog FQ1 2026 earnings call",
       sourceId:"datadog-q1-2026-call",
       locator:"p. 5",
+      excerpt:"Bits AI SRE Agent investigations have more than doubled from December to March.",
+      excerptType:"quote",
       sourceClass:"company_directional",
       scope:"usage",
       confidence:"medium",
@@ -799,6 +821,8 @@ const Q1_EVIDENCE = {
       source:"Datadog FQ1 2026 earnings call",
       sourceId:"datadog-q1-2026-call",
       locator:"p. 5",
+      excerpt:"APM automatically identified performance and reliability issues and most importantly, explain how to fix them.",
+      excerptType:"quote",
       sourceClass:"company_directional",
       scope:"capability",
       confidence:"medium",
@@ -820,16 +844,21 @@ const compactText = (value,max=150) => {
   return `${clipped.slice(0,clipped.lastIndexOf(" "))}…`;
 };
 
-const assessmentSource = (id,locator) => ({id,locator});
+const assessmentSource = (id,locator,excerpt=null,excerptType=null) => ({
+  id,
+  locator,
+  ...(excerpt ? {excerpt} : {}),
+  ...(excerptType ? {excerptType} : {}),
+});
 
 const buildAssessmentEvidence = (product,meta,legacyEvidence,q1Evidence) => {
   const traction = legacyEvidence[0];
   const latest = q1Evidence[0];
   const maturityEvidence = latest || traction;
   const maturitySource = latest
-    ? assessmentSource("datadog-q1-2026-call",latest.locator)
+    ? assessmentSource("datadog-q1-2026-call",latest.locator,latest.excerpt,latest.excerptType)
     : traction
-      ? assessmentSource("reflexivity-ibkr-2026",traction.locator)
+      ? assessmentSource("reflexivity-ibkr-2026",traction.locator,compactText(traction.claim,180),"parsed_summary")
       : assessmentSource("datadog-investor-day-2026","Product taxonomy and suite mapping");
 
   const maturityRationale = {
@@ -862,10 +891,10 @@ const buildAssessmentEvidence = (product,meta,legacyEvidence,q1Evidence) => {
   let momentumSources;
   if(latest){
     momentumRationale = `${compactText(firstSentence(latest.claim),145)} Directional only; no product revenue is disclosed.`;
-    momentumSources = [assessmentSource("datadog-q1-2026-call",latest.locator)];
+    momentumSources = [assessmentSource("datadog-q1-2026-call",latest.locator,latest.excerpt,latest.excerptType)];
   } else if(traction){
     momentumRationale = `${compactText(firstSentence(traction.claim),145)} Based on subscriber research synthesis of company disclosures.`;
-    momentumSources = [assessmentSource("reflexivity-ibkr-2026",traction.locator)];
+    momentumSources = [assessmentSource("reflexivity-ibkr-2026",traction.locator,compactText(traction.claim,180),"parsed_summary")];
   } else if((meta.momentum || "insufficient") === "stable"){
     momentumRationale = "Stable means no product-specific acceleration or deterioration was disclosed; the product remains an established part of the current suite.";
     momentumSources = [
@@ -938,6 +967,8 @@ const normalizeProducts = () => {
           source:"Reflexivity via IBKR / company disclosure synthesis",
           sourceId:"reflexivity-ibkr-2026",
           locator:`Brand & Product > ${product.n}`,
+          excerpt:compactText(TRACTION[product.n].text,180),
+          excerptType:"parsed_summary",
           sourceClass:"third_party_research",
           scope:TRACTION[product.n].scope,
           confidence:"medium",

@@ -295,16 +295,28 @@
   function sourceCitation(sourceRef,compact=false){
     const source = model.sources[sourceRef.id];
     if(!source) return "";
+    const excerpt = sourceRef.excerpt || source.hoverText;
+    const excerptType = sourceRef.excerptType || source.hoverType;
+    const excerptLabels = {
+      quote:"Verbatim quote",
+      parsed_summary:"Parsed summary · not a quote",
+      note:"Source note",
+    };
     const label = source.url
       ? `<a href="${esc(source.url)}" target="_blank" rel="noopener noreferrer">${esc(source.label)}<span aria-hidden="true"> ↗</span></a>`
       : `<span class="source-name">${esc(source.label)}</span>`;
-    return `<div class="source-citation ${compact ? "is-compact" : ""}">
+    return `<div class="source-citation ${compact ? "is-compact" : ""} ${excerpt ? "has-preview" : ""}">
       <div class="source-line">
         ${label}
         <span class="access-badge access-${esc(source.access)}">${esc(source.access === "subscriber" ? "Subscriber-only" : source.access)}</span>
       </div>
       <div class="source-locator">${esc(source.publisher)} · ${esc(source.date)} · ${esc(sourceRef.locator)}</div>
       ${source.rightsNote && !compact ? `<div class="source-rights">${esc(source.rightsNote)}</div>` : ""}
+      ${excerpt ? `<div class="source-quote" role="tooltip">
+        <b>${esc(excerptLabels[excerptType] || "Source excerpt")}</b>
+        ${excerptType === "quote" ? `<q>${esc(excerpt)}</q>` : `<span>${esc(excerpt)}</span>`}
+        <small>${esc(source.label)} · ${esc(sourceRef.locator)}</small>
+      </div>` : ""}
     </div>`;
   }
 
@@ -349,7 +361,12 @@
             <span>${esc(record.sourceClass)}</span><span>·</span><span>${esc(record.confidence)} confidence</span>
           </div>
           ${record.sourceId
-            ? sourceCitation({id:record.sourceId,locator:record.locator},true)
+            ? sourceCitation({
+                id:record.sourceId,
+                locator:record.locator,
+                excerpt:record.excerpt,
+                excerptType:record.excerptType,
+              },true)
             : `<div class="evidence-meta"><span>${esc(record.source)}</span></div>`}
         </div>`).join("")
       : `<div class="r-callout"><b>Evidence status</b>No product-level financial disclosure. Assessment relies on product position, competitive context, and suite logic.</div>`;

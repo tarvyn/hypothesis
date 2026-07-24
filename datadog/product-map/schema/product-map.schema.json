@@ -133,17 +133,21 @@
           "minItems": 1,
           "items": {
             "type": "object",
-            "required": ["id", "locator"]
+            "required": ["id", "locator"],
+            "properties": {
+              "excerptType": {"enum": ["quote", "parsed_summary", "note"]}
+            }
           }
         }
       }
     },
     "source": {
       "type": "object",
-      "required": ["label", "publisher", "date", "sourceClass", "access", "url"],
+      "required": ["label", "publisher", "date", "sourceClass", "access", "url", "hoverText", "hoverType"],
       "properties": {
         "access": {"enum": ["public", "subscriber", "internal"]},
-        "url": {"type": ["string", "null"]}
+        "url": {"type": ["string", "null"]},
+        "hoverType": {"enum": ["quote", "parsed_summary", "note"]}
       }
     },
     "relatedEntity": {
