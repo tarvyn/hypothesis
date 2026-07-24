@@ -60,17 +60,72 @@
   };
 
   const FILTERS = [
-    {id:"ai",label:"AI",test:item => item.workloads.includes("ai")},
-    {id:"training",label:"Training",test:item => item.workloads.includes("training")},
-    {id:"inference",label:"Inference",test:item => item.workloads.includes("inference")},
-    {id:"agents",label:"Agents",test:item => item.workloads.includes("agents")},
-    {id:"usage",label:"Usage",test:item => item.monetization.includes("usage")},
-    {id:"seat",label:"Seat",test:item => item.monetization.includes("seat")},
-    {id:"land",label:"Land",test:item => item.motion.includes("land")},
-    {id:"expand",label:"Expand",test:item => item.motion.includes("expand")},
-    {id:"defend",label:"Defend",test:item => item.motion.includes("defend")},
-    {id:"regulated",label:"Regulated",test:item => item.workloads.includes("regulated")},
-    {id:"byoc",label:"BYOC",test:item => item.capabilities.some(value => value.toLowerCase().includes("byoc"))},
+    {
+      id:"ai",
+      label:"AI",
+      purpose:"Shows products exposed to AI workloads or enhanced by AI. Use it to test AI relevance across the existing map—not to create a separate TAM.",
+      test:item => item.workloads.includes("ai"),
+    },
+    {
+      id:"training",
+      label:"Training",
+      purpose:"Isolates products used while models are trained. It highlights the emerging GPU and heterogeneous-infrastructure opportunity.",
+      test:item => item.workloads.includes("training"),
+    },
+    {
+      id:"inference",
+      label:"Inference",
+      purpose:"Shows products involved when trained models run in production. It tracks the more established, recurring AI workload.",
+      test:item => item.workloads.includes("inference"),
+    },
+    {
+      id:"agents",
+      label:"Agents",
+      purpose:"Finds products used by, monitoring, or enabling autonomous agents. Use it to assess new usage, workflow lock-in, and interface risk.",
+      test:item => item.workloads.includes("agents"),
+    },
+    {
+      id:"usage",
+      label:"Usage",
+      purpose:"Highlights usage-based monetization. These products are most sensitive to telemetry volume, cloud activity, optimization, and overages.",
+      test:item => item.monetization.includes("usage"),
+    },
+    {
+      id:"seat",
+      label:"Seat",
+      purpose:"Highlights products with a seat component. Revenue depends more on user adoption and team penetration than raw telemetry growth.",
+      test:item => item.monetization.includes("seat"),
+    },
+    {
+      id:"land",
+      label:"Land",
+      purpose:"Shows products that can win the initial customer deployment. Use it for new-logo conversion and initial deal-size analysis.",
+      test:item => item.motion.includes("land"),
+    },
+    {
+      id:"expand",
+      label:"Expand",
+      purpose:"Shows products that naturally cross-sell or grow with consumption. This is the main product-map lens for NRR and account expansion.",
+      test:item => item.motion.includes("expand"),
+    },
+    {
+      id:"defend",
+      label:"Defend",
+      purpose:"Highlights products that deepen workflows or consolidate tools. Use it to assess retention, switching costs, and GRR protection.",
+      test:item => item.motion.includes("defend"),
+    },
+    {
+      id:"regulated",
+      label:"Regulated",
+      purpose:"Finds products and enablers relevant to compliance-heavy buyers. It frames TAM unlock against longer sales cycles and GTM investment.",
+      test:item => item.workloads.includes("regulated"),
+    },
+    {
+      id:"byoc",
+      label:"BYOC",
+      purpose:"Shows customer-controlled deployment support. It can unlock sovereign and very large workloads, with added delivery and margin complexity.",
+      test:item => item.capabilities.some(value => value.toLowerCase().includes("byoc")),
+    },
   ];
 
   const state = {view:"category",filters:new Set(),selected:null};
@@ -115,7 +170,11 @@
   ).join("");
 
   filters.innerHTML = FILTERS.map(filter =>
-    `<button class="filter" type="button" data-filter="${filter.id}" aria-pressed="false">${esc(filter.label)}</button>`
+    `<button class="filter" type="button" data-filter="${filter.id}" aria-pressed="false" aria-describedby="overlay-help-${filter.id}">
+      <span>${esc(filter.label)}</span>
+      <span class="filter-info" aria-hidden="true">?</span>
+      <span class="filter-tooltip" id="overlay-help-${filter.id}" role="tooltip">${esc(filter.purpose)}</span>
+    </button>`
   ).join("");
 
   function renderEnablers(){
@@ -243,9 +302,16 @@
   }
 
   function renderExplainer(){
-    const filterLabels = [...state.filters].map(id => FILTERS.find(filter => filter.id === id)?.label).filter(Boolean);
-    const filterCopy = filterLabels.length ? ` Active overlays: <b>${filterLabels.join(" + ")}</b>.` : " No overlay filter is active.";
-    explainer.innerHTML = `<b>${esc(VIEW_MODES[state.view].label)}:</b> ${esc(VIEW_MODES[state.view].explainer)}${filterCopy}`;
+    const activeFilters = [...state.filters].map(id => FILTERS.find(filter => filter.id === id)).filter(Boolean);
+    const filterCopy = activeFilters.length
+      ? `<div class="overlay-explanations">${activeFilters.map(filter =>
+          `<p><b>${esc(filter.label)}</b><span>${esc(filter.purpose)}</span></p>`
+        ).join("")}</div>`
+      : `<span class="overlay-empty">Hover or focus an overlay for its purpose; select overlays to combine them.</span>`;
+    explainer.innerHTML = `
+      <div class="view-explanation"><b>${esc(VIEW_MODES[state.view].label)}:</b> ${esc(VIEW_MODES[state.view].explainer)}</div>
+      ${filterCopy}
+    `;
     clearFilters.disabled = state.filters.size === 0;
   }
 
