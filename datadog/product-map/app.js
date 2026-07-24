@@ -292,7 +292,7 @@
     return model.relatedEntities.filter(entity => entity.parent === item.n);
   }
 
-  function sourceCitation(sourceRef,compact=false){
+  function sourceCitation(sourceRef,compact=false,expanded=false){
     const source = model.sources[sourceRef.id];
     if(!source) return "";
     const sourceUrl = sourceRef.url || source.url;
@@ -301,25 +301,41 @@
     const excerptType = sourceRef.excerptType || source.hoverType;
     const excerptLabels = {
       quote:"Verbatim quote",
+      company_excerpt:"Company description",
       parsed_summary:"Parsed summary · not a quote",
-      note:"Source note",
+      note:"Analytical note · not a quote",
     };
-    const label = sourceUrl
+    const roleLabels = {
+      direct:"Product evidence",
+      supporting:"Supporting evidence",
+      context:"Company context",
+      judgment:"Map inference",
+      limitation:"Disclosure limit",
+    };
+    const sourceLink = sourceUrl
       ? `<a href="${esc(sourceUrl)}" target="_blank" rel="noopener noreferrer">${esc(sourceLabel)}<span aria-hidden="true"> ↗</span></a>`
       : `<span class="source-name">${esc(sourceLabel)}</span>`;
-    return `<div class="source-citation ${compact ? "is-compact" : ""} ${excerpt ? "has-preview" : ""}">
-      <div class="source-line">
-        ${label}
-        <span class="access-badge access-${esc(source.access)}">${esc(source.access === "subscriber" ? "Subscriber-only" : source.access)}</span>
+    return `<details class="source-citation ${compact ? "is-compact" : ""} role-${esc(sourceRef.role || "supporting")}" ${expanded ? "open" : ""}>
+      <summary>
+        <span class="evidence-role">${esc(roleLabels[sourceRef.role] || "Evidence")}</span>
+        <span class="source-summary-name">${esc(sourceLabel)}</span>
+        <span class="scope-badge">${esc(sourceRef.scope || "unspecified scope")}</span>
+      </summary>
+      <div class="source-content">
+        <div class="source-line">
+          ${sourceLink}
+          <span class="access-badge access-${esc(source.access)}">${esc(source.access === "subscriber" ? "Subscriber-only" : source.access)}</span>
+        </div>
+        <div class="source-locator">${esc(source.publisher)} · ${esc(source.date)} · ${esc(sourceRef.locator)}</div>
+        ${excerpt ? `<div class="source-excerpt">
+          <b>${esc(excerptLabels[excerptType] || "Source content")}</b>
+          ${excerptType === "quote" ? `<q>${esc(excerpt)}</q>` : `<span>${esc(excerpt)}</span>`}
+        </div>` : ""}
+        ${sourceRef.summary ? `<div class="source-interpretation"><b>Map reading</b>${esc(sourceRef.summary)}</div>` : ""}
+        ${sourceRef.caveat ? `<div class="source-caveat"><b>Evidence boundary</b>${esc(sourceRef.caveat)}</div>` : ""}
+        ${source.rightsNote ? `<div class="source-rights">${esc(source.rightsNote)}</div>` : ""}
       </div>
-      <div class="source-locator">${esc(source.publisher)} · ${esc(source.date)} · ${esc(sourceRef.locator)}</div>
-      ${source.rightsNote && !compact ? `<div class="source-rights">${esc(source.rightsNote)}</div>` : ""}
-      ${excerpt ? `<div class="source-quote" role="tooltip">
-        <b>${esc(excerptLabels[excerptType] || "Source excerpt")}</b>
-        ${excerptType === "quote" ? `<q>${esc(excerpt)}</q>` : `<span>${esc(excerpt)}</span>`}
-        <small>${esc(sourceLabel)} · ${esc(sourceRef.locator)}</small>
-      </div>` : ""}
-    </div>`;
+    </details>`;
   }
 
   function assessmentCard(item,definition,heading){
@@ -330,7 +346,10 @@
       <strong><i></i>${esc(value.label)}</strong>
       <p>${esc(evidence.rationale)}</p>
       <div class="assessment-meta">${esc(evidence.asOf)} · ${esc(evidence.confidence)} confidence</div>
-      <div class="assessment-sources">${evidence.sources.map(source => sourceCitation(source,true)).join("")}</div>
+      <div class="assessment-sources">
+        <span class="assessment-sources-label">Evidence & reasoning</span>
+        ${evidence.sources.map(source => sourceCitation(source,true,true)).join("")}
+      </div>
     </article>`;
   }
 
@@ -364,11 +383,15 @@
           </div>
           ${record.sourceId
             ? sourceCitation({
-                id:record.sourceId,
-                locator:record.locator,
-                excerpt:record.excerpt,
-                excerptType:record.excerptType,
-              },true)
+              id:record.sourceId,
+              locator:record.locator,
+              role:"supporting",
+              scope:record.scope,
+              excerpt:record.excerpt,
+              excerptType:record.excerptType,
+              summary:record.claim,
+              caveat:"This evidence record supports the stated capability or usage signal; confidence and scope remain as labeled above.",
+            },true)
             : `<div class="evidence-meta"><span>${esc(record.source)}</span></div>`}
         </div>`).join("")
       : `<div class="r-callout"><b>Evidence status</b>No product-level financial disclosure. Assessment relies on product position, competitive context, and suite logic.</div>`;

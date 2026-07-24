@@ -61,7 +61,7 @@ for(const category of model.categories){
       references += 1;
       const productSource = model.productSources?.[product.n];
       assert(Boolean(product.id), `${product.n}: stable id is required`);
-      assert(Boolean(productSource?.label && productSource?.url), `${product.n}: specific Datadog product source is required`);
+      assert(Boolean(productSource?.label && productSource?.url && productSource?.quote), `${product.n}: specific Datadog product source is required`);
       assert(
         productSource?.url !== model.sources["datadog-product-site"]?.url,
         `${product.n}: generic Datadog product portfolio URL is not allowed`
@@ -105,12 +105,36 @@ for(const category of model.categories){
           assert(Boolean(model.sources[sourceRef.id]), `${product.n}: ${assessmentId} has unknown source ${sourceRef.id}`);
           assert(Boolean(sourceRef.locator), `${product.n}: ${assessmentId} source locator is required`);
           assert(
+            ["direct","supporting","context","judgment","limitation"].includes(sourceRef.role),
+            `${product.n}: ${assessmentId} source role is required`
+          );
+          assert(Boolean(sourceRef.scope), `${product.n}: ${assessmentId} source scope is required`);
+          assert(
+            ["quote","company_excerpt","parsed_summary","note"].includes(sourceRef.excerptType),
+            `${product.n}: ${assessmentId} source excerpt type is invalid`
+          );
+          assert(
             Boolean(sourceRef.excerpt || model.sources[sourceRef.id]?.hoverText),
             `${product.n}: ${assessmentId} hover excerpt is required`
           );
+          if(sourceRef.role === "context"){
+            assert(Boolean(sourceRef.caveat), `${product.n}: ${assessmentId} context source must state its evidence boundary`);
+          }
+          if(sourceRef.id === "morningstar-ddog-2026"){
+            assert(
+              sourceRef.role === "context" && sourceRef.scope === "company",
+              `${product.n}: Morningstar company research cannot be presented as product-level proof`
+            );
+          }
+          if(sourceRef.id === "author-assessment"){
+            assert(sourceRef.role === "judgment", `${product.n}: map analysis must be labeled as judgment`);
+            assert(sourceRef.excerpt.length >= 80, `${product.n}: ${assessmentId} analytical basis is too thin`);
+          }
           if(sourceRef.id === "datadog-product-site"){
             assert(sourceRef.url === productSource?.url, `${product.n}: ${assessmentId} must use its specific Datadog URL`);
             assert(Boolean(sourceRef.label), `${product.n}: ${assessmentId} product source label is required`);
+            assert(sourceRef.role === "direct" && sourceRef.scope === "product", `${product.n}: product page evidence scope is invalid`);
+            assert(Boolean(sourceRef.summary && sourceRef.caveat), `${product.n}: ${assessmentId} product evidence needs a reading and boundary`);
           }
         }
       }

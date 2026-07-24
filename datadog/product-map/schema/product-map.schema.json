@@ -38,10 +38,11 @@
       "type": "object",
       "additionalProperties": {
         "type": "object",
-        "required": ["label", "url"],
+        "required": ["label", "url", "quote"],
         "properties": {
           "label": {"type": "string", "minLength": 1},
-          "url": {"type": "string", "pattern": "^https://"}
+          "url": {"type": "string", "pattern": "^https://"},
+          "quote": {"type": "string", "minLength": 1}
         }
       }
     },
@@ -145,11 +146,15 @@
           "minItems": 1,
           "items": {
             "type": "object",
-            "required": ["id", "locator"],
+            "required": ["id", "locator", "role", "scope"],
             "properties": {
               "label": {"type": "string"},
               "url": {"type": "string"},
-              "excerptType": {"enum": ["quote", "parsed_summary", "note"]}
+              "role": {"enum": ["direct", "supporting", "context", "judgment", "limitation"]},
+              "scope": {"type": "string", "minLength": 1},
+              "excerptType": {"enum": ["quote", "company_excerpt", "parsed_summary", "note"]},
+              "summary": {"type": "string"},
+              "caveat": {"type": "string"}
             }
           }
         }

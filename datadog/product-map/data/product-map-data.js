@@ -46,6 +46,19 @@ const MOAT_CONVICTION = {
   },
 };
 
+const MOAT_MECHANISM_EXPLANATION = {
+  data_gravity:"The product can benefit when the relevant telemetry is already retained in Datadog, reducing the incremental work needed to activate another use case.",
+  cross_signal:"Its value can increase when logs, metrics, traces, security events, and workflow context are analyzed together instead of in separate tools.",
+  integration_breadth:"Broad integrations can reduce deployment friction and make the product useful across a heterogeneous stack.",
+  installed_base:"Existing Datadog customers provide a lower-friction distribution base for adoption and expansion.",
+  bundle:"The product can be bought and operated as part of a broader Datadog suite rather than as another stand-alone vendor relationship.",
+  workflow_lock_in:"Repeated use inside operational workflows can raise retraining, reconfiguration, and process-change costs.",
+  feedback_loop:"More usage and telemetry can improve prioritization, recommendations, and the product-development feedback loop.",
+  developer_habit:"Daily use inside developer workflows can create habit and make replacement disruptive.",
+  platform_access:"A shared Datadog interface can become a common access layer to telemetry and actions.",
+  hyperscaler_validation:"Adoption by technically demanding hyperscalers can validate capability, although it does not by itself prove broad commercial durability.",
+};
+
 const SOURCE_REGISTRY = {
   "sec-10k-2025":{
     label:"Datadog FY2025 Form 10-K",
@@ -112,59 +125,59 @@ const SOURCE_REGISTRY = {
     hoverType:"note",
   },
   "author-assessment":{
-    label:"Author assessment",
+    label:"Map analyst judgment",
     publisher:"Product-map analysis",
     date:"2026-07-24",
     sourceClass:"author_judgment",
     access:"internal",
     url:null,
-    hoverText:"Internal interpretation based on the linked company, product, and competitive evidence.",
+    hoverText:"Our analytical inference for this map. It is not a Datadog, Morningstar, or broker opinion.",
     hoverType:"note",
   },
 };
 
 const PRODUCT_SOURCES = {
-  "Infrastructure Monitoring":{label:"Infrastructure Monitoring",url:"https://www.datadoghq.com/product/infrastructure-monitoring/"},
-  "Log Management":{label:"Log Management",url:"https://www.datadoghq.com/product/log-management/"},
-  "APM":{label:"Application Performance Monitoring",url:"https://www.datadoghq.com/product/apm/"},
-  "Real User Monitoring":{label:"Real User Monitoring",url:"https://www.datadoghq.com/product/real-user-monitoring/"},
-  "Synthetic Testing":{label:"Synthetic Monitoring",url:"https://www.datadoghq.com/product/synthetic-monitoring/"},
-  "Mobile App Testing":{label:"Mobile App Testing",url:"https://www.datadoghq.com/product/mobile-app-testing/"},
-  "Session Replay":{label:"Session Replay",url:"https://www.datadoghq.com/product/session-replay/"},
-  "Experimentation":{label:"Experiments",url:"https://www.datadoghq.com/product/experiments/"},
-  "Network Monitoring":{label:"Network Monitoring",url:"https://www.datadoghq.com/product/network-monitoring/"},
-  "Continuous Profiler":{label:"Continuous Profiler",url:"https://www.datadoghq.com/product/code-profiling/"},
-  "Error Tracking":{label:"Error Tracking",url:"https://www.datadoghq.com/error-tracking/"},
-  "Database Monitoring":{label:"Database Monitoring",url:"https://www.datadoghq.com/product/database-monitoring/"},
-  "Cloud Cost Management":{label:"Cloud Cost Management",url:"https://www.datadoghq.com/product/cloud-cost-management/"},
-  "Observability Pipelines":{label:"Observability Pipelines",url:"https://www.datadoghq.com/product/observability-pipelines/"},
-  "Data Streams Monitoring":{label:"Data Streams Monitoring",url:"https://www.datadoghq.com/product/data-streams-monitoring/"},
-  "LLM Observability":{label:"Agent Observability",url:"https://www.datadoghq.com/products/ai/agent-observability/"},
-  "GPU Monitoring":{label:"GPU Monitoring",url:"https://www.datadoghq.com/product/gpu-monitoring/"},
-  "AI Agents Console":{label:"Agent Observability",url:"https://www.datadoghq.com/products/ai/agent-observability/"},
-  "Data Observability":{label:"Data Observability",url:"https://www.datadoghq.com/products/observability/data-observability/"},
-  "Cloud Security":{label:"Cloud Security",url:"https://www.datadoghq.com/product/cloud-security/"},
-  "Code Security":{label:"Code Security",url:"https://www.datadoghq.com/product/code-security/"},
-  "Cloud SIEM":{label:"Cloud SIEM",url:"https://www.datadoghq.com/product/cloud-siem/"},
-  "Data Security":{label:"Sensitive Data Scanner",url:"https://www.datadoghq.com/product/sensitive-data-scanner/"},
-  "Security: AI Guard":{label:"AI Guard",url:"https://docs.datadoghq.com/security/ai_guard/"},
-  "Bits AI Security Analyst":{label:"Bits Security Analyst",url:"https://www.datadoghq.com/product/ai/bits-security-analyst/"},
-  "CI Visibility":{label:"CI Pipeline Visibility",url:"https://www.datadoghq.com/product/ci-cd-monitoring/"},
-  "Test Optimization":{label:"Test Optimization",url:"https://www.datadoghq.com/product/test-optimization/"},
-  "Continuous Testing":{label:"Continuous Testing",url:"https://www.datadoghq.com/product/continuous-testing/"},
-  "IDE Plugins":{label:"IDE Plugins",url:"https://www.datadoghq.com/product/platform/ides/"},
-  "Feature Flags":{label:"Feature Flags",url:"https://www.datadoghq.com/product/feature-flags/"},
-  "Datadog MCP Server":{label:"MCP Server",url:"https://www.datadoghq.com/product/ai/mcp-server/"},
-  "Bits AI Dev Agent":{label:"Bits Code",url:"https://www.datadoghq.com/product/ai/bits-code/"},
-  "On-Call":{label:"Incident Response",url:"https://www.datadoghq.com/product/incident-response/"},
-  "Incident Management":{label:"Incident Response",url:"https://www.datadoghq.com/product/incident-response/"},
-  "Event Management":{label:"Event Management",url:"https://www.datadoghq.com/product/event-management/"},
-  "Resource Catalog":{label:"Software Catalog",url:"https://www.datadoghq.com/product/software-catalog/"},
-  "Internal Developer Portal":{label:"Internal Developer Portal",url:"https://www.datadoghq.com/product/internal-developer-portal/"},
-  "Workflow Automation":{label:"Workflow Automation",url:"https://www.datadoghq.com/product/workflow-automation/"},
-  "App Builder":{label:"App Builder",url:"https://www.datadoghq.com/product/app-builder/"},
-  "Bits AI SRE Agent":{label:"Bits Investigation",url:"https://www.datadoghq.com/product/ai/bits-investigation/"},
-  "Product Analytics":{label:"Product Analytics",url:"https://www.datadoghq.com/product/product-analytics/"},
+  "Infrastructure Monitoring":{label:"Infrastructure Monitoring",url:"https://www.datadoghq.com/product/infrastructure-monitoring/",quote:"Complete visibility into infrastructure performance and security with easy deployment, minimal maintenance, and unmatched breadth of coverage."},
+  "Log Management":{label:"Log Management",url:"https://www.datadoghq.com/product/log-management/",quote:"Collect, monitor, manage, and analyze large volumes of logs as well as unify metrics and traces."},
+  "APM":{label:"Application Performance Monitoring",url:"https://www.datadoghq.com/product/apm/",quote:"Monitor service health metrics, distributed traces, and code performance with cloud-scale Application Performance Monitoring."},
+  "Real User Monitoring":{label:"Real User Monitoring",url:"https://www.datadoghq.com/product/real-user-monitoring/",quote:"Real User Monitoring enables IT teams with user data and metrics to optimize frontend performance."},
+  "Synthetic Testing":{label:"Synthetic Monitoring",url:"https://www.datadoghq.com/product/synthetic-monitoring/",quote:"Run API and browser tests to simulate how your systems are performing and catch issues before real users are impacted."},
+  "Mobile App Testing":{label:"Mobile App Testing",url:"https://www.datadoghq.com/product/mobile-app-testing/",quote:"Create simple, no-code mobile app tests to automatically validate key user flows."},
+  "Session Replay":{label:"Session Replay",url:"https://www.datadoghq.com/product/session-replay/",quote:"Capture real user sessions to uncover issues and improve experiences across web and mobile applications."},
+  "Experimentation":{label:"Experiments",url:"https://www.datadoghq.com/product/experiments/",quote:"Run trusted experiments and A/B tests faster."},
+  "Network Monitoring":{label:"Network Monitoring",url:"https://www.datadoghq.com/product/network-monitoring/",quote:"Full visibility into every layer of your environment—whether in the cloud, on-premise, or hybrid."},
+  "Continuous Profiler":{label:"Continuous Profiler",url:"https://www.datadoghq.com/product/code-profiling/",quote:"Automatically analyze and correlate profile data with distributed traces to optimize code performance in production."},
+  "Error Tracking":{label:"Error Tracking",url:"https://www.datadoghq.com/error-tracking/",quote:"Group, prioritize and resolve errors with speed and confidence."},
+  "Database Monitoring":{label:"Database Monitoring",url:"https://www.datadoghq.com/product/database-monitoring/",quote:"Resolve issues and optimize inefficient query performance across entire database fleets."},
+  "Cloud Cost Management":{label:"Cloud Cost Management",url:"https://www.datadoghq.com/product/cloud-cost-management/",quote:"Unify cost and performance data to empower engineers to optimize workloads and enable FinOps to reduce waste."},
+  "Observability Pipelines":{label:"Observability Pipelines",url:"https://www.datadoghq.com/product/observability-pipelines/",quote:"Control costs, simplify SIEM migrations, and manage sensitive data at scale."},
+  "Data Streams Monitoring":{label:"Data Streams Monitoring",url:"https://www.datadoghq.com/product/data-streams-monitoring/",quote:"Map, monitor, and troubleshoot your streaming data pipelines."},
+  "LLM Observability":{label:"Agent Observability",url:"https://www.datadoghq.com/products/ai/agent-observability/",quote:"Evaluate, improve, and trace your AI agents with offline experimentation and production observability in one platform."},
+  "GPU Monitoring":{label:"GPU Monitoring",url:"https://www.datadoghq.com/product/gpu-monitoring/",quote:"Monitor GPU capacity, performance, health, and cost in one place."},
+  "AI Agents Console":{label:"Agent Observability",url:"https://www.datadoghq.com/products/ai/agent-observability/",quote:"Evaluate, improve, and trace your AI agents with offline experimentation and production observability in one platform."},
+  "Data Observability":{label:"Data Observability",url:"https://www.datadoghq.com/products/observability/data-observability/",quote:"Detect, resolve, and optimize data quality and pipeline issues before they corrupt AI models or undermine business decisions."},
+  "Cloud Security":{label:"Cloud Security",url:"https://www.datadoghq.com/product/cloud-security/",quote:"Real-time threat detection and continuous configuration audits across your entire cloud infrastructure."},
+  "Code Security":{label:"Code Security",url:"https://www.datadoghq.com/product/code-security/",quote:"Improve code security posture from development to production using static and runtime testing."},
+  "Cloud SIEM":{label:"Cloud SIEM",url:"https://www.datadoghq.com/product/cloud-siem/",quote:"An AI-driven threat detection and incident response platform for security operations teams."},
+  "Data Security":{label:"Sensitive Data Scanner",url:"https://www.datadoghq.com/product/sensitive-data-scanner/",quote:"Discover, classify, and redact sensitive data in real time and at scale."},
+  "Security: AI Guard":{label:"AI Guard",url:"https://docs.datadoghq.com/security/ai_guard/",quote:"Inspect, block, and govern AI behavior in real time."},
+  "Bits AI Security Analyst":{label:"Bits Security Analyst",url:"https://www.datadoghq.com/product/ai/bits-security-analyst/",quote:"An always-on SOC analyst teammate built to handle complex threat investigations and security alerts."},
+  "CI Visibility":{label:"CI Pipeline Visibility",url:"https://www.datadoghq.com/product/ci-cd-monitoring/",quote:"Monitor all your CI pipelines and tests in a single platform."},
+  "Test Optimization":{label:"Test Optimization",url:"https://www.datadoghq.com/product/test-optimization/",quote:"Monitor, debug, and accelerate every test suite across your entire CI environment."},
+  "Continuous Testing":{label:"Continuous Testing",url:"https://www.datadoghq.com/product/continuous-testing/",quote:"Automate software testing to accelerate application development and ship high-quality features faster."},
+  "IDE Plugins":{label:"IDE Plugins",url:"https://www.datadoghq.com/product/platform/ides/",quote:"Bring live production data—resource-consuming methods, errors, open-source vulnerabilities, and more—directly into your IDEs."},
+  "Feature Flags":{label:"Feature Flags",url:"https://www.datadoghq.com/product/feature-flags/",quote:"Natively integrates observability data with feature flags."},
+  "Datadog MCP Server":{label:"MCP Server",url:"https://www.datadoghq.com/product/ai/mcp-server/",quote:"Connect AI agents to observability data with real-time telemetry and within security and governance controls."},
+  "Bits AI Dev Agent":{label:"Bits Code",url:"https://www.datadoghq.com/product/ai/bits-code/",quote:"Resolve production issues faster with autonomous, AI-generated code fixes grounded in your observability data."},
+  "On-Call":{label:"Incident Response",url:"https://www.datadoghq.com/product/incident-response/",quote:"Manage on-call schedules, alerts, and incident response with Datadog."},
+  "Incident Management":{label:"Incident Response",url:"https://www.datadoghq.com/product/incident-response/",quote:"Manage on-call schedules, alerts, and incident response with Datadog."},
+  "Event Management":{label:"Event Management",url:"https://www.datadoghq.com/product/event-management/",quote:"Transform alert fatigue into actionable insights and accelerate remediation with automated event correlation."},
+  "Resource Catalog":{label:"Software Catalog",url:"https://www.datadoghq.com/product/software-catalog/",quote:"A central hub for engineering knowledge about software ownership, dependencies, versions, on-call coverage, performance, and security posture."},
+  "Internal Developer Portal":{label:"Internal Developer Portal",url:"https://www.datadoghq.com/product/internal-developer-portal/",quote:"Ship quickly and confidently with developer self-service, delivery guardrails, and live system data."},
+  "Workflow Automation":{label:"Workflow Automation",url:"https://www.datadoghq.com/product/workflow-automation/",quote:"Automate remediation processes across your tech stack and quickly respond to alerts, incidents, and security threats."},
+  "App Builder":{label:"App Builder",url:"https://www.datadoghq.com/product/app-builder/",quote:"Turn observability insights into action with custom apps built to accelerate remediation and drive collaboration."},
+  "Bits AI SRE Agent":{label:"Bits Investigation",url:"https://www.datadoghq.com/product/ai/bits-investigation/",quote:"An AI SRE agent grounded in thousands of real-world incidents, identifying root causes faster."},
+  "Product Analytics":{label:"Product Analytics",url:"https://www.datadoghq.com/product/product-analytics/",quote:"Get data-driven insights into user behavior and product usage to improve user experiences and product outcomes."},
 };
 
 const ENTITY_TYPES = {
@@ -888,44 +901,89 @@ const compactText = (value,max=150) => {
   return `${clipped.slice(0,clipped.lastIndexOf(" "))}…`;
 };
 
-const assessmentSource = (id,locator,excerpt=null,excerptType=null) => ({
+const SOURCE_EVIDENCE_DEFAULTS = {
+  "sec-10k-2025":{role:"limitation",scope:"company"},
+  "datadog-investor-day-2026":{role:"supporting",scope:"portfolio taxonomy"},
+  "datadog-q1-2026-call":{role:"supporting",scope:"company or disclosed product"},
+  "datadog-product-site":{role:"direct",scope:"product"},
+  "morningstar-ddog-2026":{role:"context",scope:"company"},
+  "reflexivity-ibkr-2026":{role:"supporting",scope:"product or suite"},
+  "author-assessment":{role:"judgment",scope:"product"},
+};
+
+const assessmentSource = (id,locator,excerpt=null,excerptType=null,details={}) => ({
   id,
   locator,
+  role:details.role || SOURCE_EVIDENCE_DEFAULTS[id]?.role || "supporting",
+  scope:details.scope || SOURCE_EVIDENCE_DEFAULTS[id]?.scope || "unspecified",
   ...(excerpt ? {excerpt} : {}),
   ...(excerptType ? {excerptType} : {}),
+  ...(details.summary ? {summary:details.summary} : {}),
+  ...(details.caveat ? {caveat:details.caveat} : {}),
 });
 
-const productSource = (product,locator) => {
+const productSource = (product,locator,caveat=null) => {
   const source = PRODUCT_SOURCES[product.n];
   return {
     id:"datadog-product-site",
     label:`Datadog: ${source.label}`,
     locator,
     url:source.url,
-    excerpt:source.label,
-    excerptType:"quote",
+    role:"direct",
+    scope:"product",
+    excerpt:source.quote,
+    excerptType:"company_excerpt",
+    summary:`Map summary of the product function: ${product.what}`,
+    caveat:caveat || "The company page supports the stated capability and positioning. It does not independently prove adoption, competitive rank, momentum, or moat.",
   };
 };
+
+const companyMoatContext = () => assessmentSource(
+  "morningstar-ddog-2026",
+  "Economic Moat, pp. 2-4",
+  "Morningstar assigns Datadog a company-wide wide moat primarily from switching costs and network effects. Its analysis links switching costs to deployment and reconfiguration effort, mission-critical workflows, tailored dashboards, and high gross retention.",
+  "parsed_summary",
+  {
+    role:"context",
+    scope:"company",
+    caveat:"Context only: Morningstar evaluates Datadog as a company and does not assign a moat rating to Cloud SIEM or any other individual product.",
+  }
+);
 
 const buildAssessmentEvidence = (product,meta,legacyEvidence,q1Evidence) => {
   const traction = legacyEvidence[0];
   const latest = q1Evidence[0];
   const maturityEvidence = latest || traction;
   const maturitySource = latest
-    ? assessmentSource("datadog-q1-2026-call",latest.locator,latest.excerpt,latest.excerptType)
+    ? assessmentSource("datadog-q1-2026-call",latest.locator,latest.excerpt,latest.excerptType,{
+        role:"supporting",
+        scope:latest.scope.replace(/_/g," "),
+        summary:latest.claim,
+        caveat:"Management disclosure is directional and does not provide stand-alone product revenue.",
+      })
     : traction
-      ? assessmentSource("reflexivity-ibkr-2026",traction.locator,compactText(traction.claim,180),"parsed_summary")
-      : assessmentSource("datadog-investor-day-2026","Product taxonomy and suite mapping");
+      ? assessmentSource("reflexivity-ibkr-2026",traction.locator,traction.claim,"parsed_summary",{
+          role:"supporting",
+          scope:traction.scope,
+          caveat:"Normalized summary from subscriber research; the original IBKR source modal was not retained as a verbatim extract.",
+        })
+      : assessmentSource(
+          "datadog-investor-day-2026",
+          "Product taxonomy and suite mapping",
+          `${product.n} appears in Datadog's current portfolio taxonomy, but Datadog does not disclose stand-alone revenue or adoption for this product.`,
+          "note",
+          {role:"supporting",scope:"portfolio taxonomy"}
+        );
 
   const maturityRationale = {
     scaled:maturityEvidence
-      ? `Scaled: ${compactText(firstSentence(maturityEvidence.claim),145)}`
+      ? `Scaled: ${maturityEvidence.claim}`
       : "Scaled reflects established platform-scale adoption and a disclosed core-product role.",
     proven:maturityEvidence
-      ? `Proven adoption: ${compactText(firstSentence(maturityEvidence.claim),145)}`
+      ? `Proven adoption: ${maturityEvidence.claim}`
       : "Proven reflects an established commercial product in Datadog's 2026 suite, although stand-alone revenue is not disclosed.",
     validated:maturityEvidence
-      ? `Early validation: ${compactText(firstSentence(maturityEvidence.claim),145)} Stand-alone scale is undisclosed.`
+      ? `Early validation: ${maturityEvidence.claim} Stand-alone scale is undisclosed.`
       : "Validated early reflects a launched product with a defined buyer and use case, but without disclosed stand-alone scale.",
     option:"Preview / option reflects a newly introduced surface without disclosed repeatable adoption or product-level revenue.",
   }[meta.maturity || "validated"];
@@ -934,59 +992,137 @@ const buildAssessmentEvidence = (product,meta,legacyEvidence,q1Evidence) => {
   const competitiveBasis = competitorNames.length
     ? `The comparison set includes ${competitorNames.join(", ")}.`
     : "The available evidence does not establish a broad independent competitive set.";
-  const positionRationale = `Author assessment: ${compactText(firstSentence(product.edge),145)} ${competitiveBasis}`;
+  const positionRationale = `Our product-level judgment: ${product.edge} ${competitiveBasis}`;
   const positionSources = [
-    assessmentSource("author-assessment","Product and competitor comparison"),
-    productSource(product,`${product.n} product positioning`),
+    assessmentSource(
+      "author-assessment",
+      "Product and competitor comparison",
+      `Why we assigned ${POSITION[meta.position || "challenger"].label}: ${product.edge} ${competitiveBasis}`,
+      "note",
+      {
+        role:"judgment",
+        scope:"product",
+        caveat:"This is the map's inference from product positioning and the named competitive set, not a company or third-party analyst rating.",
+      }
+    ),
+    productSource(
+      product,
+      `${product.n} product positioning`,
+      "The company page confirms Datadog's own positioning. It does not independently validate the competitive rank assigned by this map."
+    ),
   ];
-  if(["leader","strong_challenger"].includes(meta.position)){
-    positionSources.push(assessmentSource("morningstar-ddog-2026","Competitive context, pp. 2-3"));
-  }
 
   let momentumRationale;
   let momentumSources;
   if(latest){
-    momentumRationale = `${compactText(firstSentence(latest.claim),145)} Directional only; no product revenue is disclosed.`;
-    momentumSources = [assessmentSource("datadog-q1-2026-call",latest.locator,latest.excerpt,latest.excerptType)];
+    momentumRationale = `${latest.claim} Directional only; no product revenue is disclosed.`;
+    momentumSources = [assessmentSource("datadog-q1-2026-call",latest.locator,latest.excerpt,latest.excerptType,{
+      role:"supporting",
+      scope:latest.scope.replace(/_/g," "),
+      summary:latest.claim,
+      caveat:"Management disclosure supports direction of usage, not stand-alone revenue growth or durable market share.",
+    })];
   } else if(traction){
-    momentumRationale = `${compactText(firstSentence(traction.claim),145)} Based on subscriber research synthesis of company disclosures.`;
-    momentumSources = [assessmentSource("reflexivity-ibkr-2026",traction.locator,compactText(traction.claim,180),"parsed_summary")];
+    momentumRationale = `${traction.claim} Based on subscriber research synthesis of company disclosures.`;
+    momentumSources = [assessmentSource("reflexivity-ibkr-2026",traction.locator,traction.claim,"parsed_summary",{
+      role:"supporting",
+      scope:traction.scope,
+      caveat:"Normalized summary from subscriber research; use it as directional evidence rather than a verbatim company disclosure.",
+    })];
   } else if((meta.momentum || "insufficient") === "stable"){
     momentumRationale = "Stable means no product-specific acceleration or deterioration was disclosed; the product remains an established part of the current suite.";
     momentumSources = [
-      assessmentSource("datadog-investor-day-2026","Product taxonomy and suite mapping"),
-      productSource(product,`${product.n} product positioning`),
+      assessmentSource(
+        "datadog-investor-day-2026",
+        "Product taxonomy and suite mapping",
+        `${product.n} remains in the current product taxonomy. No product-specific growth rate or adoption trend is disclosed.`,
+        "note",
+        {role:"limitation",scope:"portfolio taxonomy"}
+      ),
+      productSource(
+        product,
+        `${product.n} product positioning`,
+        "The live product page supports continued portfolio presence, not the absence or presence of growth acceleration."
+      ),
     ];
   } else if((meta.momentum || "insufficient") === "improving"){
     momentumRationale = "Improving is an author assessment based on recent launch cadence and expanded suite placement; Datadog does not disclose stand-alone product growth.";
     momentumSources = [
-      assessmentSource("author-assessment","Launch and suite-cadence interpretation"),
-      assessmentSource("datadog-investor-day-2026","Product taxonomy and launch context"),
+      assessmentSource(
+        "author-assessment",
+        "Launch and suite-cadence interpretation",
+        `We infer improving momentum from the recent launch and suite-placement evidence available for ${product.n}; this is not a disclosed product growth rate.`,
+        "note",
+        {role:"judgment",scope:"product"}
+      ),
+      assessmentSource(
+        "datadog-investor-day-2026",
+        "Product taxonomy and launch context",
+        `${product.n} is presented within Datadog's current suite and launch context, without stand-alone growth disclosure.`,
+        "note",
+        {role:"supporting",scope:"portfolio taxonomy"}
+      ),
     ];
   } else {
     momentumRationale = "Insufficient evidence means Datadog has not disclosed enough product-level adoption or growth data to establish a direction.";
     momentumSources = [
-      assessmentSource("sec-10k-2025","Business and segment reporting"),
-      assessmentSource("datadog-investor-day-2026","Product taxonomy; no stand-alone product financials"),
+      assessmentSource(
+        "sec-10k-2025",
+        "Business and segment reporting",
+        "Datadog reports substantially all revenue as subscription software sales and does not provide stand-alone product revenue in the filing.",
+        "parsed_summary",
+        {role:"limitation",scope:"company"}
+      ),
+      assessmentSource(
+        "datadog-investor-day-2026",
+        "Product taxonomy; no stand-alone product financials",
+        `${product.n} is visible in the portfolio taxonomy, but the presentation does not provide a product-level growth series.`,
+        "note",
+        {role:"limitation",scope:"portfolio taxonomy"}
+      ),
     ];
   }
 
   const moatKey = meta.moatConviction || "emerging";
-  const moatNames = (meta.moat || ["bundle"]).map(key => key.replace(/_/g," ")).join(", ");
-  const moatRationale = `Author assessment: ${MOAT_CONVICTION[moatKey].rationale} The product-level case rests on ${moatNames}.`;
+  const moatKeys = meta.moat || ["bundle"];
+  const moatNames = moatKeys.map(key => key.replace(/_/g," ")).join(", ");
+  const mechanismBasis = moatKeys
+    .map(key => MOAT_MECHANISM_EXPLANATION[key] || `${key.replace(/_/g," ")} may contribute to differentiation.`)
+    .join(" ");
+  const moatRationale = `${MOAT_CONVICTION[moatKey].label} is our product-level judgment, not a company rating. The case rests on ${moatNames}. ${product.why}`;
   const moatSources = [
-    assessmentSource("author-assessment","Product-level moat interpretation"),
-    ["strong","credible"].includes(moatKey)
-      ? assessmentSource("morningstar-ddog-2026","Economic Moat, pp. 2-4; company-level corroboration")
-      : productSource(product,`${product.n} integration and workflow claims`),
+    assessmentSource(
+      "author-assessment",
+      "Product-level moat interpretation",
+      `Why we assigned ${MOAT_CONVICTION[moatKey].label}: ${mechanismBasis} Product logic: ${product.why} Competitive constraint: ${product.edge}`,
+      "note",
+      {
+        role:"judgment",
+        scope:"product",
+        caveat:"This is the map's analytical inference. Datadog does not disclose product-level retention, switching costs, or economic-moat ratings.",
+      }
+    ),
+    productSource(
+      product,
+      `${product.n} integration and workflow claims`,
+      "The company page supports the product capability and platform-integration premise. It does not independently establish durable switching costs or moat strength."
+    ),
   ];
+  if(["strong","credible"].includes(moatKey)) moatSources.push(companyMoatContext());
 
   return {
     maturity:{
       rationale:maturityRationale,
       confidence:maturityEvidence ? "medium" : "low",
       asOf:"2026-Q1",
-      sources:[maturitySource],
+      sources:[
+        maturitySource,
+        productSource(
+          product,
+          `${product.n} commercial product page`,
+          "The live company page confirms a marketed product and defined use case. It does not establish commercial scale."
+        ),
+      ],
     },
     position:{
       rationale:positionRationale,
