@@ -160,7 +160,7 @@
         <span class="evidence-confidence confidence-high">H</span>
         <span class="evidence-confidence confidence-medium">M</span>
         <span class="evidence-confidence confidence-low">L</span>
-        <span>evidence · Security pilot</span>
+        <span>evidence confidence</span>
       </span>`;
   }
 

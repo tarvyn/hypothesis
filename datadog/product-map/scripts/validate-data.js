@@ -31,15 +31,20 @@ const moatConvictionIds = new Set(Object.keys(model.moatConviction));
 const evidenceConfidenceIds = new Set(Object.keys(model.evidenceConfidence || {}));
 const entityTypeIds = new Set(Object.keys(model.entityTypes));
 const assessmentIds = ["maturity","position","momentum","moatConviction"];
-const securityPilot = {
-  "Cloud Security":{maturity:"validated",position:"challenger",momentum:"insufficient",moatConviction:"credible",confidence:{maturity:"low",position:"low",momentum:"low",moatConviction:"low"}},
-  "Code Security":{maturity:"validated",position:"challenger",momentum:"insufficient",moatConviction:"emerging",confidence:{maturity:"low",position:"low",momentum:"low",moatConviction:"low"}},
-  "Cloud SIEM":{maturity:"proven",position:"challenger",momentum:"insufficient",moatConviction:"credible",confidence:{maturity:"medium",position:"low",momentum:"low",moatConviction:"low"}},
-  "Data Security":{maturity:"validated",position:"challenger",momentum:"insufficient",moatConviction:"emerging",confidence:{maturity:"low",position:"low",momentum:"low",moatConviction:"low"}},
-  "Security: AI Guard":{maturity:"option",position:"unproven",momentum:"insufficient",moatConviction:"weak",confidence:{maturity:"medium",position:"low",momentum:"low",moatConviction:"low"}},
-  "Bits AI Security Analyst":{maturity:"validated",position:"unproven",momentum:"insufficient",moatConviction:"emerging",confidence:{maturity:"low",position:"low",momentum:"low",moatConviction:"low"}},
-};
-const securityPilotSeen = new Set();
+const mediumMaturityProducts = new Set([
+  "Infrastructure Monitoring","Log Management","APM",
+  "Real User Monitoring","Cloud Cost Management","LLM Observability",
+  "GPU Monitoring","AI Agents Console","Data Observability","Cloud SIEM",
+  "Security: AI Guard","Datadog MCP Server","Bits AI Dev Agent",
+  "On-Call","Bits AI SRE Agent",
+]);
+const mediumMomentumProducts = new Set([
+  "APM","LLM Observability","GPU Monitoring",
+  "Datadog MCP Server","Bits AI SRE Agent",
+]);
+const mediumMoatProducts = new Set([
+  "Infrastructure Monitoring","Log Management","APM",
+]);
 const seenNames = new Map();
 let references = 0;
 
@@ -96,28 +101,30 @@ for(const category of model.categories){
       assert(Array.isArray(product.suiteMappings) && product.suiteMappings.length > 0, `${product.n}: suite mapping history is required`);
       assert(Boolean(product.assessmentEvidence), `${product.n}: assessment evidence is required`);
 
-      const pilot = securityPilot[product.n];
-      if(pilot){
-        securityPilotSeen.add(product.n);
-        for(const assessmentId of assessmentIds){
-          assert(
-            product[assessmentId] === pilot[assessmentId],
-            `${product.n}: Security pilot ${assessmentId} must be ${pilot[assessmentId]}`
-          );
-          assert(
-            product.evidenceConfidence?.[assessmentId] === pilot.confidence[assessmentId],
-            `${product.n}: Security pilot ${assessmentId} confidence must be ${pilot.confidence[assessmentId]}`
-          );
-        }
+      const expectedConfidence = {
+        maturity:mediumMaturityProducts.has(product.n) ? "medium" : "low",
+        position:"low",
+        momentum:mediumMomentumProducts.has(product.n) ? "medium" : "low",
+        moatConviction:mediumMoatProducts.has(product.n) ? "medium" : "low",
+      };
+      for(const assessmentId of assessmentIds){
         assert(
-          !(["scaled","proven"].includes(product.maturity) && product.evidenceConfidence.maturity === "low"),
-          `${product.n}: proven or scaled maturity cannot carry low evidence confidence`
+          evidenceConfidenceIds.has(product.evidenceConfidence?.[assessmentId]),
+          `${product.n}: ${assessmentId} evidence confidence is required`
         );
         assert(
-          !(product.momentum === "improving" && product.evidenceConfidence.momentum === "low"),
-          `${product.n}: improving momentum cannot carry low evidence confidence`
+          product.evidenceConfidence?.[assessmentId] === expectedConfidence[assessmentId],
+          `${product.n}: ${assessmentId} confidence must be ${expectedConfidence[assessmentId]}`
         );
       }
+      assert(
+        !(["scaled","proven"].includes(product.maturity) && product.evidenceConfidence.maturity === "low"),
+        `${product.n}: proven or scaled maturity cannot carry low evidence confidence`
+      );
+      assert(
+        !(product.momentum !== "insufficient" && product.evidenceConfidence.momentum === "low"),
+        `${product.n}: directional momentum cannot carry low evidence confidence`
+      );
 
       for(const mapping of product.suiteMappings || []){
         assert(Boolean(mapping.suite && mapping.validFrom && mapping.source), `${product.n}: incomplete suite mapping`);
@@ -190,17 +197,22 @@ for(const category of model.categories){
       if(prior){
         assert(prior.id === product.id, `${product.n}: repeated references must share one stable id`);
         assert(Boolean(product.boundary), `${product.n}: repeated reference requires a boundary convention`);
+        for(const assessmentId of assessmentIds){
+          assert(
+            prior[assessmentId] === product[assessmentId],
+            `${product.n}: repeated references must share the same ${assessmentId} score`
+          );
+          assert(
+            prior.evidenceConfidence?.[assessmentId] === product.evidenceConfidence?.[assessmentId],
+            `${product.n}: repeated references must share the same ${assessmentId} confidence`
+          );
+        }
       } else {
         seenNames.set(product.n, product);
       }
     }
   }
 }
-
-assert(
-  Object.keys(securityPilot).every(name => securityPilotSeen.has(name)),
-  "Every Security Suite pilot product must be calibrated"
-);
 
 for(const [name, convention] of Object.entries(model.boundaryConventions)){
   assert(seenNames.has(name), `${name}: boundary convention points to an unknown product`);

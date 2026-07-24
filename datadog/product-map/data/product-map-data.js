@@ -735,55 +735,59 @@ setMeta([
   moatConviction:"weak",
 });
 
-// Security Suite pilot: keep the point estimate separate from how credible the
-// supporting evidence is. Scores are deliberately evidence-gated where Datadog
-// does not disclose product-level adoption, growth, or competitive outcomes.
-const SECURITY_EVIDENCE_PILOT = {
-  "Cloud Security":{
-    maturity:"validated",
-    position:"challenger",
-    momentum:"insufficient",
-    moatConviction:"credible",
-    evidenceConfidence:{maturity:"low",position:"low",momentum:"low",moatConviction:"low"},
-  },
-  "Code Security":{
-    maturity:"validated",
-    position:"challenger",
-    momentum:"insufficient",
-    moatConviction:"emerging",
-    evidenceConfidence:{maturity:"low",position:"low",momentum:"low",moatConviction:"low"},
-  },
-  "Cloud SIEM":{
-    maturity:"proven",
-    position:"challenger",
-    momentum:"insufficient",
-    moatConviction:"credible",
-    evidenceConfidence:{maturity:"medium",position:"low",momentum:"low",moatConviction:"low"},
-  },
-  "Data Security":{
-    maturity:"validated",
-    position:"challenger",
-    momentum:"insufficient",
-    moatConviction:"emerging",
-    evidenceConfidence:{maturity:"low",position:"low",momentum:"low",moatConviction:"low"},
-  },
-  "Security: AI Guard":{
-    maturity:"option",
-    position:"unproven",
-    momentum:"insufficient",
-    moatConviction:"weak",
-    evidenceConfidence:{maturity:"medium",position:"low",momentum:"low",moatConviction:"low"},
-  },
-  "Bits AI Security Analyst":{
-    maturity:"validated",
-    position:"unproven",
-    momentum:"insufficient",
-    moatConviction:"emerging",
-    evidenceConfidence:{maturity:"low",position:"low",momentum:"low",moatConviction:"low"},
-  },
-};
+// Full-map evidence-confidence calibration. The point estimate and the
+// credibility of its support remain separate, while factual scores such as
+// maturity and momentum are evidence-gated.
+const ALL_PRODUCT_NAMES = [...new Set(
+  DATA.flatMap(category => category.suites.flatMap(suite => suite.products.map(product => product.n)))
+)];
 
-Object.entries(SECURITY_EVIDENCE_PILOT).forEach(([name,values]) => setMeta([name],values));
+const setEvidenceConfidence = (names,values) => names.forEach(name => {
+  setMeta([name],{});
+  PRODUCT_META[name].evidenceConfidence = {
+    maturity:"low",
+    position:"low",
+    momentum:"low",
+    moatConviction:"low",
+    ...PRODUCT_META[name].evidenceConfidence,
+    ...values,
+  };
+});
+
+setEvidenceConfidence(ALL_PRODUCT_NAMES,{});
+
+setEvidenceConfidence([
+  "Infrastructure Monitoring","Log Management","APM",
+  "Real User Monitoring","Cloud Cost Management","LLM Observability",
+  "GPU Monitoring","AI Agents Console","Data Observability","Cloud SIEM",
+  "Security: AI Guard","Datadog MCP Server","Bits AI Dev Agent",
+  "On-Call","Bits AI SRE Agent",
+], {
+  maturity:"medium",
+});
+
+setEvidenceConfidence([
+  "APM","LLM Observability","GPU Monitoring",
+  "Datadog MCP Server","Bits AI SRE Agent",
+], {
+  momentum:"medium",
+});
+
+setEvidenceConfidence([
+  "Infrastructure Monitoring","Log Management","APM",
+], {
+  moatConviction:"medium",
+});
+
+for(const name of ALL_PRODUCT_NAMES){
+  const meta = PRODUCT_META[name];
+  if(["scaled","proven"].includes(meta.maturity) && meta.evidenceConfidence.maturity === "low"){
+    meta.maturity = "validated";
+  }
+  if(["improving","stable","watch"].includes(meta.momentum) && meta.evidenceConfidence.momentum === "low"){
+    meta.momentum = "insufficient";
+  }
+}
 
 const BOUNDARY_CONVENTIONS = {
   "Real User Monitoring":{
@@ -1285,7 +1289,7 @@ const normalizeProducts = () => {
       moat:meta.moat || ["bundle"],
       moatConviction:meta.moatConviction || "emerging",
       moatConvictionRationale:MOAT_CONVICTION[meta.moatConviction || "emerging"].rationale,
-      evidenceConfidence:meta.evidenceConfidence || null,
+      evidenceConfidence:meta.evidenceConfidence,
       dcf:meta.dcf || ["nrr"],
       capabilities:meta.capabilities || [],
       canonicalCategory:meta.canonicalCategory || firstCategory[product.n],
