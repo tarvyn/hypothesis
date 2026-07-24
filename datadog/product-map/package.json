@@ -1,0 +1,10 @@
+{
+  "name": "datadog-investor-product-map",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build-site.js",
+    "validate": "node scripts/validate-data.js"
+  }
+}

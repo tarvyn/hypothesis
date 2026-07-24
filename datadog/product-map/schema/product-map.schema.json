@@ -1,0 +1,121 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hypothesis.local/datadog/product-map.schema.json",
+  "title": "Datadog investor product map",
+  "type": "object",
+  "required": [
+    "categories",
+    "maturity",
+    "position",
+    "momentum",
+    "entityTypes",
+    "relatedEntities",
+    "platformEnablers",
+    "boundaryConventions",
+    "meta"
+  ],
+  "properties": {
+    "categories": {
+      "type": "array",
+      "minItems": 4,
+      "items": {"$ref": "#/$defs/category"}
+    },
+    "relatedEntities": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/relatedEntity"}
+    },
+    "platformEnablers": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/platformEnabler"}
+    },
+    "meta": {
+      "type": "object",
+      "required": ["asOf", "companyReportedProductCount", "auditedSource", "directionalSource"]
+    }
+  },
+  "$defs": {
+    "category": {
+      "type": "object",
+      "required": ["id", "catName", "gart", "anchor", "suites"],
+      "properties": {
+        "id": {"enum": ["obs", "sec", "dev", "pa"]},
+        "anchor": {
+          "type": "object",
+          "required": ["val", "scope", "lab"],
+          "properties": {
+            "scope": {"const": "category"}
+          }
+        },
+        "suites": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/suite"}
+        }
+      }
+    },
+    "suite": {
+      "type": "object",
+      "required": ["name", "products"],
+      "properties": {
+        "products": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/product"}
+        }
+      }
+    },
+    "product": {
+      "type": "object",
+      "required": [
+        "id",
+        "n",
+        "entityType",
+        "maturity",
+        "position",
+        "momentum",
+        "canonicalCategory",
+        "suiteMappings",
+        "monetization",
+        "motion",
+        "workloads",
+        "moat",
+        "dcf",
+        "evidence"
+      ],
+      "properties": {
+        "entityType": {
+          "enum": ["product", "product_family", "interface", "platform_primitive"]
+        },
+        "maturity": {"enum": ["scaled", "proven", "validated", "option"]},
+        "position": {"enum": ["leader", "strong_challenger", "challenger", "niche", "unproven"]},
+        "momentum": {"enum": ["improving", "stable", "watch", "insufficient"]},
+        "canonicalCategory": {"enum": ["obs", "sec", "dev", "pa"]},
+        "suiteMappings": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/suiteMapping"}
+        },
+        "evidence": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/evidence"}
+        }
+      }
+    },
+    "suiteMapping": {
+      "type": "object",
+      "required": ["suite", "validFrom", "validTo", "source"]
+    },
+    "evidence": {
+      "type": "object",
+      "required": ["claim", "source", "sourceClass", "scope", "confidence", "asOf"]
+    },
+    "relatedEntity": {
+      "type": "object",
+      "required": ["id", "name", "entityType", "parent", "description", "moat", "dcf", "asOf"]
+    },
+    "platformEnabler": {
+      "type": "object",
+      "required": ["id", "name", "entityType", "tags", "description", "dcf"]
+    }
+  }
+}
