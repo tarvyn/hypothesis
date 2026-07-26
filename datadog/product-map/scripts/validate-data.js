@@ -29,6 +29,8 @@ const positionIds = new Set(Object.keys(model.position));
 const momentumIds = new Set(Object.keys(model.momentum));
 const moatConvictionIds = new Set(Object.keys(model.moatConviction));
 const evidenceConfidenceIds = new Set(Object.keys(model.evidenceConfidence || {}));
+const underwritingIds = new Set(Object.keys(model.underwriting || {}));
+const evidenceSignalIds = new Set(Object.keys(model.evidenceSignals || {}));
 const entityTypeIds = new Set(Object.keys(model.entityTypes));
 const assessmentIds = ["maturity","position","momentum","moatConviction"];
 const mediumMaturityProducts = new Set([
@@ -50,6 +52,8 @@ let references = 0;
 
 assert(model.sources && Object.keys(model.sources).length > 0, "Source registry is required");
 assert(model.productSources && Object.keys(model.productSources).length > 0, "Product source registry is required");
+assert(model.companyAssessment, "Company-level investor assessment is required");
+assert(underwritingIds.size > 0, "Underwriting sensitivity registry is required");
 assert(
   ["high","medium","low"].every(id => evidenceConfidenceIds.has(id)) && evidenceConfidenceIds.size === 3,
   "Evidence-confidence scale must contain exactly high, medium, and low"
@@ -98,6 +102,19 @@ for(const category of model.categories){
       assert(categoryIds.has(product.canonicalCategory), `${product.n}: invalid canonical category`);
       assert(Array.isArray(product.moat) && product.moat.length > 0, `${product.n}: moat tags are required`);
       assert(Array.isArray(product.dcf) && product.dcf.length > 0, `${product.n}: DCF tags are required`);
+      assert(
+        product.dcf.every(id => underwritingIds.has(id)),
+        `${product.n}: unknown underwriting sensitivity`
+      );
+      assert(Array.isArray(product.evidenceSignals), `${product.n}: evidence signals must be an array`);
+      assert(
+        product.evidenceSignals.every(id => evidenceSignalIds.has(id)),
+        `${product.n}: unknown evidence signal`
+      );
+      assert(
+        !product.moat.includes("hyperscaler_validation"),
+        `${product.n}: hyperscaler validation must be evidence, not a moat mechanism`
+      );
       assert(Array.isArray(product.suiteMappings) && product.suiteMappings.length > 0, `${product.n}: suite mapping history is required`);
       assert(Boolean(product.assessmentEvidence), `${product.n}: assessment evidence is required`);
 
@@ -115,6 +132,17 @@ for(const category of model.categories){
         assert(
           product.evidenceConfidence?.[assessmentId] === expectedConfidence[assessmentId],
           `${product.n}: ${assessmentId} confidence must be ${expectedConfidence[assessmentId]}`
+        );
+      }
+      if(["strong","credible"].includes(product.moatConviction)){
+        const moatSourceIds = new Set(product.assessmentEvidence.moatConviction.sources.map(source => source.id));
+        assert(
+          moatSourceIds.has("internal-moat-analysis"),
+          `${product.n}: meaningful moat contribution requires the internal Narrow + Strengthening company context`
+        );
+        assert(
+          moatSourceIds.has("morningstar-ddog-2026"),
+          `${product.n}: external wide-moat contrast must remain explicitly available`
         );
       }
       assert(
@@ -229,6 +257,13 @@ for(const enabler of model.platformEnablers){
   assert(entityTypeIds.has(enabler.entityType), `${enabler.name}: invalid enabler entity type`);
   assert(Array.isArray(enabler.dcf) && enabler.dcf.length > 0, `${enabler.name}: DCF linkage is required`);
 }
+
+assert(model.companyAssessment.asOf === model.meta.asOf, "Company assessment and dataset as-of must match");
+assert(model.companyAssessment.verdicts.length >= 5, "Company assessment must include all five agreed verdicts");
+for(const verdict of model.companyAssessment.verdicts){
+  assert(Boolean(model.sources[verdict.sourceId]), `${verdict.label}: company verdict source is unknown`);
+}
+assert(model.companyAssessment.watchlist.length >= 4, "Investor watchlist must include all four monitoring dimensions");
 
 assert(model.meta.asOf === "2026-Q1", "Dataset as-of must be 2026-Q1");
 assert(model.meta.companyReportedProductCount === 26, "Company-reported product count must stay a separately labeled fact");

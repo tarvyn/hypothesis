@@ -29,20 +29,20 @@ const MOMENTUM = {
 
 const MOAT_CONVICTION = {
   strong:{
-    color:"#2ed6a0",label:"Strong",score:4,max:4,
-    rationale:"Scaled adoption and multiple reinforcing mechanisms make the differentiation difficult to reproduce or displace.",
+    color:"#2ed6a0",label:"High",score:4,max:4,
+    rationale:"The product makes a high contribution to deployment-level switching costs through scaled adoption and multiple reinforcing platform mechanisms.",
   },
   credible:{
-    color:"#4aa3e0",label:"Credible",score:3,max:4,
-    rationale:"Platform context and workflow integration create meaningful differentiation, though the advantage is not fully category-defining.",
+    color:"#4aa3e0",label:"Meaningful",score:3,max:4,
+    rationale:"The product makes a meaningful contribution to switching costs through platform context and workflow integration, without constituting an independent economic moat.",
   },
   emerging:{
     color:"#f5b13f",label:"Emerging",score:2,max:4,
-    rationale:"The moat mechanism is plausible, but adoption, switching-cost, or durability evidence is still incomplete.",
+    rationale:"The product could deepen switching costs, but adoption, workflow embedding, or durability evidence remains incomplete.",
   },
   weak:{
-    color:"#ff5c8a",label:"Weak",score:1,max:4,
-    rationale:"Current differentiation is mostly completeness or bundling; durable switching costs are not yet demonstrated.",
+    color:"#ff5c8a",label:"Limited",score:1,max:4,
+    rationale:"The current contribution is mostly portfolio completeness or bundling; durable incremental switching costs are not yet demonstrated.",
   },
 };
 
@@ -74,7 +74,29 @@ const MOAT_MECHANISM_EXPLANATION = {
   feedback_loop:"More usage and telemetry can improve prioritization, recommendations, and the product-development feedback loop.",
   developer_habit:"Daily use inside developer workflows can create habit and make replacement disruptive.",
   platform_access:"A shared Datadog interface can become a common access layer to telemetry and actions.",
-  hyperscaler_validation:"Adoption by technically demanding hyperscalers can validate capability, although it does not by itself prove broad commercial durability.",
+};
+
+const UNDERWRITING = {
+  new_logo:{label:"New-logo growth",group:"growth",description:"Sensitivity to the pace and quality of new customer acquisition."},
+  land_size:{label:"Initial land size",group:"growth",description:"Sensitivity to the size and scope of the first deployment."},
+  usage_growth:{label:"Usage growth",group:"growth",description:"Revenue expands with monitored workloads, telemetry, users, or actions."},
+  usage_optimization:{label:"Usage optimization",group:"risk",description:"Customers can reduce telemetry or infrastructure consumption without leaving the platform."},
+  nrr:{label:"NRR",group:"retention",description:"Expansion quality depends on net revenue retention across existing cohorts."},
+  grr:{label:"GRR",group:"retention",description:"The product contributes to protecting the committed revenue base before expansion."},
+  growth_duration:{label:"Growth duration",group:"growth",description:"The valuation depends on durable cross-sell or category growth."},
+  new_tam:{label:"New TAM",group:"optionality",description:"The product can open a new buyer, workload, or budget pool."},
+  tam_duration:{label:"TAM duration",group:"optionality",description:"The value depends on the category remaining durable and commercially attractive."},
+  r_and_d_intensity:{label:"R&D burden",group:"risk",description:"The opportunity requires sustained product investment before economics are proven."},
+  gross_margin_risk:{label:"Data / hosting intensity",group:"risk",description:"Compute, storage, or third-party cloud costs can pressure gross margin."},
+  interface_risk:{label:"Agent / interface risk",group:"risk",description:"An external agent or interface can intermediate Datadog and capture part of the workflow value."},
+  sales_cycle:{label:"Sales-cycle risk",group:"risk",description:"Compliance or enterprise procurement can lengthen conversion and raise go-to-market cost."},
+};
+
+const EVIDENCE_SIGNALS = {
+  hyperscaler_validation:{
+    label:"Hyperscaler validation",
+    description:"Adoption by a technically demanding hyperscaler validates capability, but does not establish switching costs or durable economics.",
+  },
 };
 
 const SOURCE_REGISTRY = {
@@ -150,6 +172,26 @@ const SOURCE_REGISTRY = {
     access:"internal",
     url:null,
     hoverText:"Our analytical inference for this map. It is not a Datadog, Morningstar, or broker opinion.",
+    hoverType:"note",
+  },
+  "internal-business-model-analysis":{
+    label:"Business Model Analysis — July 2026",
+    publisher:"Internal investment research",
+    date:"2026-07-25",
+    sourceClass:"internal_research",
+    access:"internal",
+    url:"https://app.notion.com/p/3a864b104c8d81dd9f73dc05998f81ce",
+    hoverText:"Business model quality: Strong. Operational scalability: Proven. Per-share scalability: Conditional.",
+    hoverType:"note",
+  },
+  "internal-moat-analysis":{
+    label:"Economic Moat Analysis — July 2026",
+    publisher:"Internal investment research",
+    date:"2026-07-25",
+    sourceClass:"internal_research",
+    access:"internal",
+    url:"https://app.notion.com/p/3a864b104c8d81a9882dd57a67269109",
+    hoverText:"MOAT State: Narrow. Dynamics: Strengthening. Dominant mechanism: switching costs supported by platform scale.",
     hoverType:"note",
   },
 };
@@ -550,6 +592,7 @@ const setMeta = (names, values) => names.forEach(name => {
     moat:["bundle"],
     moatConviction:"emerging",
     dcf:["nrr"],
+    evidenceSignals:[],
     capabilities:[],
     ...PRODUCT_META[name],
     ...values,
@@ -564,7 +607,7 @@ setMeta([
   momentum:"improving",
   motion:["land","expand","defend"],
   moat:["data_gravity","cross_signal","integration_breadth","installed_base"],
-  dcf:["new_logo","land_size","usage_growth","nrr","growth_duration"],
+  dcf:["new_logo","land_size","usage_growth","usage_optimization","nrr","growth_duration"],
 });
 
 setMeta([
@@ -657,15 +700,16 @@ setMeta(["Datadog MCP Server"], {
 setMeta(["GPU Monitoring"], {
   workloads:["ai","training","inference"],
   motion:["land","expand"],
-  moat:["cross_signal","integration_breadth","hyperscaler_validation"],
-  dcf:["new_tam","land_size","usage_growth","gross_margin_risk"],
+  moat:["cross_signal","integration_breadth"],
+  dcf:["new_tam","land_size","usage_growth","usage_optimization","gross_margin_risk"],
+  evidenceSignals:["hyperscaler_validation"],
 });
 
 setMeta(["LLM Observability"], {
   workloads:["ai","inference","agents"],
   motion:["land","expand"],
   moat:["cross_signal","workflow_lock_in"],
-  dcf:["new_tam","usage_growth","nrr"],
+  dcf:["new_tam","usage_growth","usage_optimization","nrr","r_and_d_intensity"],
 });
 
 setMeta(["APM"], {
@@ -674,7 +718,7 @@ setMeta(["APM"], {
 
 setMeta(["Log Management"], {
   workloads:["training","inference","agents"],
-  dcf:["new_logo","land_size","usage_growth","nrr","growth_duration","gross_margin_risk"],
+  dcf:["new_logo","land_size","usage_growth","usage_optimization","nrr","growth_duration","gross_margin_risk"],
   capabilities:["Flex Logs","Cloud Prem / BYOC deployment"],
 });
 
@@ -693,7 +737,11 @@ setMeta(["Cloud SIEM"], {
   momentum:"improving",
   motion:["land","expand","defend"],
   moat:["data_gravity","cross_signal","bundle"],
-  dcf:["new_logo","land_size","nrr","growth_duration"],
+  dcf:["new_logo","land_size","usage_optimization","nrr","growth_duration","gross_margin_risk"],
+});
+
+setMeta(["Cloud Security"], {
+  dcf:["nrr","grr","growth_duration","gross_margin_risk"],
 });
 
 setMeta(["Real User Monitoring"], {
@@ -887,6 +935,82 @@ const PLATFORM_ENABLERS = [
   },
 ];
 
+const COMPANY_ASSESSMENT = {
+  asOf:"2026-Q1",
+  verdicts:[
+    {
+      id:"business-model",
+      label:"Business model",
+      value:"Strong",
+      tone:"positive",
+      note:"A proven committed-base plus variable-expansion model.",
+      sourceId:"internal-business-model-analysis",
+    },
+    {
+      id:"operational-scalability",
+      label:"Operational scalability",
+      value:"Proven",
+      tone:"positive",
+      note:"Revenue, gross profit, product depth, and sales efficiency scale.",
+      sourceId:"internal-business-model-analysis",
+    },
+    {
+      id:"per-share-scalability",
+      label:"Per-share scalability",
+      value:"Conditional",
+      tone:"watch",
+      note:"SBC, dilution, recurring R&D, and cloud costs still absorb owner economics.",
+      sourceId:"internal-business-model-analysis",
+    },
+    {
+      id:"economic-moat",
+      label:"Economic moat",
+      value:"Narrow",
+      tone:"watch",
+      note:"Real but penetrable switching costs; not an impregnable cost or network-effect moat.",
+      sourceId:"internal-moat-analysis",
+    },
+    {
+      id:"moat-dynamics",
+      label:"Moat dynamics",
+      value:"Strengthening",
+      tone:"positive",
+      confidence:"Medium",
+      note:"Multi-product adoption and workflow embedding are deepening faster than per-share economics.",
+      sourceId:"internal-moat-analysis",
+    },
+  ],
+  facts:[
+    {value:"4,550",label:"customers above $100k ARR"},
+    {value:"≈90%",label:"ARR from the $100k+ cohort"},
+    {value:"low-120s",label:"TTM NRR"},
+    {value:"mid–high 90s",label:"gross retention"},
+    {value:"56% / 35% / 20%",label:"customers using 4+ / 6+ / 8+ products"},
+  ],
+  watchlist:[
+    {
+      label:"Retention & platform depth",
+      confirmation:"NRR ≥120%, GRR in the mid–high 90s, and 6+/8+ adoption keeps rising.",
+      warning:"NRR <115% or the 8+ product cohort stagnates.",
+    },
+    {
+      label:"Infrastructure economics",
+      confirmation:"GAAP gross margin remains near 79–80% as AI and data volumes scale.",
+      warning:"Sustained gross margin <78%, especially from hosting costs or pricing pressure.",
+    },
+    {
+      label:"ROIC & per-share conversion",
+      confirmation:"R&D-capitalized ROIC holds near 17–20% and net dilution stays within 2.5–3.0%.",
+      warning:"ROIC approaches 12%, SBC outgrows revenue, or dilution breaks the target.",
+    },
+    {
+      label:"Portability & concentration",
+      confirmation:"OpenTelemetry-native monetization expands and AI growth broadens across customers.",
+      warning:"Large workloads move to neutral backends or AI growth concentrates further.",
+    },
+  ],
+};
+
 const Q1_EVIDENCE = {
   "GPU Monitoring":[
     {
@@ -1010,17 +1134,30 @@ const productSource = (product,locator,caveat=null) => {
   };
 };
 
-const companyMoatContext = () => assessmentSource(
-  "morningstar-ddog-2026",
-  "Economic Moat, pp. 2-4",
-  "Morningstar assigns Datadog a company-wide wide moat primarily from switching costs and network effects. Its analysis links switching costs to deployment and reconfiguration effort, mission-critical workflows, tailored dashboards, and high gross retention.",
-  "parsed_summary",
-  {
-    role:"context",
-    scope:"company",
-    caveat:"Context only: Morningstar evaluates Datadog as a company and does not assign a moat rating to Cloud SIEM or any other individual product.",
-  }
-);
+const companyMoatContexts = () => [
+  assessmentSource(
+    "internal-moat-analysis",
+    "Final verdict and dominant moat mechanism",
+    "Our July 2026 analysis rates Datadog Narrow + Strengthening and identifies deployment-level switching costs, supported by platform scale, as the dominant moat mechanism.",
+    "note",
+    {
+      role:"context",
+      scope:"company",
+      caveat:"Primary company context only: it explains how products can contribute to the platform moat, but it does not prove that any single product has an independent economic moat.",
+    }
+  ),
+  assessmentSource(
+    "morningstar-ddog-2026",
+    "Economic Moat, pp. 2-4",
+    "Morningstar assigns Datadog a company-wide wide moat primarily from switching costs and network effects.",
+    "parsed_summary",
+    {
+      role:"context",
+      scope:"company",
+      caveat:"External contrast: our internal conclusion is Narrow + Strengthening. Morningstar evaluates the company and does not assign product-level moat ratings.",
+    }
+  ),
+];
 
 const buildAssessmentEvidence = (product,meta,legacyEvidence,q1Evidence) => {
   const traction = legacyEvidence[0];
@@ -1195,26 +1332,26 @@ const buildAssessmentEvidence = (product,meta,legacyEvidence,q1Evidence) => {
   const mechanismBasis = moatKeys
     .map(key => MOAT_MECHANISM_EXPLANATION[key] || `${key.replace(/_/g," ")} may contribute to differentiation.`)
     .join(" ");
-  const moatRationale = `${MOAT_CONVICTION[moatKey].label} is our product-level judgment, not a company rating. The case rests on ${moatNames}. ${product.why}`;
+  const moatRationale = `${MOAT_CONVICTION[moatKey].label} is our estimate of this product's contribution to deployment-level switching costs, not an independent economic-moat rating. The case rests on ${moatNames}. ${product.why}`;
   const moatSources = [
     assessmentSource(
       "author-assessment",
       "Product-level moat interpretation",
-      `Why we assigned ${MOAT_CONVICTION[moatKey].label}: ${mechanismBasis} Product logic: ${product.why} Competitive constraint: ${product.edge}`,
+      `Why we assigned ${MOAT_CONVICTION[moatKey].label} contribution: ${mechanismBasis} Product logic: ${product.why} Competitive constraint: ${product.edge}`,
       "note",
       {
         role:"judgment",
         scope:"product",
-        caveat:"This is the map's analytical inference. Datadog does not disclose product-level retention, switching costs, or economic-moat ratings.",
+        caveat:"This is the map's analytical inference. Datadog does not disclose product-level retention, switching-cost contribution, or economic-moat ratings.",
       }
     ),
     productSource(
       product,
       `${product.n} integration and workflow claims`,
-      "The company page supports the product capability and platform-integration premise. It does not independently establish durable switching costs or moat strength."
+      "The company page supports the product capability and platform-integration premise. It does not independently establish durable switching costs or the product's contribution to them."
     ),
   ];
-  if(["strong","credible"].includes(moatKey)) moatSources.push(companyMoatContext());
+  if(["strong","credible"].includes(moatKey)) moatSources.push(...companyMoatContexts());
 
   return {
     maturity:{
@@ -1291,6 +1428,7 @@ const normalizeProducts = () => {
       moatConvictionRationale:MOAT_CONVICTION[meta.moatConviction || "emerging"].rationale,
       evidenceConfidence:meta.evidenceConfidence,
       dcf:meta.dcf || ["nrr"],
+      evidenceSignals:meta.evidenceSignals || [],
       capabilities:meta.capabilities || [],
       canonicalCategory:meta.canonicalCategory || firstCategory[product.n],
       suiteMapping:{
@@ -1321,9 +1459,12 @@ window.PRODUCT_MAP = {
   momentum:MOMENTUM,
   moatConviction:MOAT_CONVICTION,
   evidenceConfidence:EVIDENCE_CONFIDENCE,
+  underwriting:UNDERWRITING,
+  evidenceSignals:EVIDENCE_SIGNALS,
   entityTypes:ENTITY_TYPES,
   relatedEntities:RELATED_ENTITIES,
   platformEnablers:PLATFORM_ENABLERS,
+  companyAssessment:COMPANY_ASSESSMENT,
   boundaryConventions:BOUNDARY_CONVENTIONS,
   sources:SOURCE_REGISTRY,
   productSources:PRODUCT_SOURCES,

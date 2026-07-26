@@ -8,10 +8,14 @@
     "maturity",
     "position",
     "momentum",
+    "moatConviction",
     "evidenceConfidence",
+    "underwriting",
+    "evidenceSignals",
     "entityTypes",
     "relatedEntities",
     "platformEnablers",
+    "companyAssessment",
     "boundaryConventions",
     "sources",
     "productSources",
@@ -55,6 +59,25 @@
         "required": ["label", "short", "rationale"]
       }
     },
+    "underwriting": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "object",
+        "required": ["label", "group", "description"],
+        "properties": {
+          "group": {"enum": ["growth", "retention", "optionality", "risk"]}
+        }
+      }
+    },
+    "evidenceSignals": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["label", "description"]
+      }
+    },
+    "companyAssessment": {"$ref": "#/$defs/companyAssessment"},
     "meta": {
       "type": "object",
       "required": ["asOf", "companyReportedProductCount", "auditedSource", "directionalSource"]
@@ -110,6 +133,7 @@
         "workloads",
         "moat",
         "dcf",
+        "evidenceSignals",
         "evidence",
         "assessmentEvidence"
       ],
@@ -138,6 +162,11 @@
           "type": "array",
           "minItems": 1,
           "items": {"$ref": "#/$defs/suiteMapping"}
+        },
+        "evidenceSignals": {
+          "type": "array",
+          "items": {"type": "string"},
+          "uniqueItems": true
         },
         "evidence": {
           "type": "array",
@@ -198,6 +227,39 @@
     "platformEnabler": {
       "type": "object",
       "required": ["id", "name", "entityType", "tags", "description", "dcf"]
+    },
+    "companyAssessment": {
+      "type": "object",
+      "required": ["asOf", "verdicts", "facts", "watchlist"],
+      "properties": {
+        "verdicts": {
+          "type": "array",
+          "minItems": 5,
+          "items": {
+            "type": "object",
+            "required": ["id", "label", "value", "tone", "note", "sourceId"],
+            "properties": {
+              "tone": {"enum": ["positive", "watch"]}
+            }
+          }
+        },
+        "facts": {
+          "type": "array",
+          "minItems": 4,
+          "items": {
+            "type": "object",
+            "required": ["value", "label"]
+          }
+        },
+        "watchlist": {
+          "type": "array",
+          "minItems": 4,
+          "items": {
+            "type": "object",
+            "required": ["label", "confirmation", "warning"]
+          }
+        }
+      }
     }
   }
 }

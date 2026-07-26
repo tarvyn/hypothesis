@@ -10,7 +10,6 @@
     workflow_lock_in:{label:"Workflow lock-in",color:"#f5b13f"},
     feedback_loop:{label:"Feedback loop",color:"#ff5c8a"},
     developer_habit:{label:"Developer habit",color:"#a78bfa"},
-    hyperscaler_validation:{label:"Hyperscaler validation",color:"#ef8f55"},
     platform_access:{label:"Platform access",color:"#55c2a9"},
     bundle:{label:"Bundle / consolidation",color:"#6b7398"},
   };
@@ -21,15 +20,21 @@
     {id:"maturity",short:"MAT",label:"Maturity",definitions:model.maturity},
     {id:"position",short:"POS",label:"Position",definitions:model.position},
     {id:"momentum",short:"MOM",label:"Momentum",definitions:model.momentum},
-    {id:"moatConviction",short:"MOAT",label:"Moat strength",definitions:model.moatConviction},
+    {id:"moatConviction",short:"MOAT",label:"Moat contribution",definitions:model.moatConviction},
   ];
 
   const FILTERS = [
     {
-      id:"ai",
-      label:"AI",
-      purpose:"Shows products exposed to AI workloads or enhanced by AI. Use it to test AI relevance across the existing map—not to create a separate TAM.",
+      id:"ai_workload",
+      label:"AI workload",
+      purpose:"Shows products that observe, secure, or support AI workloads. This is operating exposure inside the existing map—not a separate TAM.",
       test:item => item.workloads.includes("ai"),
+    },
+    {
+      id:"ai_optionality",
+      label:"AI option",
+      purpose:"Isolates earlier-stage AI products whose commercial scale or durability remains unproven.",
+      test:item => item.workloads.includes("ai") && ["validated","option"].includes(item.maturity),
     },
     {
       id:"training",
@@ -44,10 +49,10 @@
       test:item => item.workloads.includes("inference"),
     },
     {
-      id:"agents",
-      label:"Agents",
-      purpose:"Finds products used by, monitoring, or enabling autonomous agents. Use it to assess new usage, workflow lock-in, and interface risk.",
-      test:item => item.workloads.includes("agents"),
+      id:"agent_interface",
+      label:"Agent / interface",
+      purpose:"Finds products exposed to autonomous-agent workflows or interface disintermediation. It combines upside from new usage with the risk that another interface captures value.",
+      test:item => item.workloads.includes("agents") || item.dcf.includes("interface_risk"),
     },
     {
       id:"usage",
@@ -91,6 +96,24 @@
       purpose:"Shows customer-controlled deployment support. It can unlock sovereign and very large workloads, with added delivery and margin complexity.",
       test:item => item.capabilities.some(value => value.toLowerCase().includes("byoc")),
     },
+    {
+      id:"usage_optimization",
+      label:"Usage optimization",
+      purpose:"Highlights products where customers can reduce telemetry or infrastructure consumption without leaving Datadog.",
+      test:item => item.dcf.includes("usage_optimization"),
+    },
+    {
+      id:"gross_margin_risk",
+      label:"Data / hosting cost",
+      purpose:"Highlights data-intensive products whose compute, storage, or third-party cloud costs can pressure gross margin.",
+      test:item => item.dcf.includes("gross_margin_risk"),
+    },
+    {
+      id:"r_and_d_intensity",
+      label:"R&D burden",
+      purpose:"Highlights products whose value depends on sustained innovation before product-level economics are proven.",
+      test:item => item.dcf.includes("r_and_d_intensity"),
+    },
   ];
 
   const state = {filters:new Set(),selected:null};
@@ -113,6 +136,9 @@
   const readerName = document.getElementById("r-name");
   const readerTags = document.getElementById("r-tags");
   const readerBody = document.getElementById("r-body");
+  const companyVerdicts = document.getElementById("company-verdicts");
+  const companyFacts = document.getElementById("company-facts");
+  const companyWatchlist = document.getElementById("company-watchlist");
 
   model.categories.forEach(category => category.suites.forEach(suite => suite.products.forEach(product => {
     allItems.push({...product,categoryId:category.id,categoryName:category.catName,categoryColor:category.color,suiteName:suite.name});
@@ -128,6 +154,30 @@
     `<span class="chip">AI = <b>overlay</b>, not TAM</span>`,
     `<span class="chip">NRR <b>low-120%</b> · TTM</span>`,
   ].join("");
+
+  function renderCompanyLens(){
+    const assessment = model.companyAssessment;
+    companyVerdicts.innerHTML = assessment.verdicts.map(verdict => {
+      const source = model.sources[verdict.sourceId];
+      return `<article class="verdict-card tone-${esc(verdict.tone)}">
+        <span class="verdict-label">${esc(verdict.label)}</span>
+        <strong>${esc(verdict.value)}</strong>
+        ${verdict.confidence ? `<span class="verdict-confidence">${esc(verdict.confidence)} confidence</span>` : ""}
+        <p>${esc(verdict.note)}</p>
+        ${source?.url ? `<a href="${esc(source.url)}" target="_blank" rel="noopener noreferrer">${esc(source.label)} ↗</a>` : ""}
+      </article>`;
+    }).join("");
+    companyFacts.innerHTML = assessment.facts.map(fact =>
+      `<div class="company-fact"><strong>${esc(fact.value)}</strong><span>${esc(fact.label)}</span></div>`
+    ).join("");
+    companyWatchlist.innerHTML = assessment.watchlist.map(item =>
+      `<article class="watch-item">
+        <h3>${esc(item.label)}</h3>
+        <p class="confirm"><b>Confirm</b>${esc(item.confirmation)}</p>
+        <p class="warning"><b>Warn</b>${esc(item.warning)}</p>
+      </article>`
+    ).join("");
+  }
 
   filters.innerHTML = FILTERS.map(filter =>
     `<button class="filter" type="button" data-filter="${filter.id}" aria-pressed="false" aria-describedby="overlay-help-${filter.id}">
@@ -272,6 +322,7 @@
   }
 
   function render(){
+    renderCompanyLens();
     renderLegend();
     renderEnablers();
     renderLanes();
@@ -370,7 +421,7 @@
       tag(model.maturity[item.maturity]?.label,true,model.maturity[item.maturity]?.color),
       tag(model.position[item.position]?.label,true,model.position[item.position]?.color),
       tag(model.momentum[item.momentum]?.label),
-      tag(`${model.moatConviction[item.moatConviction]?.label} moat strength`,true,model.moatConviction[item.moatConviction]?.color),
+      tag(`${model.moatConviction[item.moatConviction]?.label} moat contribution`,true,model.moatConviction[item.moatConviction]?.color),
       item.workloads.includes("ai") ? tag("AI layer",true,"var(--ai)") : "",
     ].join("");
 
@@ -425,7 +476,7 @@
           ${assessmentCard(item,SCORECARD[0],"Commercial maturity")}
           ${assessmentCard(item,SCORECARD[1],"Competitive position")}
           ${assessmentCard(item,SCORECARD[2],"Momentum")}
-          ${assessmentCard(item,SCORECARD[3],"Moat strength")}
+          ${assessmentCard(item,SCORECARD[3],"Moat contribution")}
         </div>
       </div>
       <div class="r-sec">
@@ -433,13 +484,25 @@
         <p>${esc(item.edge)}</p>
       </div>
       ${item.competitors.length ? `<div class="r-sec"><h4>Competitive set</h4><div class="comp-grid">${item.competitors.map(([name,type]) => `<span class="comp ${esc(type)}">${esc(name)}</span>`).join("")}</div></div>` : ""}
-      <div class="r-sec"><h4>Moat assessment</h4>
-        <div class="r-callout"><b>${esc(model.moatConviction[item.moatConviction].label)} strength</b>${esc(item.moatConvictionRationale)}</div>
-        <div class="moat-mechanisms"><span>Mechanisms</span>${tagList(item.moat,MOAT)}</div>
+      <div class="r-sec"><h4>Moat contribution</h4>
+        <div class="r-callout"><b>${esc(model.moatConviction[item.moatConviction].label)} contribution</b>${esc(item.moatConvictionRationale)}</div>
+        <div class="moat-mechanisms"><span>Switching-cost mechanisms</span>${tagList(item.moat,MOAT)}</div>
+        ${item.evidenceSignals.length ? `<div class="moat-mechanisms"><span>Traction / validation signals · not moat</span>${tagList(item.evidenceSignals,model.evidenceSignals)}</div>` : ""}
       </div>
       <div class="r-sec"><h4>Commercial tags</h4>
         <div class="tag-list">
           ${[...item.monetization,...item.motion,...item.workloads].map(value => `<span class="detail-tag">${esc(pretty(value))}</span>`).join("")}
+        </div>
+      </div>
+      <div class="r-sec"><h4>Underwriting sensitivities</h4>
+        <div class="underwriting-list">
+          ${item.dcf.map(key => {
+            const sensitivity = model.underwriting[key];
+            return `<div class="underwriting-item group-${esc(sensitivity?.group || "other")}">
+              <b>${esc(sensitivity?.label || pretty(key))}</b>
+              <span>${esc(sensitivity?.description || "")}</span>
+            </div>`;
+          }).join("")}
         </div>
       </div>
       ${(item.capabilities.length || related.length) ? `<div class="r-sec"><h4>Capabilities & solution overlays</h4>
