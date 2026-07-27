@@ -116,7 +116,12 @@
     },
   ];
 
-  const state = {filters:new Set(),selected:null};
+  const state = {
+    filters:new Set(),
+    selected:null,
+    activeTab:window.location.hash === "#business-model" ? "business-model" : "product-map",
+    showProductScores:false,
+  };
   const refs = {};
   const allItems = [];
   const esc = value => String(value ?? "")
@@ -139,6 +144,11 @@
   const companyVerdicts = document.getElementById("company-verdicts");
   const companyFacts = document.getElementById("company-facts");
   const companyWatchlist = document.getElementById("company-watchlist");
+  const tabList = document.querySelector(".top-tabs");
+  const tabButtons = [...document.querySelectorAll("[data-tab]")];
+  const tabPanels = [...document.querySelectorAll("[data-panel]")];
+  const productScoresToggle = document.getElementById("product-scores-toggle");
+  const mapHint = document.getElementById("map-hint");
 
   model.categories.forEach(category => category.suites.forEach(suite => suite.products.forEach(product => {
     allItems.push({...product,categoryId:category.id,categoryName:category.catName,categoryColor:category.color,suiteName:suite.name});
@@ -202,6 +212,12 @@
   }
 
   function renderLegend(){
+    if(!state.showProductScores){
+      legend.innerHTML = "";
+      legend.hidden = true;
+      return;
+    }
+    legend.hidden = false;
     const scoreKeys = SCORECARD.map(item =>
       `<span class="score-key"><b>${esc(item.short)}</b>${esc(item.label)}</span>`
     ).join("");
@@ -295,7 +311,7 @@
                     ${item.workloads.includes("ai") ? '<span class="ai-dot" aria-hidden="true"></span>' : ""}
                     <span class="cell-name">${esc(item.n)}</span>
                     ${item.arr ? `<span class="arr">${esc(item.arr)}</span>` : ""}
-                    ${productScorecard(item)}
+                    ${state.showProductScores ? productScorecard(item) : ""}
                   </button>`;
                 }).join("")}
               </div>
@@ -328,6 +344,29 @@
     renderLanes();
     renderExplainer();
     filters.querySelectorAll("button").forEach(button => button.setAttribute("aria-pressed",state.filters.has(button.dataset.filter)));
+    productScoresToggle.setAttribute("aria-checked",String(state.showProductScores));
+    mapHint.textContent = state.showProductScores
+      ? "Bar length is the point estimate. Fill treatment and H/M/L show evidence confidence. Select a tile for sources and moat mechanics."
+      : "Select a product tile for its assessment, sources, and moat mechanics.";
+  }
+
+  function activateTab(tabId,{focus=false,updateUrl=true}={}){
+    if(!tabButtons.some(button => button.dataset.tab === tabId)) return;
+    state.activeTab = tabId;
+    closeReader();
+    tabButtons.forEach(button => {
+      const active = button.dataset.tab === tabId;
+      button.classList.toggle("is-active",active);
+      button.setAttribute("aria-selected",String(active));
+      button.tabIndex = active ? 0 : -1;
+      if(active && focus) button.focus();
+    });
+    tabPanels.forEach(panel => {
+      panel.hidden = panel.dataset.panel !== tabId;
+    });
+    if(updateUrl){
+      history.replaceState(null,"",`#${tabId}`);
+    }
   }
 
   function tag(label,primary=false,color="var(--txt-dim)"){
@@ -542,6 +581,34 @@
     render();
   });
 
+  productScoresToggle.addEventListener("click",() => {
+    state.showProductScores = !state.showProductScores;
+    closeReader();
+    renderLegend();
+    renderLanes();
+    productScoresToggle.setAttribute("aria-checked",String(state.showProductScores));
+    mapHint.textContent = state.showProductScores
+      ? "Bar length is the point estimate. Fill treatment and H/M/L show evidence confidence. Select a tile for sources and moat mechanics."
+      : "Select a product tile for its assessment, sources, and moat mechanics.";
+  });
+
+  tabList.addEventListener("click",event => {
+    const button = event.target.closest("[data-tab]");
+    if(button) activateTab(button.dataset.tab);
+  });
+
+  tabList.addEventListener("keydown",event => {
+    if(!["ArrowLeft","ArrowRight","Home","End"].includes(event.key)) return;
+    event.preventDefault();
+    const currentIndex = tabButtons.findIndex(button => button.dataset.tab === state.activeTab);
+    const nextIndex = event.key === "Home"
+      ? 0
+      : event.key === "End"
+        ? tabButtons.length - 1
+        : (currentIndex + (event.key === "ArrowRight" ? 1 : -1) + tabButtons.length) % tabButtons.length;
+    activateTab(tabButtons[nextIndex].dataset.tab,{focus:true});
+  });
+
   lanes.addEventListener("click",event => {
     const cell = event.target.closest("[data-item]");
     if(!cell) return;
@@ -554,5 +621,6 @@
     if(event.key === "Escape") closeReader();
   });
 
+  activateTab(state.activeTab,{updateUrl:false});
   render();
 })();

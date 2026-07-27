@@ -35,104 +35,169 @@
       <div class="thesis" id="headline-stats"></div>
     </header>
 
-    <section class="company-lens" aria-labelledby="company-lens-title">
-      <div class="section-head">
-        <div>
-          <span class="section-kicker">Company-level underwriting</span>
-          <h2 id="company-lens-title">Business model & economic moat</h2>
+    <nav class="top-tabs" role="tablist" aria-label="Investor map views">
+      <button
+        class="top-tab is-active"
+        id="product-map-tab"
+        type="button"
+        role="tab"
+        aria-selected="true"
+        aria-controls="product-map-panel"
+        data-tab="product-map"
+      >
+        Product map
+      </button>
+      <button
+        class="top-tab"
+        id="business-model-tab"
+        type="button"
+        role="tab"
+        aria-selected="false"
+        aria-controls="business-model-panel"
+        data-tab="business-model"
+        tabindex="-1"
+      >
+        Business model & moat
+      </button>
+    </nav>
+
+    <section
+      class="tab-panel"
+      id="product-map-panel"
+      role="tabpanel"
+      aria-labelledby="product-map-tab"
+      data-panel="product-map"
+    >
+      <section class="controls" aria-label="Map controls">
+        <div class="control-row display-row">
+          <div class="control-copy">
+            <span class="control-kicker">Display</span>
+            <span>Choose the level of detail shown on each product tile</span>
+          </div>
+          <div class="display-setting">
+            <div>
+              <b>Product scorecards</b>
+              <span>Show maturity, position, momentum, and moat histograms</span>
+            </div>
+            <button
+              class="toggle"
+              id="product-scores-toggle"
+              type="button"
+              role="switch"
+              aria-checked="false"
+              aria-label="Show product scorecard histograms"
+            >
+              <span aria-hidden="true"></span>
+            </button>
+          </div>
         </div>
-        <p>Product tiles show how each product contributes to the deployment. The economic moat is assessed at company and customer-platform level.</p>
-      </div>
-      <div class="company-verdicts" id="company-verdicts"></div>
-      <div class="company-facts" id="company-facts"></div>
-      <details class="watchlist">
-        <summary>
-          <span>
-            <b>Investor watchlist</b>
-            Confirmation and warning thresholds from the July 2026 underwriting
-          </span>
-          <span aria-hidden="true">+</span>
-        </summary>
-        <div class="company-watchlist" id="company-watchlist"></div>
-      </details>
+        <div class="control-row filters-row">
+          <div class="control-copy">
+            <span class="control-kicker">Overlay</span>
+            <span>Highlight cross-cutting cohorts without changing the market map</span>
+          </div>
+          <div class="filters" id="filters" aria-label="Product overlays"></div>
+          <button class="clear-filters" id="clear-filters" type="button">Clear</button>
+        </div>
+        <div class="active-explainer" id="active-explainer" aria-live="polite"></div>
+      </section>
+
+      <section class="enablers-section" aria-labelledby="enablers-title">
+        <div class="section-head">
+          <div>
+            <span class="section-kicker">Outside the taxonomy</span>
+            <h2 id="enablers-title">Platform access & trust enablers</h2>
+          </div>
+          <p>They unlock workloads and alter economics, but are neither products nor incremental TAM categories.</p>
+        </div>
+        <div class="enablers" id="enablers"></div>
+      </section>
+
+      <section class="map-section" aria-labelledby="map-title">
+        <div class="section-head compact">
+          <div>
+            <span class="section-kicker">Market → suite → product</span>
+            <h2 id="map-title">Product & market map</h2>
+          </div>
+          <div class="legend" id="legend"></div>
+        </div>
+        <div class="lanes" id="lanes"></div>
+        <p class="map-hint" id="map-hint">Select a product tile for its assessment, sources, and moat mechanics.</p>
+      </section>
+
+      <section class="foot" aria-label="Methodology and source discipline">
+        <article class="note">
+          <h3>Suite distribution</h3>
+          <p>
+            A suite receives no single maturity label. Its bar is calculated from
+            the product-level assessments inside it. The count on the right is the
+            number of mapped leaves, not a disclosed financial segment.
+          </p>
+          <div class="mini-distribution" aria-hidden="true">
+            <i style="width:35%;background:var(--m-core)"></i>
+            <i style="width:30%;background:var(--m-proven)"></i>
+            <i style="width:23%;background:var(--m-contested)"></i>
+            <i style="width:12%;background:var(--m-option)"></i>
+          </div>
+        </article>
+        <article class="note">
+          <h3>Evidence discipline</h3>
+          <p>
+            Revenue, geography, customer cohorts, and retention anchor to filings.
+            Product metrics remain company-directional unless Datadog discloses
+            an audited segment—which it does not.
+          </p>
+          <p class="note-accent">Score and evidence confidence are separate: a plausible product view can still be weakly evidenced.</p>
+          <p>No product currently earns High confidence because Datadog discloses no stand-alone product financials or retention series, and independent product-level evidence remains incomplete.</p>
+        </article>
+        <article class="note">
+          <h3>Hard facts · latest reported</h3>
+          <p>
+            Q1-26 revenue <b>$1.006B, +32% y/y</b>; NRR <b>low-120s</b>;
+            gross retention <b>mid-to-high 90s</b>; 56% use 4+ products, 35% use
+            6+, and 20% use 8+. Approximately 4,550 customers above $100k ARR
+            generate about <b>90% of ARR</b>.
+          </p>
+        </article>
+      </section>
+
+      <p class="src">
+        Source posture: FY2025 10-K for audited company anchors; Q1-2026 earnings
+        call, company presentations, and product materials for directional
+        product evidence. Market anchors are never mixed with company ARR.
+      </p>
     </section>
 
-    <section class="controls" aria-label="Map controls">
-      <div class="control-row filters-row">
-        <div class="control-copy">
-          <span class="control-kicker">Overlay</span>
-          <span>Highlight cross-cutting cohorts without changing the market map</span>
+    <section
+      class="tab-panel"
+      id="business-model-panel"
+      role="tabpanel"
+      aria-labelledby="business-model-tab"
+      data-panel="business-model"
+      hidden
+    >
+      <section class="company-lens" aria-labelledby="company-lens-title">
+        <div class="section-head">
+          <div>
+            <span class="section-kicker">Company-level underwriting</span>
+            <h2 id="company-lens-title">Business model & economic moat</h2>
+          </div>
+          <p>Product tiles show how each product contributes to the deployment. The economic moat is assessed at company and customer-platform level.</p>
         </div>
-        <div class="filters" id="filters" aria-label="Product overlays"></div>
-        <button class="clear-filters" id="clear-filters" type="button">Clear</button>
-      </div>
-      <div class="active-explainer" id="active-explainer" aria-live="polite"></div>
+        <div class="company-verdicts" id="company-verdicts"></div>
+        <div class="company-facts" id="company-facts"></div>
+        <details class="watchlist">
+          <summary>
+            <span>
+              <b>Investor watchlist</b>
+              Confirmation and warning thresholds from the July 2026 underwriting
+            </span>
+            <span aria-hidden="true">+</span>
+          </summary>
+          <div class="company-watchlist" id="company-watchlist"></div>
+        </details>
+      </section>
     </section>
-
-    <section class="enablers-section" aria-labelledby="enablers-title">
-      <div class="section-head">
-        <div>
-          <span class="section-kicker">Outside the taxonomy</span>
-          <h2 id="enablers-title">Platform access & trust enablers</h2>
-        </div>
-        <p>They unlock workloads and alter economics, but are neither products nor incremental TAM categories.</p>
-      </div>
-      <div class="enablers" id="enablers"></div>
-    </section>
-
-    <section class="map-section" aria-labelledby="map-title">
-      <div class="section-head compact">
-        <div>
-          <span class="section-kicker">Market → suite → product</span>
-          <h2 id="map-title">Product & market map</h2>
-        </div>
-        <div class="legend" id="legend"></div>
-      </div>
-      <div class="lanes" id="lanes"></div>
-      <p class="map-hint">Bar length is the point estimate. Fill treatment and H/M/L show evidence confidence. Select a tile for sources and moat mechanics.</p>
-    </section>
-
-    <section class="foot" aria-label="Methodology and source discipline">
-      <article class="note">
-        <h3>Suite distribution</h3>
-        <p>
-          A suite receives no single maturity label. Its bar is calculated from
-          the product-level assessments inside it. The count on the right is the
-          number of mapped leaves, not a disclosed financial segment.
-        </p>
-        <div class="mini-distribution" aria-hidden="true">
-          <i style="width:35%;background:var(--m-core)"></i>
-          <i style="width:30%;background:var(--m-proven)"></i>
-          <i style="width:23%;background:var(--m-contested)"></i>
-          <i style="width:12%;background:var(--m-option)"></i>
-        </div>
-      </article>
-      <article class="note">
-        <h3>Evidence discipline</h3>
-        <p>
-          Revenue, geography, customer cohorts, and retention anchor to filings.
-          Product metrics remain company-directional unless Datadog discloses
-          an audited segment—which it does not.
-        </p>
-        <p class="note-accent">Score and evidence confidence are separate: a plausible product view can still be weakly evidenced.</p>
-        <p>No product currently earns High confidence because Datadog discloses no stand-alone product financials or retention series, and independent product-level evidence remains incomplete.</p>
-      </article>
-      <article class="note">
-        <h3>Hard facts · latest reported</h3>
-        <p>
-          Q1-26 revenue <b>$1.006B, +32% y/y</b>; NRR <b>low-120s</b>;
-          gross retention <b>mid-to-high 90s</b>; 56% use 4+ products, 35% use
-          6+, and 20% use 8+. Approximately 4,550 customers above $100k ARR
-          generate about <b>90% of ARR</b>.
-        </p>
-      </article>
-    </section>
-
-    <p class="src">
-      Source posture: FY2025 10-K for audited company anchors; Q1-2026 earnings
-      call, company presentations, and product materials for directional
-      product evidence. Market anchors are never mixed with company ARR.
-    </p>
   </main>
 
   <div id="backdrop"></div>
