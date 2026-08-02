@@ -481,6 +481,7 @@ body.reader-open #reader{transform:none}
 }
 .kpi-net-read a:hover,.kpi-method a:hover{text-decoration:underline;text-underline-offset:3px}
 .kpi-snapshot{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:9px;margin-top:9px}
+.financial-snapshot{grid-template-columns:repeat(4,minmax(0,1fr))}
 .kpi-stat{
   position:relative;min-height:142px;display:flex;flex-direction:column;padding:16px;
   border:1px solid var(--line);border-radius:14px;background:linear-gradient(180deg,var(--surface),var(--ink-2));overflow:hidden
@@ -559,6 +560,28 @@ body.reader-open #reader{transform:none}
 .kpi-method p{margin-top:8px;color:var(--txt-mid);font-size:9.5px;line-height:1.55}
 .kpi-method p b{color:var(--txt)}
 .kpi-method a{display:inline-block;margin-top:10px;color:var(--txt-dim)}
+.activity-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}
+.activity-card{
+  min-height:166px;display:flex;flex-direction:column;padding:16px;border:1px solid var(--line);
+  border-radius:14px;background:linear-gradient(180deg,var(--surface),var(--ink-2))
+}
+.activity-card>span{color:var(--txt-dim);font-family:var(--font-m);font-size:8px;letter-spacing:.08em;text-transform:uppercase}
+.activity-card strong{margin-top:12px;color:var(--m-option);font-family:var(--font-d);font-size:28px;line-height:1}
+.activity-card h3{margin-top:10px;font-family:var(--font-d);font-size:13px;line-height:1.3}
+.activity-card p{margin-top:7px;color:var(--txt-dim);font-size:9px;line-height:1.5}
+.activity-card a{width:max-content;margin-top:auto;padding-top:10px;color:var(--txt-dim);font-family:var(--font-m);font-size:7.5px;text-decoration:none}
+.activity-card a:hover{color:var(--txt);text-decoration:underline;text-underline-offset:2px}
+.portfolio-scale{padding:20px;border:1px solid var(--line);border-radius:14px;background:linear-gradient(180deg,var(--surface),var(--ink-2))}
+.portfolio-bar{display:flex;height:34px;overflow:hidden;border:1px solid var(--line);border-radius:8px;background:var(--ink)}
+.portfolio-bar i{display:block;background:var(--portfolio-color);box-shadow:inset -1px 0 rgba(9,12,23,.55)}
+.portfolio-legend{display:flex;flex-wrap:wrap;gap:12px 20px;margin-top:15px}
+.portfolio-legend span{display:inline-flex;align-items:center;gap:7px;color:var(--txt-mid);font-family:var(--font-m);font-size:9px}
+.portfolio-legend span i{width:8px;height:8px;border-radius:2px;background:var(--portfolio-color)}
+.portfolio-legend span b{color:var(--txt);font-size:13px}
+.portfolio-scale>p{margin-top:14px;color:var(--txt-dim);font-size:9.5px;line-height:1.55}
+.portfolio-scale>p a{color:var(--txt-dim);font-family:var(--font-m);font-size:8px;text-decoration:none}
+.portfolio-scale>p a:hover{color:var(--txt);text-decoration:underline;text-underline-offset:2px}
+.financial-table{min-width:900px}
 
 @media(max-width:920px){
   .hero-grid{grid-template-columns:1fr}.principle-card{max-width:520px}
@@ -568,6 +591,8 @@ body.reader-open #reader{transform:none}
   .company-watchlist{grid-template-columns:1fr}
   .kpi-net-read{grid-template-columns:1fr}.kpi-net-read a{white-space:normal}
   .kpi-snapshot{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .financial-snapshot{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .activity-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   .milestone-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   .controls{position:static}.control-row{grid-template-columns:1fr}.display-setting{grid-column:auto}.clear-filters{justify-self:start}
   .enablers{grid-template-columns:1fr}.section-head{align-items:start;flex-direction:column}.section-head>p{text-align:left}
@@ -575,13 +600,14 @@ body.reader-open #reader{transform:none}
 }
 @media(max-width:640px){
   body{padding-left:13px;padding-right:13px}
-  .top-tabs{margin-top:30px}.top-tab{padding:7px 9px;font-size:11.5px;line-height:1.25}
+  .top-tabs{display:grid;grid-template-columns:repeat(2,1fr);margin-top:30px}.top-tab{padding:7px 9px;font-size:11.5px;line-height:1.25}
   .filter-tooltip{display:none}.overlay-explanations{grid-template-columns:1fr}
   .suite-h{grid-template-columns:1fr auto}.dist{grid-column:1/-1;grid-row:2}.suite-rule{display:none}
   .cell{flex:1 1 230px;max-width:none}.foot{grid-template-columns:1fr}
   .company-verdicts,.company-facts{grid-template-columns:1fr}
   .kpi-chart-grid,.kpi-method{grid-template-columns:1fr}.kpi-chart-card-wide{grid-column:auto}
   .kpi-snapshot{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .financial-snapshot,.activity-grid{grid-template-columns:1fr}
   .milestone-grid{grid-template-columns:1fr}
   .kpi-card-head{flex-direction:column}.kpi-chart{height:270px}.kpi-chart-tall{height:340px}
   .company-fact{border-right:0}.underwriting-item{grid-template-columns:1fr}

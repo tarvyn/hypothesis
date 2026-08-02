@@ -16,6 +16,8 @@ const failures = [];
 const assert = (condition, message) => {
   if(!condition) failures.push(message);
 };
+const isOfficialDatadogSource = url => /^https:\/\/(www\.)?(sec\.gov|investors\.datadoghq\.com)\//.test(url || "");
+const isChronological = rows => rows.every((row,index) => index === 0 || rows[index-1][0] < row[0]);
 
 assert(model, "window.PRODUCT_MAP must be exported");
 if(!model){
@@ -35,6 +37,26 @@ if(kpis){
   assert(kpis.quarterly.every(row => row.length === 6 && row[5]?.startsWith("https://")), "Every financial KPI row needs an official source URL");
   assert(kpis.adoption.every(row => row.length === 9 && row[7]?.startsWith("https://")), "Every adoption KPI row needs an official source URL");
   assert(kpis.milestones.every(row => row.length === 5 && row[3]?.startsWith("https://")), "Every product milestone needs an official source URL");
+  assert(kpis.totalCustomers.every(row => row.length >= 3 && row[2]?.startsWith("https://")), "Every total-customer KPI row needs an official source URL");
+  assert(kpis.millionCustomers.every(row => row.length === 4 && row[2]?.startsWith("https://")), "Every $1M-customer KPI row needs an official source URL");
+  assert(kpis.nrr.every(row => row.length === 5 && row[3]?.startsWith("https://")), "Every NRR disclosure needs an official source URL");
+  assert(kpis.grr.every(row => row.length === 5 && row[3]?.startsWith("https://")), "Every GRR disclosure needs an official source URL");
+  assert(kpis.aiIntegrationCustomers.every(row => row.length === 4 && row[2]?.startsWith("https://")), "Every AI customer KPI needs an official source URL");
+  assert(kpis.aiActivity.every(row => row.length === 5 && row[4]?.startsWith("https://")), "Every AI activity KPI needs an official source URL");
+  assert(kpis.productPortfolio?.bands?.reduce((sum,row)=>sum+row[1],0) === kpis.productPortfolio?.totalProducts, "Product portfolio bands must tie to total products");
+  assert(kpis.productPortfolio?.sourceUrl?.startsWith("https://"), "Product portfolio needs an official source URL");
+  assert(kpis.nrr.every(row => row[1] >= 1 && row[1] <= 1.5), "NRR visualization values must be stored as 1.00-based percentages");
+  assert(kpis.grr.every(row => row[1] >= .9 && row[1] <= 1), "GRR visualization values must be stored as 1.00-based percentages");
+  const auditableSeries = [
+    ["quarterly",kpis.quarterly,5],["adoption",kpis.adoption,7],["total customers",kpis.totalCustomers,2],
+    ["$1M customers",kpis.millionCustomers,2],["NRR",kpis.nrr,3],["GRR",kpis.grr,3],["AI customers",kpis.aiIntegrationCustomers,2],
+  ];
+  auditableSeries.forEach(([label,rows,urlIndex]) => {
+    assert(isChronological(rows), `${label} series must be chronological with unique periods`);
+    assert(rows.every(row => isOfficialDatadogSource(row[urlIndex])), `${label} series must use SEC or Datadog IR sources`);
+  });
+  assert(kpis.aiActivity.every(row => isOfficialDatadogSource(row[4])), "AI activity must use SEC or Datadog IR sources");
+  assert(isOfficialDatadogSource(kpis.productPortfolio?.sourceUrl), "Product portfolio must use an SEC or Datadog IR source");
   const latest = kpis.quarterly.at(-1);
   assert(Math.abs(latest[1] - 1006.426) < 0.001, "Q1 2026 revenue tie-out failed");
   assert(Math.abs(latest[2] / latest[1] - 0.792091) < 0.001, "Q1 2026 GAAP gross-margin tie-out failed");

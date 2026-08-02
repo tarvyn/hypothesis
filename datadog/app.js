@@ -121,7 +121,7 @@
   const state = {
     filters:new Set(),
     selected:null,
-    activeTab:["product-map","business-model","kpis"].includes(window.location.hash.slice(1))
+    activeTab:["product-map","business-model","kpis","financials"].includes(window.location.hash.slice(1))
       ? window.location.hash.slice(1)
       : "product-map",
     showProductScores:false,
@@ -154,8 +154,12 @@
   const productScoresToggle = document.getElementById("product-scores-toggle");
   const mapHint = document.getElementById("map-hint");
   const kpiSnapshot = document.getElementById("kpi-snapshot");
+  const financialSnapshot = document.getElementById("financial-snapshot");
   const productMilestones = document.getElementById("product-milestones");
+  const aiActivity = document.getElementById("ai-activity");
+  const portfolioScale = document.getElementById("portfolio-scale");
   const kpiHistory = document.getElementById("kpi-history");
+  const financialHistory = document.getElementById("financial-history");
   const chartTooltip = document.getElementById("chart-tooltip");
 
   const financials = kpiModel.quarterly.map((row,index,rows) => {
@@ -174,8 +178,21 @@
     sourceId:row[6],sourceUrl:row[7],basis:row[8],
   }));
   const adoptionByPeriod = new Map(adoption.map(row => [row.period,row]));
+  const totalCustomers = kpiModel.totalCustomers.map(row => ({period:row[0],value:row[1],sourceUrl:row[2],basis:row[3] || "Point-in-time disclosure"}));
+  const totalCustomersByPeriod = new Map(totalCustomers.map(row => [row.period,row]));
+  const millionCustomers = kpiModel.millionCustomers.map(row => ({period:row[0],value:row[1],sourceUrl:row[2],basis:row[3]}));
+  const millionCustomersByPeriod = new Map(millionCustomers.map(row => [row.period,row]));
+  const nrr = kpiModel.nrr.map(row => ({period:row[0],value:row[1],label:row[2],sourceUrl:row[3],basis:row[4]}));
+  const nrrByPeriod = new Map(nrr.map(row => [row.period,row]));
+  const grr = kpiModel.grr.map(row => ({period:row[0],value:row[1],label:row[2],sourceUrl:row[3],basis:row[4]}));
+  const grrByPeriod = new Map(grr.map(row => [row.period,row]));
+  const aiCustomers = kpiModel.aiIntegrationCustomers.map(row => ({period:row[0],value:row[1],sourceUrl:row[2],basis:row[3]}));
+  const aiCustomersByPeriod = new Map(aiCustomers.map(row => [row.period,row]));
+  const financialsByPeriod = new Map(financials.map(row => [row.period,row]));
   let kpiChartConfigs = [];
+  let financialChartConfigs = [];
   let kpisInitialized = false;
+  let financialsInitialized = false;
 
   model.categories.forEach(category => category.suites.forEach(suite => suite.products.forEach(product => {
     allItems.push({...product,categoryId:category.id,categoryName:category.catName,categoryColor:category.color,suiteName:suite.name});
@@ -234,18 +251,37 @@
 
   function renderKpiSnapshot(){
     const latest = financials.at(-1);
-    const priorYear = financials.at(-5);
     const latestAdoption = adoption.at(-1);
-    const totalCustomers = kpiModel.totalCustomers.at(-1)[1];
+    const latestTotalCustomers = totalCustomers.at(-1).value;
+    const latestMillionCustomers = millionCustomers.at(-1).value;
+    const latestAiCustomers = aiCustomers.at(-1).value;
     const stats = [
-      {label:"Quarterly revenue",value:money(latest.revenue),change:`+${pct(latest.revenueGrowth)} YoY`,note:"First quarter above $1B",color:"var(--dev)",url:latest.sourceUrl},
-      {label:"GAAP gross margin",value:pct(latest.grossMargin),change:`${((latest.grossMargin-priorYear.grossMargin)*100).toFixed(1)} ppt YoY`,note:"Consolidated company margin",color:"var(--m-core)",url:latest.sourceUrl},
-      {label:"Non-GAAP gross margin",value:pct(latest.nonGaapGrossMargin),change:`${((latest.nonGaapGrossMargin-priorYear.nonGaapGrossMargin)*100).toFixed(1)} ppt YoY`,note:"Company-defined adjusted KPI",color:"var(--obs)",url:latest.sourceUrl},
-      {label:"Customers >$100K ARR",value:number(latest.largeCustomers),change:`+${pct(latest.customerGrowth)} YoY`,note:`${number(totalCustomers)} total customers`,color:"var(--ai)",url:latest.sourceUrl},
+      {label:"TTM net retention",value:"low-120s",change:"up from ~120%",note:"Expansion net of contraction and churn",color:"var(--m-core)",url:nrr.at(-1).sourceUrl},
+      {label:"Gross retention",value:"mid–high 90s",change:"stable",note:"Management disclosure band",color:"var(--dev)",url:grr.at(-1).sourceUrl},
+      {label:"Total customers",value:number(latestTotalCustomers),change:"+2,700 YoY",note:"Point-in-time customer base",color:"var(--obs)",url:totalCustomers.at(-1).sourceUrl},
+      {label:"Customers >$100K ARR",value:number(latest.largeCustomers),change:`+${pct(latest.customerGrowth)} YoY`,note:"~90% of company ARR",color:"var(--ai)",url:latest.sourceUrl},
       {label:"Customers on 4+ products",value:pct(latestAdoption.p4,0),change:`+${((latestAdoption.p4-adoptionByPeriod.get("2025Q1").p4)*100).toFixed(0)} ppt YoY`,note:"Primary cross-sell KPI",color:"var(--sec)",url:latestAdoption.sourceUrl},
-      {label:"Company ARR",value:"> $4.0B",change:"5 products >$100M",note:"3 more products at $50–100M",color:"var(--m-option)",url:kpiModel.anchors.latestTranscript},
+      {label:"AI integration customers",value:number(latestAiCustomers),change:"+62.5% YoY",note:`${number(latestMillionCustomers)} customers >$1M ARR`,color:"var(--m-option)",url:aiCustomers.at(-1).sourceUrl},
     ];
     kpiSnapshot.innerHTML = stats.map(stat => `<article class="kpi-stat" style="--stat-color:${stat.color}">
+      <span class="kpi-stat-label">${esc(stat.label)}</span>
+      <strong>${esc(stat.value)}</strong>
+      <span class="kpi-stat-change ${stat.change.startsWith("0.0") ? "is-flat" : ""}">${esc(stat.change)}</span>
+      <p>${esc(stat.note)}</p>
+      ${sourceAnchor(stat.url,"Primary source")}
+    </article>`).join("");
+  }
+
+  function renderFinancialSnapshot(){
+    const latest = financials.at(-1);
+    const priorYear = financials.at(-5);
+    const stats = [
+      {label:"Quarterly revenue",value:money(latest.revenue),change:`+${pct(latest.revenueGrowth)} YoY`,note:"First quarter above $1B",color:"var(--dev)",url:latest.sourceUrl},
+      {label:"GAAP gross margin",value:pct(latest.grossMargin),change:`${((latest.grossMargin-priorYear.grossMargin)*100).toFixed(1)} ppt YoY`,note:"Derived from reported gross profit",color:"var(--m-core)",url:latest.sourceUrl},
+      {label:"Non-GAAP gross margin",value:pct(latest.nonGaapGrossMargin),change:`${((latest.nonGaapGrossMargin-priorYear.nonGaapGrossMargin)*100).toFixed(1)} ppt YoY`,note:"Company-defined adjusted KPI",color:"var(--obs)",url:latest.sourceUrl},
+      {label:"Quarterly gross profit",value:money(latest.grossProfit),change:`+${pct(latest.grossProfit/financials.at(-5).grossProfit-1)} YoY`,note:"GAAP reported value",color:"var(--ai)",url:latest.sourceUrl},
+    ];
+    financialSnapshot.innerHTML = stats.map(stat => `<article class="kpi-stat" style="--stat-color:${stat.color}">
       <span class="kpi-stat-label">${esc(stat.label)}</span>
       <strong>${esc(stat.value)}</strong>
       <span class="kpi-stat-change ${stat.change.startsWith("0.0") ? "is-flat" : ""}">${esc(stat.change)}</span>
@@ -261,11 +297,13 @@
 
   function renderLegend(elementId,series){
     const element = document.getElementById(elementId);
+    if(!element) return;
     element.innerHTML = series.map(item => `<span><i style="--legend-color:${item.color}"></i>${esc(item.label)}</span>`).join("");
   }
 
   function drawLineChart(config){
     const canvas = document.getElementById(config.canvasId);
+    if(!canvas) return;
     const width = Math.max(320,Math.floor(canvas.clientWidth));
     const height = Math.max(230,Math.floor(canvas.clientHeight));
     const dpr = Math.min(window.devicePixelRatio || 1,2);
@@ -306,14 +344,16 @@
 
     config.series.forEach(series => {
       ctx.strokeStyle = series.color;ctx.lineWidth = series.width || 2.5;ctx.lineJoin = "round";ctx.lineCap = "round";
+      ctx.setLineDash(series.dash || []);
       let open = false;
       ctx.beginPath();
       series.values.forEach((value,index) => {
-        if(value == null){open=false;return;}
+        if(value == null){if(!series.connectGaps) open=false;return;}
         const px=x(index),py=y(value);
         if(!open){ctx.moveTo(px,py);open=true;} else ctx.lineTo(px,py);
       });
       ctx.stroke();
+      ctx.setLineDash([]);
       series.values.forEach((value,index) => {
         if(value == null) return;
         ctx.beginPath();ctx.arc(x(index),y(value),2.2,0,Math.PI*2);ctx.fillStyle=series.color;ctx.fill();
@@ -333,7 +373,7 @@
     const index = Math.round(ratio*(meta.config.labels.length-1));
     const rows = meta.config.series
       .filter(series => series.values[index] != null)
-      .map(series => `<span><i style="--tip-color:${series.color}"></i>${esc(series.label)}: ${esc(meta.config.tooltipFormatter(series.values[index]))}</span>`)
+      .map(series => `<span><i style="--tip-color:${series.color}"></i>${esc(series.label)}: ${esc(series.displayValues?.[index] || meta.config.tooltipFormatter(series.values[index],index,series))}</span>`)
       .join("");
     chartTooltip.innerHTML = `<b>${esc(meta.config.labels[index])}</b>${rows || "No disclosure"}`;
     chartTooltip.hidden = false;
@@ -349,6 +389,19 @@
     document.querySelector("#revenue-sources>div").innerHTML = financialLinks;
     document.querySelector("#margin-sources>div").innerHTML = financialLinks;
     document.querySelector("#customer-sources>div").innerHTML = financialLinks;
+    document.querySelector("#total-customer-sources>div").innerHTML = totalCustomers.map(row =>
+      `<a href="${esc(row.sourceUrl)}" title="${esc(row.basis)}" target="_blank" rel="noopener noreferrer">${esc(row.period)}</a>`
+    ).join("");
+    document.querySelector("#million-customer-sources>div").innerHTML = millionCustomers.map(row =>
+      `<a href="${esc(row.sourceUrl)}" title="${esc(row.basis)}" target="_blank" rel="noopener noreferrer">${esc(row.period)}</a>`
+    ).join("");
+    document.querySelector("#retention-sources>div").innerHTML = [
+      ...nrr.map(row => `<a href="${esc(row.sourceUrl)}" title="${esc(row.basis)}" target="_blank" rel="noopener noreferrer">${esc(row.period)} · NRR ${esc(row.label)}</a>`),
+      ...grr.map(row => `<a href="${esc(row.sourceUrl)}" title="${esc(row.basis)}" target="_blank" rel="noopener noreferrer">${esc(row.period)} · GRR ${esc(row.label)}</a>`),
+    ].join("");
+    document.querySelector("#ai-customer-sources>div").innerHTML = aiCustomers.map(row =>
+      `<a href="${esc(row.sourceUrl)}" title="${esc(row.basis)}" target="_blank" rel="noopener noreferrer">${esc(row.period)} · ${number(row.value)}</a>`
+    ).join("");
     document.querySelector("#adoption-sources>div").innerHTML = adoption.map(row =>
       `<a href="${esc(row.sourceUrl)}" title="${esc(row.basis)}" target="_blank" rel="noopener noreferrer">${esc(row.period)} · ${esc(row.sourceId)}</a>`
     ).join("");
@@ -357,10 +410,18 @@
   function renderKpiCharts(){
     const financialLabels = financials.map(row => row.period);
     const adoptionLabels = adoption.map(row => row.period);
+    const retentionLabels = [...new Set([...nrr.map(row=>row.period),...grr.map(row=>row.period)])].sort();
+    const nrrChartByPeriod = new Map(nrr.map(row => [row.period,row]));
+    const grrChartByPeriod = new Map(grr.map(row => [row.period,row]));
     kpiChartConfigs = [
-      {canvasId:"revenue-chart",legendId:"revenue-legend",labels:financialLabels,yMin:0,yMax:1100,yFormatter:value=>`$${Math.round(value)}m`,tooltipFormatter:value=>money(value),series:[{label:"Revenue",color:"#33c6e6",values:financials.map(row=>row.revenue)}]},
-      {canvasId:"margin-chart",legendId:"margin-legend",labels:financialLabels,yMin:.70,yMax:.85,yFormatter:value=>pct(value,0),tooltipFormatter:value=>pct(value),series:[{label:"GAAP",color:"#2ed6a0",values:financials.map(row=>row.grossMargin)},{label:"Non-GAAP",color:"#7c6bf5",values:financials.map(row=>row.nonGaapGrossMargin)}]},
+      {canvasId:"retention-chart",legendId:"retention-legend",labels:retentionLabels,yMin:.90,yMax:1.40,yFormatter:value=>pct(value,0),tooltipFormatter:value=>pct(value,0),series:[
+        {label:"TTM NRR disclosure",color:"#2ed6a0",connectGaps:true,values:retentionLabels.map(period=>nrrChartByPeriod.get(period)?.value ?? null),displayValues:retentionLabels.map(period=>nrrChartByPeriod.get(period)?.label ?? null)},
+        {label:"GRR disclosure",color:"#33c6e6",connectGaps:true,dash:[7,5],values:retentionLabels.map(period=>grrChartByPeriod.get(period)?.value ?? null),displayValues:retentionLabels.map(period=>grrChartByPeriod.get(period)?.label ?? null)},
+      ]},
+      {canvasId:"total-customers-chart",legendId:"total-customers-legend",labels:totalCustomers.map(row=>row.period),yMin:0,yMax:35000,yFormatter:value=>Math.round(value).toLocaleString("en-US"),tooltipFormatter:value=>number(value),series:[{label:"Total customers",color:"#7c6bf5",values:totalCustomers.map(row=>row.value)}]},
       {canvasId:"customers-chart",legendId:"customers-legend",labels:financialLabels,yMin:0,yMax:5000,yFormatter:value=>Math.round(value).toLocaleString("en-US"),tooltipFormatter:value=>number(value),series:[{label:">$100K ARR customers",color:"#f5b13f",values:financials.map(row=>row.largeCustomers)}]},
+      {canvasId:"million-customers-chart",legendId:"million-customers-legend",labels:millionCustomers.map(row=>row.period),yMin:0,yMax:700,yFormatter:value=>Math.round(value).toLocaleString("en-US"),tooltipFormatter:value=>number(value),series:[{label:">$1M ARR customers",color:"#ff5c8a",values:millionCustomers.map(row=>row.value)}]},
+      {canvasId:"ai-customers-chart",legendId:"ai-customers-legend",labels:aiCustomers.map(row=>row.period),yMin:0,yMax:7000,yFormatter:value=>Math.round(value).toLocaleString("en-US"),tooltipFormatter:value=>number(value),series:[{label:"AI integration customers",color:"#a78bfa",values:aiCustomers.map(row=>row.value)}]},
       {canvasId:"adoption-chart",legendId:"adoption-legend",labels:adoptionLabels,yMin:0,yMax:.90,yFormatter:value=>pct(value,0),tooltipFormatter:value=>pct(value,0),series:[
         {label:"2+ products",color:"#33c6e6",values:adoption.map(row=>row.p2)},
         {label:"4+ products",color:"#f5b13f",values:adoption.map(row=>row.p4)},
@@ -372,32 +433,94 @@
     kpiChartConfigs.forEach(drawLineChart);
   }
 
+  function renderFinancialCharts(){
+    const financialLabels = financials.map(row => row.period);
+    financialChartConfigs = [
+      {canvasId:"revenue-chart",legendId:"revenue-legend",labels:financialLabels,yMin:0,yMax:1100,yFormatter:value=>`$${Math.round(value)}m`,tooltipFormatter:value=>money(value),series:[{label:"Revenue",color:"#33c6e6",values:financials.map(row=>row.revenue)}]},
+      {canvasId:"margin-chart",legendId:"margin-legend",labels:financialLabels,yMin:.70,yMax:.85,yFormatter:value=>pct(value,0),tooltipFormatter:value=>pct(value),series:[{label:"GAAP",color:"#2ed6a0",values:financials.map(row=>row.grossMargin)},{label:"Non-GAAP",color:"#7c6bf5",values:financials.map(row=>row.nonGaapGrossMargin)}]},
+    ];
+    financialChartConfigs.forEach(drawLineChart);
+  }
+
   function renderMilestones(){
     productMilestones.innerHTML = kpiModel.milestones.map(row => `<article class="milestone-card">
       <time>${esc(row[0])}</time><h3>${esc(row[1])}</h3><strong>${esc(row[2])}</strong><p>${esc(row[4])}</p>${sourceAnchor(row[3],"Official disclosure")}
     </article>`).join("");
   }
 
+  function renderAiActivity(){
+    aiActivity.innerHTML = kpiModel.aiActivity.map(row => `<article class="activity-card">
+      <span>${esc(row[3])}</span><strong>${esc(row[2])}</strong><h3>${esc(row[0])}</h3>
+      <p>Management-reported activity growth; no revenue attribution disclosed.</p>
+      ${sourceAnchor(row[4],"Q1 2026 transcript")}
+    </article>`).join("");
+  }
+
+  function renderPortfolioScale(){
+    const portfolio = kpiModel.productPortfolio;
+    portfolioScale.innerHTML = `<div class="portfolio-bar" role="img" aria-label="${portfolio.totalProducts} products: ${portfolio.bands.map(band=>`${band[1]} ${band[0]}`).join(", ")}">
+      ${portfolio.bands.map(band=>`<i style="width:${band[1]/portfolio.totalProducts*100}%;--portfolio-color:${band[2]}" title="${esc(band[0])}: ${band[1]}"></i>`).join("")}
+    </div>
+    <div class="portfolio-legend">${portfolio.bands.map(band=>`<span><i style="--portfolio-color:${band[2]}"></i><b>${band[1]}</b> ${esc(band[0])}</span>`).join("")}</div>
+    <p>${esc(portfolio.note)} ${sourceAnchor(portfolio.sourceUrl,"Q1 2026 transcript")}</p>`;
+  }
+
   function renderKpiHistory(){
     const values = value => value == null ? `<span class="kpi-na">—</span>` : pct(value,0);
-    kpiHistory.innerHTML = financials.map(row => {
-      const a = adoptionByPeriod.get(row.period);
+    const blank = `<span class="kpi-na">—</span>`;
+    const periods = [...new Set([
+      ...adoption.map(row=>row.period),...financials.map(row=>row.period),...totalCustomers.map(row=>row.period),
+      ...millionCustomers.map(row=>row.period),...nrr.map(row=>row.period),...grr.map(row=>row.period),...aiCustomers.map(row=>row.period),
+    ])].sort();
+    kpiHistory.innerHTML = periods.map(period => {
+      const a = adoptionByPeriod.get(period);
+      const fin = financialsByPeriod.get(period);
+      const total = totalCustomersByPeriod.get(period);
+      const million = millionCustomersByPeriod.get(period);
+      const net = nrrByPeriod.get(period);
+      const gross = grrByPeriod.get(period);
+      const ai = aiCustomersByPeriod.get(period);
+      const sources = new Map();
+      [[fin?.sourceUrl,"Large"],[a?.sourceUrl,"Adoption"],[total?.sourceUrl,"Total"],[million?.sourceUrl,"$1M"],[net?.sourceUrl,"NRR"],[gross?.sourceUrl,"GRR"],[ai?.sourceUrl,"AI"]]
+        .filter(item=>item[0]).forEach(([url,label])=>sources.set(url,label));
       return `<tr>
-        <td>${esc(row.period)}</td><td>${money(row.revenue)}</td><td>${row.revenueGrowth==null?'<span class="kpi-na">—</span>':pct(row.revenueGrowth)}</td>
-        <td>${pct(row.grossMargin)}</td><td>${pct(row.nonGaapGrossMargin)}</td><td>${number(row.largeCustomers)}</td>
+        <td>${esc(period)}</td><td>${total?number(total.value):blank}</td><td>${fin?number(fin.largeCustomers):blank}</td><td>${million?number(million.value):blank}</td>
+        <td>${net?esc(net.label):blank}</td><td>${gross?esc(gross.label):blank}</td>
         <td>${values(a?.p2)}</td><td>${values(a?.p4)}</td><td>${values(a?.p6)}</td><td>${values(a?.p8)}</td><td>${values(a?.p10)}</td>
-        <td><span class="kpi-source-cell">${sourceAnchor(row.sourceUrl,"Fin")}${a?sourceAnchor(a.sourceUrl,"Adoption"):""}</span></td>
+        <td>${ai?number(ai.value):blank}</td>
+        <td><span class="kpi-source-cell">${[...sources].map(([url,label])=>sourceAnchor(url,label)).join("")}</span></td>
       </tr>`;
     }).join("");
+  }
+
+  function renderFinancialHistory(){
+    financialHistory.innerHTML = financials.map(row => `<tr>
+      <td>${esc(row.period)}</td><td>${money(row.revenue)}</td><td>${row.revenueGrowth==null?'<span class="kpi-na">—</span>':pct(row.revenueGrowth)}</td>
+      <td>${money(row.grossProfit)}</td><td>${pct(row.grossMargin)}</td><td>${money(row.nonGaapGrossProfit)}</td><td>${pct(row.nonGaapGrossMargin)}</td>
+      <td>${sourceAnchor(row.sourceUrl,"SEC")}</td>
+    </tr>`).join("");
   }
 
   function renderKpis(){
     renderKpiSnapshot();
     renderSourceTrails();
     renderMilestones();
+    renderAiActivity();
+    renderPortfolioScale();
     renderKpiHistory();
     renderKpiCharts();
-    document.querySelectorAll(".kpi-chart").forEach(canvas => {
+    document.querySelectorAll("#kpis-panel .kpi-chart").forEach(canvas => {
+      canvas.addEventListener("pointermove",showChartTooltip);
+      canvas.addEventListener("pointerleave",hideChartTooltip);
+    });
+  }
+
+  function renderFinancials(){
+    renderFinancialSnapshot();
+    renderSourceTrails();
+    renderFinancialHistory();
+    renderFinancialCharts();
+    document.querySelectorAll("#financials-panel .financial-chart").forEach(canvas => {
       canvas.addEventListener("pointermove",showChartTooltip);
       canvas.addEventListener("pointerleave",hideChartTooltip);
     });
@@ -585,6 +708,16 @@
           kpisInitialized = true;
         } else {
           renderKpiCharts();
+        }
+      });
+    }
+    if(tabId === "financials"){
+      requestAnimationFrame(() => {
+        if(!financialsInitialized){
+          renderFinancials();
+          financialsInitialized = true;
+        } else {
+          renderFinancialCharts();
         }
       });
     }
@@ -847,9 +980,11 @@
 
   let resizeFrame = 0;
   window.addEventListener("resize",() => {
-    if(state.activeTab !== "kpis" || !kpisInitialized) return;
+    if(state.activeTab === "kpis" && !kpisInitialized) return;
+    if(state.activeTab === "financials" && !financialsInitialized) return;
+    if(!["kpis","financials"].includes(state.activeTab)) return;
     cancelAnimationFrame(resizeFrame);
-    resizeFrame = requestAnimationFrame(renderKpiCharts);
+    resizeFrame = requestAnimationFrame(state.activeTab === "kpis" ? renderKpiCharts : renderFinancialCharts);
   });
 
   activateTab(state.activeTab,{updateUrl:false});
