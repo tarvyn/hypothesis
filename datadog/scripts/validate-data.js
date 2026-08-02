@@ -45,6 +45,11 @@ if(kpis){
   assert(kpis.aiActivity.every(row => row.length === 5 && row[4]?.startsWith("https://")), "Every AI activity KPI needs an official source URL");
   assert(kpis.productPortfolio?.bands?.reduce((sum,row)=>sum+row[1],0) === kpis.productPortfolio?.totalProducts, "Product portfolio bands must tie to total products");
   assert(kpis.productPortfolio?.sourceUrl?.startsWith("https://"), "Product portfolio needs an official source URL");
+  assert(kpis.coreEngineScale?.length === 3, "Core product-engine scale view must contain three disclosed engines");
+  assert(kpis.coreEngineScale?.every(engine =>
+    typeof engine.scopeComparable === "boolean" &&
+    isOfficialDatadogSource(engine.fromSourceUrl) && isOfficialDatadogSource(engine.toSourceUrl)
+  ), "Every core product-engine trajectory needs comparability status and official endpoint sources");
   assert(kpis.nrr.every(row => row[1] >= 1 && row[1] <= 1.5), "NRR visualization values must be stored as 1.00-based percentages");
   assert(kpis.grr.every(row => row[1] >= .9 && row[1] <= 1), "GRR visualization values must be stored as 1.00-based percentages");
   const auditableSeries = [

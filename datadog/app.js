@@ -155,7 +155,8 @@
   const mapHint = document.getElementById("map-hint");
   const kpiSnapshot = document.getElementById("kpi-snapshot");
   const financialSnapshot = document.getElementById("financial-snapshot");
-  const productMilestones = document.getElementById("product-milestones");
+  const coreEngineScale = document.getElementById("core-engine-scale");
+  const sectorScaleLanes = document.getElementById("sector-scale-lanes");
   const aiActivity = document.getElementById("ai-activity");
   const portfolioScale = document.getElementById("portfolio-scale");
   const kpiHistory = document.getElementById("kpi-history");
@@ -442,10 +443,62 @@
     financialChartConfigs.forEach(drawLineChart);
   }
 
-  function renderMilestones(){
-    productMilestones.innerHTML = kpiModel.milestones.map(row => `<article class="milestone-card">
-      <time>${esc(row[0])}</time><h3>${esc(row[1])}</h3><strong>${esc(row[2])}</strong><p>${esc(row[4])}</p>${sourceAnchor(row[3],"Official disclosure")}
+  function renderCoreEngineScale(){
+    coreEngineScale.innerHTML = kpiModel.coreEngineScale.map(engine => `<article class="engine-row ${engine.scopeComparable ? "" : "scope-changed"}">
+      <div class="engine-name">
+        <h4>${esc(engine.name)}</h4>
+        <span>${engine.scopeComparable ? "Comparable named scope" : "Scope changed"}</span>
+      </div>
+      <div class="engine-point">
+        <time>${esc(engine.fromPeriod)}</time><strong>${esc(engine.fromLabel)}</strong>
+      </div>
+      <div class="engine-connector" aria-hidden="true"><i></i><span>${engine.scopeComparable ? "higher disclosed floor" : "directional only"}</span></div>
+      <div class="engine-point current">
+        <time>${esc(engine.toPeriod)}</time><strong>${esc(engine.toLabel)}</strong>
+      </div>
+      <p>${esc(engine.note)} ${sourceAnchor(engine.fromSourceUrl,"2024 source")} ${sourceAnchor(engine.toSourceUrl,"2025 source")}</p>
     </article>`).join("");
+  }
+
+  function renderSectorScaleLanes(){
+    const maturityOrder = ["scaled","proven","validated","option"];
+    const disclosure = {
+      obs:{value:"3 named engines >$1B ARR",note:"Reported lower bounds · Q4 2025",url:kpiModel.anchors.productTranscript},
+      sec:{value:"Sector ARR not disclosed",note:"One operating segment",url:kpiModel.anchors.latest10K},
+      dev:{value:"Sector ARR not disclosed",note:"One operating segment",url:kpiModel.anchors.latest10K},
+      pa:{value:"Sector ARR not disclosed",note:"One operating segment",url:kpiModel.anchors.latest10K},
+    };
+    sectorScaleLanes.innerHTML = model.categories.map(category => {
+      const uniqueProducts = new Map();
+      category.suites.forEach(suite => suite.products.forEach(product => {
+        if(product.canonicalCategory === category.id) uniqueProducts.set(product.id,product);
+      }));
+      const products = [...uniqueProducts.values()].sort((a,b) => (model.maturity[b.maturity]?.score || 0)-(model.maturity[a.maturity]?.score || 0));
+      const counts = Object.fromEntries(maturityOrder.map(id => [id,products.filter(product=>product.maturity===id).length]));
+      const scale = disclosure[category.id];
+      const productLinks = products.map(product => {
+        const source = model.productSources[product.n];
+        return source?.url ? `<a href="${esc(source.url)}" target="_blank" rel="noopener noreferrer">${esc(product.n)}</a>` : "";
+      }).filter(Boolean).join("");
+      return `<article class="sector-lane" style="--sector-color:${category.color}">
+        <div class="sector-identity">
+          <span>${products.length} mapped canonical entities</span>
+          <h4>${esc(category.catName)}</h4>
+          <p>${products.slice(0,6).map(product=>esc(product.n)).join(" · ")}${products.length>6?` · +${products.length-6} more`:""}</p>
+        </div>
+        <div class="sector-maturity">
+          <div class="sector-maturity-bar" role="img" aria-label="${esc(category.catName)} maturity distribution: ${maturityOrder.map(id=>`${counts[id]} ${model.maturity[id].label}`).join(", ")}">
+            ${maturityOrder.map(id => counts[id] ? `<i style="width:${counts[id]/products.length*100}%;--maturity-color:${model.maturity[id].color}" title="${esc(model.maturity[id].label)}: ${counts[id]}"></i>` : "").join("")}
+          </div>
+          <div class="sector-maturity-legend">${maturityOrder.map(id=>`<span><i style="--maturity-color:${model.maturity[id].color}"></i><b>${counts[id]}</b>${esc(model.maturity[id].label)}</span>`).join("")}</div>
+        </div>
+        <div class="sector-disclosure ${category.id === "obs" ? "has-scale" : ""}">
+          <span>Financial disclosure</span><strong>${esc(scale.value)}</strong><p>${esc(scale.note)}</p>
+          ${sourceAnchor(scale.url,category.id === "obs" ? "Q4 2025 transcript" : "FY2025 Form 10-K")}
+        </div>
+        <details class="sector-source-trail"><summary>Underlying official product sources</summary><div>${productLinks}</div></details>
+      </article>`;
+    }).join("");
   }
 
   function renderAiActivity(){
@@ -504,7 +557,8 @@
   function renderKpis(){
     renderKpiSnapshot();
     renderSourceTrails();
-    renderMilestones();
+    renderCoreEngineScale();
+    renderSectorScaleLanes();
     renderAiActivity();
     renderPortfolioScale();
     renderKpiHistory();
