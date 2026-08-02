@@ -31,10 +31,16 @@ const kpis = sandbox.window.KPI_DATA;
 assert(kpis, "window.KPI_DATA must be exported");
 if(kpis){
   assert(kpis.quarterly.length === 27, "KPI history must contain 27 quarterly financial periods");
+  assert(kpis.annualFcfEconomics?.length === 5, "FCF economics history must contain FY2021 through FY2025");
+  assert(kpis.annualOperations?.length === 7, "Annual operations history must contain FY2019 through FY2025");
+  assert(kpis.annualCapital?.length === 8, "Annual capital history must contain FY2019 through Q1 2026");
   assert(kpis.adoption.length === 24, "Product adoption history must contain 24 periods");
   assert(kpis.quarterly.at(-1)?.[0] === "2026Q1", "Latest financial KPI period must be 2026Q1");
   assert(kpis.adoption.at(-1)?.[0] === "2026Q1", "Latest adoption KPI period must be 2026Q1");
   assert(kpis.quarterly.every(row => row.length === 6 && row[5]?.startsWith("https://")), "Every financial KPI row needs an official source URL");
+  assert(kpis.annualFcfEconomics?.every(row => row.length === 5 && row[4]?.startsWith("https://")), "Every FCF economics row needs an official source URL");
+  assert(kpis.annualOperations?.every(row => row.length === 11 && row[10]?.startsWith("https://")), "Every annual operations row needs an official source URL");
+  assert(kpis.annualCapital?.every(row => row.length === 8 && row[7]?.startsWith("https://")), "Every annual capital row needs an official source URL");
   assert(kpis.adoption.every(row => row.length === 9 && row[7]?.startsWith("https://")), "Every adoption KPI row needs an official source URL");
   assert(kpis.milestones.every(row => row.length === 5 && row[3]?.startsWith("https://")), "Every product milestone needs an official source URL");
   assert(kpis.totalCustomers.every(row => row.length >= 3 && row[2]?.startsWith("https://")), "Every total-customer KPI row needs an official source URL");
@@ -54,6 +60,7 @@ if(kpis){
   assert(kpis.grr.every(row => row[1] >= .9 && row[1] <= 1), "GRR visualization values must be stored as 1.00-based percentages");
   const auditableSeries = [
     ["quarterly",kpis.quarterly,5],["adoption",kpis.adoption,7],["total customers",kpis.totalCustomers,2],
+    ["annual FCF economics",kpis.annualFcfEconomics,4],["annual operations",kpis.annualOperations,10],["annual capital",kpis.annualCapital,7],
     ["$1M customers",kpis.millionCustomers,2],["NRR",kpis.nrr,3],["GRR",kpis.grr,3],["AI customers",kpis.aiIntegrationCustomers,2],
   ];
   auditableSeries.forEach(([label,rows,urlIndex]) => {
@@ -67,6 +74,72 @@ if(kpis){
   assert(Math.abs(latest[2] / latest[1] - 0.792091) < 0.001, "Q1 2026 GAAP gross-margin tie-out failed");
   assert(Math.abs(latest[3] / latest[1] - 0.802072) < 0.001, "Q1 2026 non-GAAP gross-margin tie-out failed");
   assert(latest[4] === 4550, "Q1 2026 large-customer tie-out failed");
+  const latestFcf = kpis.annualFcfEconomics.at(-1);
+  assert(latestFcf[0] === "2025", "Latest annual FCF economics period must be FY2025");
+  assert(Math.abs(latestFcf[2] - latestFcf[3] - 140.575) < 0.001, "FY2025 owner-FCF tie-out failed");
+  assert(Math.abs((latestFcf[2] - latestFcf[3]) / latestFcf[1] - 0.041018) < 0.001, "FY2025 owner-FCF margin tie-out failed");
+  const latestOperations = kpis.annualOperations.at(-1);
+  assert(latestOperations[0] === "2025", "Latest annual operations period must be FY2025");
+  assert(Math.abs(latestOperations[6] / latestOperations[1] - -0.012947) < 0.001, "FY2025 operating-margin tie-out failed");
+  assert(Math.abs(latestOperations[9] / kpis.annualOperations.at(-2)[9] - 1 - 0.030420) < 0.001, "FY2025 year-end share-growth tie-out failed");
+  const latestCapital = kpis.annualCapital.at(-1);
+  const latestAnnualCapital = kpis.annualCapital.at(-2);
+  assert(latestCapital[0] === "2026Q1", "Latest capital period must be Q1 2026");
+  assert(Math.abs(latestCapital[1] + latestCapital[2] - 4758.617) < 0.001, "Q1 2026 liquidity tie-out failed");
+  assert(Math.abs(latestAnnualCapital[6] - 0.166765) < 0.001, "FY2025 R&D-adjusted ROIC tie-out failed");
+}
+
+const peerSource = fs.readFileSync(path.join(root, "data", "peer-comps-data.js"), "utf8");
+vm.runInContext(peerSource, sandbox, {filename:"peer-comps-data.js"});
+const peerModel = sandbox.window.PEER_COMPS;
+assert(peerModel, "window.PEER_COMPS must be exported");
+if(peerModel){
+  const rows = peerModel.companies.map(values => Object.fromEntries(peerModel.fields.map((field,index) => [field,values[index]])));
+  const median = values => {
+    const sorted = [...values].sort((a,b) => a-b);
+    const middle = Math.floor(sorted.length / 2);
+    return sorted.length % 2 ? sorted[middle] : (sorted[middle-1] + sorted[middle]) / 2;
+  };
+  const metrics = row => {
+    const ltmGrowth = row.ltmRevenue / row.ltmPriorRevenue - 1;
+    const ntmGrowth = row.currentFyGrowth * row.monthsCurrentFy / 12 + row.nextFyGrowth * (12-row.monthsCurrentFy) / 12;
+    const standardizedFcf = row.ltmCfoLessCapex - row.ltmCapitalizedSoftware;
+    const fcfMargin = standardizedFcf / row.ltmRevenue;
+    const sbcMargin = row.ltmSbc / row.ltmRevenue;
+    const enterpriseValue = row.marketCap + row.debt - row.cash;
+    const ntmRevenue = row.ltmRevenue * (1+ntmGrowth);
+    return {
+      ltmGrowth, ntmGrowth, fcfMargin, sbcMargin,
+      grossMargin: row.ltmGrossProfit / row.ltmRevenue,
+      operatingMargin: row.ltmOperatingIncome / row.ltmRevenue,
+      dilution: row.latestBasicShares / row.priorBasicShares - 1,
+      rule40: ltmGrowth + fcfMargin,
+      economicSensitivity: ltmGrowth + fcfMargin - sbcMargin,
+      evNtmRevenue: enterpriseValue / ntmRevenue,
+      equityNtmFcf: row.marketCap / (ntmRevenue * fcfMargin),
+    };
+  };
+  const enriched = rows.map(row => ({...row,...metrics(row)}));
+  const ddog = enriched.find(row => row.ticker === "DDOG");
+  const broad = enriched.filter(row => row.ticker !== "DDOG");
+  const direct = enriched.filter(row => row.bucket === "direct");
+  assert(peerModel.meta.valuationDate === "2026-07-31", "Peer valuation date must be 2026-07-31");
+  assert(rows.length === 9, "Peer set must contain Datadog and eight comparison companies");
+  assert(rows.filter(row => row.bucket === "target").length === 1, "Peer set must contain one target company");
+  assert(direct.map(row => row.ticker).sort().join(",") === "DT,ESTC", "Direct peer set must contain DT and ESTC");
+  assert(rows.every(row => peerModel.buckets[row.bucket]), "Every peer must use a registered comparison bucket");
+  assert(rows.every(row => row.price > 0 && row.marketCap > 0 && row.ltmRevenue > 0 && row.ltmPriorRevenue > 0), "Every peer needs valid market and LTM revenue inputs");
+  assert(rows.every(row => row.latestBasicShares > 0 && row.priorBasicShares > 0), "Every peer needs comparable basic-share inputs");
+  assert(rows.every(row => ["overview","forecast","income","cash-flow","balance-sheet"].every(statement => peerModel.sourceFor(row.ticker,statement).startsWith("https://stockanalysis.com/"))), "Every peer needs valid source URLs");
+  assert(Math.abs(ddog.ltmGrowth - .295443) < .00001, "DDOG LTM growth tie-out failed");
+  assert(Math.abs(ddog.ntmGrowth - .2368) < .00001, "DDOG NTM growth proxy tie-out failed");
+  assert(Math.abs(ddog.fcfMargin - .261277) < .00001, "DDOG standardized FCF margin tie-out failed");
+  assert(Math.abs(ddog.rule40 - .556720) < .00001, "DDOG Rule of 40 tie-out failed");
+  assert(Math.abs(ddog.economicSensitivity - .343419) < .00001, "DDOG Economic sensitivity tie-out failed");
+  assert(Math.abs(ddog.evNtmRevenue - 20.7557) < .001, "DDOG EV / NTM revenue tie-out failed");
+  assert(Math.abs(median(broad.map(row => row.evNtmRevenue)) - 6.6872) < .001, "Broad-peer EV / NTM revenue median tie-out failed");
+  assert(Math.abs(median(direct.map(row => row.evNtmRevenue)) - 4.2312) < .001, "Direct-peer EV / NTM revenue median tie-out failed");
+  assert(ddog.evNtmRevenue / median(broad.map(row => row.evNtmRevenue)) - 1 > 2, "DDOG broad-peer valuation premium must exceed 200%");
 }
 
 const categoryIds = new Set(model.categories.map(category => category.id));

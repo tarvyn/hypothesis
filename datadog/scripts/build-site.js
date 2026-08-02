@@ -19,8 +19,10 @@ const copies = [
   ["styles.css", path.join(client, "styles.css")],
   ["app.js", path.join(client, "app.js")],
   ["og.png", path.join(client, "og.png")],
+  ["og-peers.png", path.join(client, "og-peers.png")],
   [path.join("data", "product-map-data.js"), path.join(client, "data", "product-map-data.js")],
   [path.join("data", "kpi-data.js"), path.join(client, "data", "kpi-data.js")],
+  [path.join("data", "peer-comps-data.js"), path.join(client, "data", "peer-comps-data.js")],
   [path.join("schema", "product-map.schema.json"), path.join(client, "schema", "product-map.schema.json")],
   [path.join("worker", "index.js"), path.join(server, "index.js")],
 ];
