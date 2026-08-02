@@ -399,7 +399,7 @@
         <div class="section-head kpi-heading">
           <div>
             <span class="section-kicker">Financial analysis · through Q1 2026</span>
-            <h2 id="financials-dashboard-title">Revenue growth & gross margin</h2>
+            <h2 id="financials-dashboard-title">Revenue, margins & owner cash flow</h2>
           </div>
           <p>Reported quarterly revenue and calculated GAAP / company-defined non-GAAP gross margins, with a primary source for every quarter.</p>
         </div>
@@ -435,6 +435,54 @@
             <details class="kpi-source-trail" id="margin-sources"><summary>Sources by quarter</summary><div></div></details>
           </article>
         </div>
+
+        <section class="kpi-section fcf-quality-section" aria-labelledby="fcf-quality-title">
+          <div class="section-head compact">
+            <div>
+              <span class="section-kicker">Cash-flow quality · FY2021–FY2025</span>
+              <h2 id="fcf-quality-title">Reported FCF versus owner economics</h2>
+            </div>
+            <p>Owner FCF treats total stock-based compensation—including capitalized SBC—as an economic cost to existing shareholders.</p>
+          </div>
+
+          <div class="fcf-net-read">
+            <div>
+              <span class="kpi-net-label">Investor read</span>
+              <p><b>Headline cash generation scaled much faster than cash flow after the shareholder cost of SBC.</b> In FY2025, $914.7M of reported FCF translated into $140.6M of owner FCF, a 4.1% margin.</p>
+            </div>
+            <div class="fcf-read-metrics" aria-label="FY2025 owner cash flow summary">
+              <span><b>84.6%</b> of reported FCF absorbed by SBC</span>
+              <span><b>−26.6%</b> owner FCF growth in FY2025</span>
+            </div>
+          </div>
+
+          <div class="kpi-chart-grid">
+            <article class="kpi-chart-card">
+              <div class="kpi-card-head">
+                <div><span class="kpi-card-kicker">FCF bridge</span><h3>Cash flow and shareholder cost</h3></div>
+                <a class="kpi-source" href="https://www.sec.gov/Archives/edgar/data/1561550/000162828026008819/ddog-20251231.htm" target="_blank" rel="noopener noreferrer">FY2025 Form 10-K ↗</a>
+              </div>
+              <p class="kpi-chart-note">USD millions. Owner FCF = reported FCF − total SBC. The negative 2022 bar is shown below zero.</p>
+              <canvas id="fcf-economics-chart" class="financial-chart kpi-chart" role="img" aria-label="Datadog reported free cash flow, total stock-based compensation, and owner free cash flow from 2021 through 2025"></canvas>
+              <div class="chart-legend" id="fcf-economics-legend"></div>
+            </article>
+
+            <article class="kpi-chart-card">
+              <div class="kpi-card-head">
+                <div><span class="kpi-card-kicker">Conversion quality</span><h3>Reported and owner FCF margins</h3></div>
+                <a class="kpi-source" href="https://www.sec.gov/Archives/edgar/data/1561550/000156155024000009/ddog-20231231.htm" target="_blank" rel="noopener noreferrer">FY2023 Form 10-K ↗</a>
+              </div>
+              <p class="kpi-chart-note">Reported FCF margin remains above 20%; owner margin is positive but low and volatile.</p>
+              <canvas id="fcf-margin-chart" class="financial-chart kpi-chart" role="img" aria-label="Datadog reported free cash flow margin and owner free cash flow margin from 2021 through 2025"></canvas>
+              <div class="chart-legend" id="fcf-margin-legend"></div>
+            </article>
+          </div>
+
+          <details class="kpi-source-trail fcf-source-trail" id="fcf-sources">
+            <summary>Annual calculations, definitions, and primary sources</summary>
+            <div></div>
+          </details>
+        </section>
 
         <section class="kpi-section" aria-labelledby="financial-history-title">
           <div class="section-head compact">

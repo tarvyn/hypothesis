@@ -190,6 +190,15 @@
   const aiCustomers = kpiModel.aiIntegrationCustomers.map(row => ({period:row[0],value:row[1],sourceUrl:row[2],basis:row[3]}));
   const aiCustomersByPeriod = new Map(aiCustomers.map(row => [row.period,row]));
   const financialsByPeriod = new Map(financials.map(row => [row.period,row]));
+  const annualFcfEconomics = kpiModel.annualFcfEconomics.map(row => {
+    const [period,revenue,reportedFcf,totalSbc,sourceUrl] = row;
+    const ownerFcf = reportedFcf - totalSbc;
+    return {
+      period,revenue,reportedFcf,totalSbc,ownerFcf,sourceUrl,
+      reportedMargin:reportedFcf / revenue,
+      ownerMargin:ownerFcf / revenue,
+    };
+  });
   let kpiChartConfigs = [];
   let financialChartConfigs = [];
   let kpisInitialized = false;
@@ -236,6 +245,10 @@
 
   function money(value){
     return value >= 1000 ? `$${(value/1000).toFixed(3)}B` : `$${value.toFixed(1)}M`;
+  }
+
+  function signedMoney(value){
+    return `${value < 0 ? "−" : ""}$${Math.abs(value).toFixed(1)}M`;
   }
 
   function pct(value,digits=1){
@@ -335,7 +348,12 @@
       ctx.fillStyle = "#70799c";ctx.textAlign = "right";
       ctx.fillText(config.yFormatter(value),margin.left-9,py);
     }
-    const step = width < 520 ? 6 : 4;
+    if(yMin < 0 && yMax > 0){
+      const zeroY = y(0);
+      ctx.beginPath();ctx.moveTo(margin.left,zeroY);ctx.lineTo(width-margin.right,zeroY);
+      ctx.strokeStyle = "rgba(222,226,242,.52)";ctx.lineWidth = 1.2;ctx.stroke();
+    }
+    const step = config.labels.length <= 8 ? 1 : width < 520 ? 6 : 4;
     config.labels.forEach((label,index) => {
       if(index%step && index !== config.labels.length-1) return;
       const px = x(index);
@@ -364,6 +382,68 @@
     renderLegend(config.legendId,config.series);
   }
 
+  function drawBarChart(config){
+    const canvas = document.getElementById(config.canvasId);
+    if(!canvas) return;
+    const width = Math.max(320,Math.floor(canvas.clientWidth));
+    const height = Math.max(230,Math.floor(canvas.clientHeight));
+    const dpr = Math.min(window.devicePixelRatio || 1,2);
+    canvas.width = Math.floor(width*dpr);
+    canvas.height = Math.floor(height*dpr);
+    const ctx = canvas.getContext("2d");
+    ctx.scale(dpr,dpr);
+    ctx.clearRect(0,0,width,height);
+
+    const margin = {top:12,right:16,bottom:38,left:58};
+    const plotWidth = width-margin.left-margin.right;
+    const plotHeight = height-margin.top-margin.bottom;
+    const yMin = config.yMin;
+    const yMax = config.yMax;
+    const y = value => margin.top + (yMax-value)/(yMax-yMin)*plotHeight;
+    const groupWidth = plotWidth/config.labels.length;
+    const barArea = Math.min(groupWidth*.72,72);
+    const gap = Math.max(2,Math.min(5,barArea*.06));
+    const barWidth = Math.max(5,(barArea-gap*(config.series.length-1))/config.series.length);
+    const baseline = y(0);
+
+    ctx.font = '9px "JetBrains Mono", monospace';
+    ctx.textBaseline = "middle";
+    for(let i=0;i<=5;i++){
+      const value = yMax-(yMax-yMin)*i/5;
+      const py = margin.top+plotHeight*i/5;
+      ctx.beginPath();ctx.moveTo(margin.left,py);ctx.lineTo(width-margin.right,py);
+      ctx.strokeStyle = "rgba(112,121,156,.23)";ctx.lineWidth = 1;ctx.stroke();
+      ctx.fillStyle = "#70799c";ctx.textAlign = "right";
+      ctx.fillText(config.yFormatter(value),margin.left-9,py);
+    }
+    ctx.beginPath();ctx.moveTo(margin.left,baseline);ctx.lineTo(width-margin.right,baseline);
+    ctx.strokeStyle = "rgba(222,226,242,.52)";ctx.lineWidth = 1.2;ctx.stroke();
+
+    config.labels.forEach((label,index) => {
+      const center = margin.left+groupWidth*(index+.5);
+      ctx.fillStyle = "#70799c";ctx.textAlign = "center";
+      ctx.fillText(label,center,height-17);
+      const left = center-barArea/2;
+      config.series.forEach((series,seriesIndex) => {
+        const value = series.values[index];
+        if(value == null) return;
+        const py = y(value);
+        const top = Math.min(py,baseline);
+        const barHeight = Math.max(1,Math.abs(baseline-py));
+        ctx.fillStyle = value < 0 && series.negativeColor ? series.negativeColor : series.color;
+        ctx.globalAlpha = series.opacity || 1;
+        ctx.fillRect(left+seriesIndex*(barWidth+gap),top,barWidth,barHeight);
+        ctx.globalAlpha = 1;
+      });
+    });
+
+    canvas._chartMeta = {
+      config,width,height,margin,plotWidth,
+      indexAtX:localX => Math.max(0,Math.min(config.labels.length-1,Math.floor((localX-margin.left)/groupWidth))),
+    };
+    renderLegend(config.legendId,config.series);
+  }
+
   function showChartTooltip(event){
     const canvas = event.currentTarget;
     const meta = canvas._chartMeta;
@@ -371,7 +451,7 @@
     const rect = canvas.getBoundingClientRect();
     const localX = event.clientX-rect.left;
     const ratio = Math.max(0,Math.min(1,(localX-meta.margin.left)/meta.plotWidth));
-    const index = Math.round(ratio*(meta.config.labels.length-1));
+    const index = meta.indexAtX ? meta.indexAtX(localX) : Math.round(ratio*(meta.config.labels.length-1));
     const rows = meta.config.series
       .filter(series => series.values[index] != null)
       .map(series => `<span><i style="--tip-color:${series.color}"></i>${esc(series.label)}: ${esc(series.displayValues?.[index] || meta.config.tooltipFormatter(series.values[index],index,series))}</span>`)
@@ -389,6 +469,15 @@
     const financialLinks = financials.map(row => sourceAnchor(row.sourceUrl,row.period)).join("");
     document.querySelector("#revenue-sources>div").innerHTML = financialLinks;
     document.querySelector("#margin-sources>div").innerHTML = financialLinks;
+    document.querySelector("#fcf-sources>div").innerHTML = annualFcfEconomics.map(row =>
+      `<article class="fcf-source-row">
+        <b>${esc(row.period)}</b>
+        <span>Reported FCF ${esc(signedMoney(row.reportedFcf))}</span>
+        <span>Total SBC ${esc(signedMoney(row.totalSbc))}</span>
+        <span>Owner FCF ${esc(signedMoney(row.ownerFcf))}</span>
+        ${sourceAnchor(row.sourceUrl,"Form 10-K")}
+      </article>`
+    ).join("") + `<p class="fcf-definition"><b>Analyst-adjusted measure.</b> Owner FCF subtracts total expensed and capitalized SBC from company-defined FCF. It is an economic sensitivity, not a GAAP or company-reported liquidity measure.</p>`;
     document.querySelector("#customer-sources>div").innerHTML = financialLinks;
     document.querySelector("#total-customer-sources>div").innerHTML = totalCustomers.map(row =>
       `<a href="${esc(row.sourceUrl)}" title="${esc(row.basis)}" target="_blank" rel="noopener noreferrer">${esc(row.period)}</a>`
@@ -436,11 +525,21 @@
 
   function renderFinancialCharts(){
     const financialLabels = financials.map(row => row.period);
+    const fcfLabels = annualFcfEconomics.map(row => row.period);
     financialChartConfigs = [
       {canvasId:"revenue-chart",legendId:"revenue-legend",labels:financialLabels,yMin:0,yMax:1100,yFormatter:value=>`$${Math.round(value)}m`,tooltipFormatter:value=>money(value),series:[{label:"Revenue",color:"#33c6e6",values:financials.map(row=>row.revenue)}]},
       {canvasId:"margin-chart",legendId:"margin-legend",labels:financialLabels,yMin:.70,yMax:.85,yFormatter:value=>pct(value,0),tooltipFormatter:value=>pct(value),series:[{label:"GAAP",color:"#2ed6a0",values:financials.map(row=>row.grossMargin)},{label:"Non-GAAP",color:"#7c6bf5",values:financials.map(row=>row.nonGaapGrossMargin)}]},
+      {type:"bar",canvasId:"fcf-economics-chart",legendId:"fcf-economics-legend",labels:fcfLabels,yMin:-100,yMax:1000,yFormatter:value=>`${value < 0 ? "−" : ""}$${Math.abs(Math.round(value))}m`,tooltipFormatter:value=>signedMoney(value),series:[
+        {label:"Reported FCF",color:"#33c6e6",values:annualFcfEconomics.map(row=>row.reportedFcf)},
+        {label:"Total SBC",color:"#7c6bf5",opacity:.74,values:annualFcfEconomics.map(row=>row.totalSbc)},
+        {label:"Owner FCF",color:"#2ed6a0",negativeColor:"#ff5c8a",values:annualFcfEconomics.map(row=>row.ownerFcf)},
+      ]},
+      {canvasId:"fcf-margin-chart",legendId:"fcf-margin-legend",labels:fcfLabels,yMin:-.05,yMax:.35,yFormatter:value=>pct(value,0),tooltipFormatter:value=>pct(value),series:[
+        {label:"Reported FCF margin",color:"#33c6e6",values:annualFcfEconomics.map(row=>row.reportedMargin)},
+        {label:"Owner FCF margin",color:"#2ed6a0",values:annualFcfEconomics.map(row=>row.ownerMargin)},
+      ]},
     ];
-    financialChartConfigs.forEach(drawLineChart);
+    financialChartConfigs.forEach(config => config.type === "bar" ? drawBarChart(config) : drawLineChart(config));
   }
 
   function renderCoreEngineScale(){

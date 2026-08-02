@@ -41,6 +41,13 @@ window.KPI_DATA = {
     ["2025Q4",953.194,766.300,776.297,4310,"https://www.sec.gov/Archives/edgar/data/1561550/000162828026006645/ex-991x20251231x8k.htm"],
     ["2026Q1",1006.426,797.198,807.226,4550,"https://www.sec.gov/Archives/edgar/data/1561550/000162828026031677/ex-991x20260331x8k.htm"],
   ],
+  annualFcfEconomics: [
+    ["2021",1028.784,250.5,173.397,"https://www.sec.gov/Archives/edgar/data/1561550/000156155024000009/ddog-20231231.htm"],
+    ["2022",1675.100,353.5,378.007,"https://www.sec.gov/Archives/edgar/data/1561550/000156155024000009/ddog-20231231.htm"],
+    ["2023",2128.359,597.5,495.897,"https://www.sec.gov/Archives/edgar/data/1561550/000156155024000009/ddog-20231231.htm"],
+    ["2024",2684.275,775.1,583.488,"https://www.sec.gov/Archives/edgar/data/1561550/000162828026008819/ddog-20251231.htm"],
+    ["2025",3427.158,914.7,774.125,"https://www.sec.gov/Archives/edgar/data/1561550/000162828026008819/ddog-20251231.htm"],
+  ],
   adoption: [
     ["2020Q2",.68,.15,null,null,null,"TR-2021Q2","https://investors.datadoghq.com/static-files/82ccb0c5-c0dd-4719-96c2-531de4fcb772","later-period comparative"],
     ["2020Q3",.71,.20,.02,.00,null,"PX-2026","https://investors.datadoghq.com/static-files/da3a926b-cc0e-449f-9473-89daa13dc291","later proxy comparative"],
