@@ -18,7 +18,9 @@ const copies = [
   ["index.html", path.join(client, "index.html")],
   ["styles.css", path.join(client, "styles.css")],
   ["app.js", path.join(client, "app.js")],
+  ["og.png", path.join(client, "og.png")],
   [path.join("data", "product-map-data.js"), path.join(client, "data", "product-map-data.js")],
+  [path.join("data", "kpi-data.js"), path.join(client, "data", "kpi-data.js")],
   [path.join("schema", "product-map.schema.json"), path.join(client, "schema", "product-map.schema.json")],
   [path.join("worker", "index.js"), path.join(server, "index.js")],
 ];

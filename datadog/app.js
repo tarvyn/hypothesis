@@ -1,6 +1,8 @@
 (() => {
   const model = window.PRODUCT_MAP;
   if (!model) throw new Error("Product map data did not load.");
+  const kpiModel = window.KPI_DATA;
+  if (!kpiModel) throw new Error("KPI data did not load.");
 
   const MOAT = {
     data_gravity:{label:"Data gravity",color:"#7c6bf5"},
@@ -119,7 +121,9 @@
   const state = {
     filters:new Set(),
     selected:null,
-    activeTab:window.location.hash === "#business-model" ? "business-model" : "product-map",
+    activeTab:["product-map","business-model","kpis"].includes(window.location.hash.slice(1))
+      ? window.location.hash.slice(1)
+      : "product-map",
     showProductScores:false,
   };
   const refs = {};
@@ -149,6 +153,29 @@
   const tabPanels = [...document.querySelectorAll("[data-panel]")];
   const productScoresToggle = document.getElementById("product-scores-toggle");
   const mapHint = document.getElementById("map-hint");
+  const kpiSnapshot = document.getElementById("kpi-snapshot");
+  const productMilestones = document.getElementById("product-milestones");
+  const kpiHistory = document.getElementById("kpi-history");
+  const chartTooltip = document.getElementById("chart-tooltip");
+
+  const financials = kpiModel.quarterly.map((row,index,rows) => {
+    const [period,revenue,grossProfit,nonGaapGrossProfit,largeCustomers,sourceUrl] = row;
+    const priorYear = index >= 4 ? rows[index - 4] : null;
+    return {
+      period,revenue,grossProfit,nonGaapGrossProfit,largeCustomers,sourceUrl,
+      grossMargin:grossProfit / revenue,
+      nonGaapGrossMargin:nonGaapGrossProfit / revenue,
+      revenueGrowth:priorYear ? revenue / priorYear[1] - 1 : null,
+      customerGrowth:priorYear ? largeCustomers / priorYear[4] - 1 : null,
+    };
+  });
+  const adoption = kpiModel.adoption.map(row => ({
+    period:row[0],p2:row[1],p4:row[2],p6:row[3],p8:row[4],p10:row[5],
+    sourceId:row[6],sourceUrl:row[7],basis:row[8],
+  }));
+  const adoptionByPeriod = new Map(adoption.map(row => [row.period,row]));
+  let kpiChartConfigs = [];
+  let kpisInitialized = false;
 
   model.categories.forEach(category => category.suites.forEach(suite => suite.products.forEach(product => {
     allItems.push({...product,categoryId:category.id,categoryName:category.catName,categoryColor:category.color,suiteName:suite.name});
@@ -187,6 +214,193 @@
         <p class="warning"><b>Warn</b>${esc(item.warning)}</p>
       </article>`
     ).join("");
+  }
+
+  function money(value){
+    return value >= 1000 ? `$${(value/1000).toFixed(3)}B` : `$${value.toFixed(1)}M`;
+  }
+
+  function pct(value,digits=1){
+    return value == null ? "—" : `${(value*100).toFixed(digits)}%`;
+  }
+
+  function number(value){
+    return value == null ? "—" : Math.round(value).toLocaleString("en-US");
+  }
+
+  function sourceAnchor(url,label="Source"){
+    return `<a href="${esc(url)}" target="_blank" rel="noopener noreferrer">${esc(label)} ↗</a>`;
+  }
+
+  function renderKpiSnapshot(){
+    const latest = financials.at(-1);
+    const priorYear = financials.at(-5);
+    const latestAdoption = adoption.at(-1);
+    const totalCustomers = kpiModel.totalCustomers.at(-1)[1];
+    const stats = [
+      {label:"Quarterly revenue",value:money(latest.revenue),change:`+${pct(latest.revenueGrowth)} YoY`,note:"First quarter above $1B",color:"var(--dev)",url:latest.sourceUrl},
+      {label:"GAAP gross margin",value:pct(latest.grossMargin),change:`${((latest.grossMargin-priorYear.grossMargin)*100).toFixed(1)} ppt YoY`,note:"Consolidated company margin",color:"var(--m-core)",url:latest.sourceUrl},
+      {label:"Non-GAAP gross margin",value:pct(latest.nonGaapGrossMargin),change:`${((latest.nonGaapGrossMargin-priorYear.nonGaapGrossMargin)*100).toFixed(1)} ppt YoY`,note:"Company-defined adjusted KPI",color:"var(--obs)",url:latest.sourceUrl},
+      {label:"Customers >$100K ARR",value:number(latest.largeCustomers),change:`+${pct(latest.customerGrowth)} YoY`,note:`${number(totalCustomers)} total customers`,color:"var(--ai)",url:latest.sourceUrl},
+      {label:"Customers on 4+ products",value:pct(latestAdoption.p4,0),change:`+${((latestAdoption.p4-adoptionByPeriod.get("2025Q1").p4)*100).toFixed(0)} ppt YoY`,note:"Primary cross-sell KPI",color:"var(--sec)",url:latestAdoption.sourceUrl},
+      {label:"Company ARR",value:"> $4.0B",change:"5 products >$100M",note:"3 more products at $50–100M",color:"var(--m-option)",url:kpiModel.anchors.latestTranscript},
+    ];
+    kpiSnapshot.innerHTML = stats.map(stat => `<article class="kpi-stat" style="--stat-color:${stat.color}">
+      <span class="kpi-stat-label">${esc(stat.label)}</span>
+      <strong>${esc(stat.value)}</strong>
+      <span class="kpi-stat-change ${stat.change.startsWith("0.0") ? "is-flat" : ""}">${esc(stat.change)}</span>
+      <p>${esc(stat.note)}</p>
+      ${sourceAnchor(stat.url,"Primary source")}
+    </article>`).join("");
+  }
+
+  function niceMax(value){
+    const power = 10 ** Math.floor(Math.log10(value || 1));
+    return Math.ceil(value / power) * power;
+  }
+
+  function renderLegend(elementId,series){
+    const element = document.getElementById(elementId);
+    element.innerHTML = series.map(item => `<span><i style="--legend-color:${item.color}"></i>${esc(item.label)}</span>`).join("");
+  }
+
+  function drawLineChart(config){
+    const canvas = document.getElementById(config.canvasId);
+    const width = Math.max(320,Math.floor(canvas.clientWidth));
+    const height = Math.max(230,Math.floor(canvas.clientHeight));
+    const dpr = Math.min(window.devicePixelRatio || 1,2);
+    canvas.width = Math.floor(width*dpr);
+    canvas.height = Math.floor(height*dpr);
+    const ctx = canvas.getContext("2d");
+    ctx.scale(dpr,dpr);
+    ctx.clearRect(0,0,width,height);
+
+    const margin = {top:12,right:16,bottom:50,left:52};
+    const plotWidth = width-margin.left-margin.right;
+    const plotHeight = height-margin.top-margin.bottom;
+    const allValues = config.series.flatMap(series => series.values.filter(value => value != null));
+    const rawMin = config.yMin ?? Math.min(...allValues);
+    const rawMax = config.yMax ?? Math.max(...allValues);
+    const yMin = config.yMin ?? 0;
+    const yMax = config.yMax ?? niceMax(rawMax*1.06);
+    const x = index => margin.left + (config.labels.length === 1 ? plotWidth/2 : index*plotWidth/(config.labels.length-1));
+    const y = value => margin.top + (yMax-value)/(yMax-yMin)*plotHeight;
+
+    ctx.font = '9px "JetBrains Mono", monospace';
+    ctx.textBaseline = "middle";
+    for(let i=0;i<=5;i++){
+      const value = yMax-(yMax-yMin)*i/5;
+      const py = margin.top+plotHeight*i/5;
+      ctx.beginPath();ctx.moveTo(margin.left,py);ctx.lineTo(width-margin.right,py);
+      ctx.strokeStyle = "rgba(112,121,156,.23)";ctx.lineWidth = 1;ctx.stroke();
+      ctx.fillStyle = "#70799c";ctx.textAlign = "right";
+      ctx.fillText(config.yFormatter(value),margin.left-9,py);
+    }
+    const step = width < 520 ? 6 : 4;
+    config.labels.forEach((label,index) => {
+      if(index%step && index !== config.labels.length-1) return;
+      const px = x(index);
+      ctx.save();ctx.translate(px,height-32);ctx.rotate(-Math.PI/4);
+      ctx.fillStyle = "#70799c";ctx.textAlign = "right";ctx.fillText(label,0,0);ctx.restore();
+    });
+
+    config.series.forEach(series => {
+      ctx.strokeStyle = series.color;ctx.lineWidth = series.width || 2.5;ctx.lineJoin = "round";ctx.lineCap = "round";
+      let open = false;
+      ctx.beginPath();
+      series.values.forEach((value,index) => {
+        if(value == null){open=false;return;}
+        const px=x(index),py=y(value);
+        if(!open){ctx.moveTo(px,py);open=true;} else ctx.lineTo(px,py);
+      });
+      ctx.stroke();
+      series.values.forEach((value,index) => {
+        if(value == null) return;
+        ctx.beginPath();ctx.arc(x(index),y(value),2.2,0,Math.PI*2);ctx.fillStyle=series.color;ctx.fill();
+      });
+    });
+    canvas._chartMeta = {config,width,height,margin,plotWidth,x};
+    renderLegend(config.legendId,config.series);
+  }
+
+  function showChartTooltip(event){
+    const canvas = event.currentTarget;
+    const meta = canvas._chartMeta;
+    if(!meta) return;
+    const rect = canvas.getBoundingClientRect();
+    const localX = event.clientX-rect.left;
+    const ratio = Math.max(0,Math.min(1,(localX-meta.margin.left)/meta.plotWidth));
+    const index = Math.round(ratio*(meta.config.labels.length-1));
+    const rows = meta.config.series
+      .filter(series => series.values[index] != null)
+      .map(series => `<span><i style="--tip-color:${series.color}"></i>${esc(series.label)}: ${esc(meta.config.tooltipFormatter(series.values[index]))}</span>`)
+      .join("");
+    chartTooltip.innerHTML = `<b>${esc(meta.config.labels[index])}</b>${rows || "No disclosure"}`;
+    chartTooltip.hidden = false;
+    const tipWidth = 230;
+    chartTooltip.style.left = `${Math.min(window.innerWidth-tipWidth-12,event.clientX+14)}px`;
+    chartTooltip.style.top = `${Math.min(window.innerHeight-110,event.clientY+14)}px`;
+  }
+
+  function hideChartTooltip(){chartTooltip.hidden = true;}
+
+  function renderSourceTrails(){
+    const financialLinks = financials.map(row => sourceAnchor(row.sourceUrl,row.period)).join("");
+    document.querySelector("#revenue-sources>div").innerHTML = financialLinks;
+    document.querySelector("#margin-sources>div").innerHTML = financialLinks;
+    document.querySelector("#customer-sources>div").innerHTML = financialLinks;
+    document.querySelector("#adoption-sources>div").innerHTML = adoption.map(row =>
+      `<a href="${esc(row.sourceUrl)}" title="${esc(row.basis)}" target="_blank" rel="noopener noreferrer">${esc(row.period)} · ${esc(row.sourceId)}</a>`
+    ).join("");
+  }
+
+  function renderKpiCharts(){
+    const financialLabels = financials.map(row => row.period);
+    const adoptionLabels = adoption.map(row => row.period);
+    kpiChartConfigs = [
+      {canvasId:"revenue-chart",legendId:"revenue-legend",labels:financialLabels,yMin:0,yMax:1100,yFormatter:value=>`$${Math.round(value)}m`,tooltipFormatter:value=>money(value),series:[{label:"Revenue",color:"#33c6e6",values:financials.map(row=>row.revenue)}]},
+      {canvasId:"margin-chart",legendId:"margin-legend",labels:financialLabels,yMin:.70,yMax:.85,yFormatter:value=>pct(value,0),tooltipFormatter:value=>pct(value),series:[{label:"GAAP",color:"#2ed6a0",values:financials.map(row=>row.grossMargin)},{label:"Non-GAAP",color:"#7c6bf5",values:financials.map(row=>row.nonGaapGrossMargin)}]},
+      {canvasId:"customers-chart",legendId:"customers-legend",labels:financialLabels,yMin:0,yMax:5000,yFormatter:value=>Math.round(value).toLocaleString("en-US"),tooltipFormatter:value=>number(value),series:[{label:">$100K ARR customers",color:"#f5b13f",values:financials.map(row=>row.largeCustomers)}]},
+      {canvasId:"adoption-chart",legendId:"adoption-legend",labels:adoptionLabels,yMin:0,yMax:.90,yFormatter:value=>pct(value,0),tooltipFormatter:value=>pct(value,0),series:[
+        {label:"2+ products",color:"#33c6e6",values:adoption.map(row=>row.p2)},
+        {label:"4+ products",color:"#f5b13f",values:adoption.map(row=>row.p4)},
+        {label:"6+ products",color:"#2ed6a0",values:adoption.map(row=>row.p6)},
+        {label:"8+ products",color:"#4aa3e0",values:adoption.map(row=>row.p8)},
+        {label:"10+ products",color:"#ff5c8a",values:adoption.map(row=>row.p10)},
+      ]},
+    ];
+    kpiChartConfigs.forEach(drawLineChart);
+  }
+
+  function renderMilestones(){
+    productMilestones.innerHTML = kpiModel.milestones.map(row => `<article class="milestone-card">
+      <time>${esc(row[0])}</time><h3>${esc(row[1])}</h3><strong>${esc(row[2])}</strong><p>${esc(row[4])}</p>${sourceAnchor(row[3],"Official disclosure")}
+    </article>`).join("");
+  }
+
+  function renderKpiHistory(){
+    const values = value => value == null ? `<span class="kpi-na">—</span>` : pct(value,0);
+    kpiHistory.innerHTML = financials.map(row => {
+      const a = adoptionByPeriod.get(row.period);
+      return `<tr>
+        <td>${esc(row.period)}</td><td>${money(row.revenue)}</td><td>${row.revenueGrowth==null?'<span class="kpi-na">—</span>':pct(row.revenueGrowth)}</td>
+        <td>${pct(row.grossMargin)}</td><td>${pct(row.nonGaapGrossMargin)}</td><td>${number(row.largeCustomers)}</td>
+        <td>${values(a?.p2)}</td><td>${values(a?.p4)}</td><td>${values(a?.p6)}</td><td>${values(a?.p8)}</td><td>${values(a?.p10)}</td>
+        <td><span class="kpi-source-cell">${sourceAnchor(row.sourceUrl,"Fin")}${a?sourceAnchor(a.sourceUrl,"Adoption"):""}</span></td>
+      </tr>`;
+    }).join("");
+  }
+
+  function renderKpis(){
+    renderKpiSnapshot();
+    renderSourceTrails();
+    renderMilestones();
+    renderKpiHistory();
+    renderKpiCharts();
+    document.querySelectorAll(".kpi-chart").forEach(canvas => {
+      canvas.addEventListener("pointermove",showChartTooltip);
+      canvas.addEventListener("pointerleave",hideChartTooltip);
+    });
   }
 
   filters.innerHTML = FILTERS.map(filter =>
@@ -364,6 +578,16 @@
     tabPanels.forEach(panel => {
       panel.hidden = panel.dataset.panel !== tabId;
     });
+    if(tabId === "kpis"){
+      requestAnimationFrame(() => {
+        if(!kpisInitialized){
+          renderKpis();
+          kpisInitialized = true;
+        } else {
+          renderKpiCharts();
+        }
+      });
+    }
     if(updateUrl){
       history.replaceState(null,"",`#${tabId}`);
     }
@@ -619,6 +843,13 @@
   backdrop.addEventListener("click",closeReader);
   document.addEventListener("keydown",event => {
     if(event.key === "Escape") closeReader();
+  });
+
+  let resizeFrame = 0;
+  window.addEventListener("resize",() => {
+    if(state.activeTab !== "kpis" || !kpisInitialized) return;
+    cancelAnimationFrame(resizeFrame);
+    resizeFrame = requestAnimationFrame(renderKpiCharts);
   });
 
   activateTab(state.activeTab,{updateUrl:false});

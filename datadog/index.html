@@ -4,7 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="An investor product and market map of Datadog: stable Gartner markets, current suites, product-level maturity, competitive position, momentum, and moat.">
-  <title>Datadog · investor product map</title>
+  <meta property="og:title" content="Datadog KPI Dashboard">
+  <meta property="og:description" content="Growth, margin, customer scale, and product adoption through Q1 2026—with primary sources beside every KPI.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://datadog-investor-map.juliyaanisyutkina.chatgpt.site">
+  <meta property="og:image" content="https://datadog-investor-map.juliyaanisyutkina.chatgpt.site/og.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Datadog KPI Dashboard">
+  <meta name="twitter:description" content="Growth, margin, customer scale, and product adoption through Q1 2026.">
+  <meta name="twitter:image" content="https://datadog-investor-map.juliyaanisyutkina.chatgpt.site/og.png">
+  <title>Datadog · investor product map & KPI dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -58,6 +67,18 @@
         tabindex="-1"
       >
         Business model & moat
+      </button>
+      <button
+        class="top-tab"
+        id="kpis-tab"
+        type="button"
+        role="tab"
+        aria-selected="false"
+        aria-controls="kpis-panel"
+        data-tab="kpis"
+        tabindex="-1"
+      >
+        KPI dashboard
       </button>
     </nav>
 
@@ -199,6 +220,106 @@
         </details>
       </section>
     </section>
+
+    <section
+      class="tab-panel"
+      id="kpis-panel"
+      role="tabpanel"
+      aria-labelledby="kpis-tab"
+      data-panel="kpis"
+      hidden
+    >
+      <section class="kpi-dashboard" aria-labelledby="kpi-dashboard-title">
+        <div class="section-head kpi-heading">
+          <div>
+            <span class="section-kicker">Operating scorecard · through Q1 2026</span>
+            <h2 id="kpi-dashboard-title">Datadog KPI dashboard</h2>
+          </div>
+          <p>Growth, profitability, customer scale, and platform expansion. Every figure links to the filing or official Datadog disclosure that supports it.</p>
+        </div>
+
+        <div class="kpi-net-read">
+          <span class="kpi-net-label">Investor read</span>
+          <p><b>Scale and cross-sell remain the core operating signals.</b> Revenue passed $1B per quarter, large customers reached 4,550, and adoption deepened to 56% on 4+ products. Gross margin remains near 80%, but the public record still does not disclose product-level margins.</p>
+          <a href="https://www.sec.gov/Archives/edgar/data/1561550/000162828026032328/ddog-20260331.htm" target="_blank" rel="noopener noreferrer">Q1 2026 Form 10-Q ↗</a>
+        </div>
+
+        <div class="kpi-snapshot" id="kpi-snapshot" aria-label="Latest KPI snapshot"></div>
+
+        <div class="kpi-chart-grid">
+          <article class="kpi-chart-card">
+            <div class="kpi-card-head">
+              <div><span class="kpi-card-kicker">Growth</span><h3>Quarterly revenue</h3></div>
+              <a class="kpi-source" href="https://www.sec.gov/Archives/edgar/data/1561550/000162828026031677/ex-991x20260331x8k.htm" target="_blank" rel="noopener noreferrer">SEC exhibits ↗</a>
+            </div>
+            <p class="kpi-chart-note">USD millions. YoY growth is calculated from reported revenue.</p>
+            <canvas id="revenue-chart" class="kpi-chart" role="img" aria-label="Datadog quarterly revenue from Q3 2019 through Q1 2026"></canvas>
+            <div class="chart-legend" id="revenue-legend"></div>
+            <details class="kpi-source-trail" id="revenue-sources"><summary>Sources by quarter</summary><div></div></details>
+          </article>
+
+          <article class="kpi-chart-card">
+            <div class="kpi-card-head">
+              <div><span class="kpi-card-kicker">Profitability</span><h3>Gross margin</h3></div>
+              <a class="kpi-source" href="https://www.sec.gov/Archives/edgar/data/1561550/000162828026031677/ex-991x20260331x8k.htm" target="_blank" rel="noopener noreferrer">Q1 2026 release ↗</a>
+            </div>
+            <p class="kpi-chart-note">GAAP and company-defined non-GAAP gross margin.</p>
+            <canvas id="margin-chart" class="kpi-chart" role="img" aria-label="Datadog GAAP and non-GAAP gross margin by quarter"></canvas>
+            <div class="chart-legend" id="margin-legend"></div>
+            <details class="kpi-source-trail" id="margin-sources"><summary>Sources by quarter</summary><div></div></details>
+          </article>
+
+          <article class="kpi-chart-card">
+            <div class="kpi-card-head">
+              <div><span class="kpi-card-kicker">Customer scale</span><h3>Customers above $100K ARR</h3></div>
+              <a class="kpi-source" href="https://www.sec.gov/Archives/edgar/data/1561550/000162828026031677/ex-991x20260331x8k.htm" target="_blank" rel="noopener noreferrer">SEC exhibits ↗</a>
+            </div>
+            <p class="kpi-chart-note">This cohort represented approximately 90% of ARR in Q1 2026.</p>
+            <canvas id="customers-chart" class="kpi-chart" role="img" aria-label="Datadog customers with annual recurring revenue above 100 thousand dollars"></canvas>
+            <div class="chart-legend" id="customers-legend"></div>
+            <details class="kpi-source-trail" id="customer-sources"><summary>Sources by quarter</summary><div></div></details>
+          </article>
+
+          <article class="kpi-chart-card kpi-chart-card-wide adoption-card">
+            <div class="kpi-card-head">
+              <div><span class="kpi-card-kicker">Platform expansion</span><h3>Customers adopt more Datadog products over time</h3></div>
+              <a class="kpi-source" href="https://www.sec.gov/Archives/edgar/data/1561550/000162828026032328/ddog-20260331.htm" target="_blank" rel="noopener noreferrer">Q1 2026 Form 10-Q ↗</a>
+            </div>
+            <p class="kpi-chart-note">Share of customers using at least N products. Gaps mean the cohort was not disclosed; they are not treated as zero.</p>
+            <canvas id="adoption-chart" class="kpi-chart kpi-chart-tall" role="img" aria-label="Share of Datadog customers using two, four, six, eight, or ten products over time"></canvas>
+            <div class="chart-legend" id="adoption-legend"></div>
+            <details class="kpi-source-trail" id="adoption-sources"><summary>Point-level source trail and comparability notes</summary><div></div></details>
+          </article>
+        </div>
+
+        <section class="kpi-section" aria-labelledby="product-scale-title">
+          <div class="section-head compact">
+            <div><span class="section-kicker">Sparse but decision-useful</span><h2 id="product-scale-title">Product scale milestones</h2></div>
+            <p>Management disclosures are rounded lower bounds and changing scopes—not audited product segments.</p>
+          </div>
+          <div class="milestone-grid" id="product-milestones"></div>
+        </section>
+
+        <section class="kpi-section" aria-labelledby="kpi-history-title">
+          <div class="section-head compact">
+            <div><span class="section-kicker">Audit surface</span><h2 id="kpi-history-title">Quarterly KPI history</h2></div>
+            <p>Derived calculations are labeled; every row retains its primary financial and product-adoption source.</p>
+          </div>
+          <div class="kpi-table-wrap">
+            <table class="kpi-table">
+              <thead><tr><th>Period</th><th>Revenue</th><th>YoY</th><th>GAAP GM</th><th>Non-GAAP GM</th><th>&gt;$100K ARR customers</th><th>2+ products</th><th>4+ products</th><th>6+ products</th><th>8+ products</th><th>10+ products</th><th>Sources</th></tr></thead>
+              <tbody id="kpi-history"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="kpi-method" aria-label="KPI methodology">
+          <article><h3>What matters most</h3><p><b>Revenue and YoY growth</b> show workload monetization; <b>gross margin</b> captures cloud-infrastructure efficiency; <b>large customers</b> track enterprise depth; and <b>multi-product adoption</b> is the cleanest public cross-sell signal.</p></article>
+          <article><h3>What is not available</h3><p>Datadog reports one operating segment. Product revenue, product COGS, and product gross margin are not disclosed, so ARR milestones cannot be converted into observed product profitability.</p><a href="https://www.sec.gov/Archives/edgar/data/1561550/000162828026008819/ddog-20251231.htm" target="_blank" rel="noopener noreferrer">FY2025 Form 10-K ↗</a></article>
+          <article><h3>Retention snapshot</h3><p>Management described net retention as <b>low-120s</b> and gross retention as <b>mid-to-high 90s</b>. These are latest-period descriptors, not a complete quarterly series.</p><a href="https://investors.datadoghq.com/static-files/b162f4b4-ae66-4fd2-bc41-92b4f9a877c9" target="_blank" rel="noopener noreferrer">Q1 2026 transcript ↗</a></article>
+        </section>
+      </section>
+    </section>
   </main>
 
   <div id="backdrop"></div>
@@ -212,7 +333,10 @@
     <div class="r-body" id="r-body"></div>
   </aside>
 
+  <div class="chart-tooltip" id="chart-tooltip" hidden></div>
+
   <script src="./data/product-map-data.js"></script>
+  <script src="./data/kpi-data.js"></script>
   <script src="./app.js"></script>
 </body>
 </html>

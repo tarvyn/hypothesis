@@ -23,6 +23,25 @@ if(!model){
   process.exit(1);
 }
 
+const kpiSource = fs.readFileSync(path.join(root, "data", "kpi-data.js"), "utf8");
+vm.runInContext(kpiSource, sandbox, {filename:"kpi-data.js"});
+const kpis = sandbox.window.KPI_DATA;
+assert(kpis, "window.KPI_DATA must be exported");
+if(kpis){
+  assert(kpis.quarterly.length === 27, "KPI history must contain 27 quarterly financial periods");
+  assert(kpis.adoption.length === 24, "Product adoption history must contain 24 periods");
+  assert(kpis.quarterly.at(-1)?.[0] === "2026Q1", "Latest financial KPI period must be 2026Q1");
+  assert(kpis.adoption.at(-1)?.[0] === "2026Q1", "Latest adoption KPI period must be 2026Q1");
+  assert(kpis.quarterly.every(row => row.length === 6 && row[5]?.startsWith("https://")), "Every financial KPI row needs an official source URL");
+  assert(kpis.adoption.every(row => row.length === 9 && row[7]?.startsWith("https://")), "Every adoption KPI row needs an official source URL");
+  assert(kpis.milestones.every(row => row.length === 5 && row[3]?.startsWith("https://")), "Every product milestone needs an official source URL");
+  const latest = kpis.quarterly.at(-1);
+  assert(Math.abs(latest[1] - 1006.426) < 0.001, "Q1 2026 revenue tie-out failed");
+  assert(Math.abs(latest[2] / latest[1] - 0.792091) < 0.001, "Q1 2026 GAAP gross-margin tie-out failed");
+  assert(Math.abs(latest[3] / latest[1] - 0.802072) < 0.001, "Q1 2026 non-GAAP gross-margin tie-out failed");
+  assert(latest[4] === 4550, "Q1 2026 large-customer tie-out failed");
+}
+
 const categoryIds = new Set(model.categories.map(category => category.id));
 const maturityIds = new Set(Object.keys(model.maturity));
 const positionIds = new Set(Object.keys(model.position));
