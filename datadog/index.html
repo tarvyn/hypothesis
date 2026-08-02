@@ -3,17 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="An investor product and market map of Datadog: stable Gartner markets, current suites, product-level maturity, competitive position, momentum, and moat.">
-  <meta property="og:title" content="Datadog KPI Dashboard">
-  <meta property="og:description" content="Growth, margin, customer scale, and product adoption through Q1 2026—with primary sources beside every KPI.">
+  <meta name="description" content="A source-backed Datadog investor dashboard covering products, KPIs, financial quality, peer fundamentals, valuation, and scenario sensitivity.">
+  <meta property="og:title" content="Datadog investor dashboard · peers &amp; valuation">
+  <meta property="og:description" content="Datadog versus eight peers: forward growth, Rule of 40, cash quality, SBC, dilution, valuation multiples, and implied-price sensitivity.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://datadog-investor-map.juliyaanisyutkina.chatgpt.site">
-  <meta property="og:image" content="https://datadog-investor-map.juliyaanisyutkina.chatgpt.site/og.png">
+  <meta property="og:image" content="https://datadog-investor-map.juliyaanisyutkina.chatgpt.site/og-peers.png">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Datadog KPI Dashboard">
-  <meta name="twitter:description" content="Growth, margin, customer scale, and product adoption through Q1 2026.">
-  <meta name="twitter:image" content="https://datadog-investor-map.juliyaanisyutkina.chatgpt.site/og.png">
-  <title>Datadog · investor product map & KPI dashboard</title>
+  <meta name="twitter:title" content="Datadog investor dashboard · peers &amp; valuation">
+  <meta name="twitter:description" content="Forward growth, cash quality, valuation multiples, and implied-price sensitivity across Datadog and eight peers.">
+  <meta name="twitter:image" content="https://datadog-investor-map.juliyaanisyutkina.chatgpt.site/og-peers.png">
+  <title>Datadog · investor dashboard, peers &amp; valuation</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -91,6 +91,18 @@
         tabindex="-1"
       >
         Financial analysis
+      </button>
+      <button
+        class="top-tab"
+        id="peer-comps-tab"
+        type="button"
+        role="tab"
+        aria-selected="false"
+        aria-controls="peer-comps-panel"
+        data-tab="peer-comps"
+        tabindex="-1"
+      >
+        Peers &amp; valuation
       </button>
     </nav>
 
@@ -401,10 +413,18 @@
             <span class="section-kicker">Financial analysis · through Q1 2026</span>
             <h2 id="financials-dashboard-title">Revenue, margins & owner cash flow</h2>
           </div>
-          <p>Reported quarterly revenue and calculated GAAP / company-defined non-GAAP gross margins, with a primary source for every quarter.</p>
+          <p>A source-backed path from growth to operating leverage, cash conversion, capital intensity, and dilution. Every metric states its period and evidence boundary.</p>
         </div>
 
-        <div class="kpi-net-read">
+        <nav class="financial-section-nav" aria-label="Financial analysis sections">
+          <button type="button" data-financial-target="financial-overview">Overview</button>
+          <button type="button" data-financial-target="operating-leverage">Operating leverage</button>
+          <button type="button" data-financial-target="fcf-quality">Cash quality</button>
+          <button type="button" data-financial-target="capital-economics">Capital & dilution</button>
+          <button type="button" data-financial-target="financial-history-title">History</button>
+        </nav>
+
+        <div class="kpi-net-read" id="financial-overview">
           <span class="kpi-net-label">Investor read</span>
           <p><b>Revenue growth reaccelerated while gross margin held near 80%.</b> Q1 2026 revenue reached $1.006B, up 32% year over year; GAAP gross margin was 79.2% and non-GAAP gross margin was 80.2%.</p>
           <a href="https://www.sec.gov/Archives/edgar/data/1561550/000162828026031677/ex-991x20260331x8k.htm" target="_blank" rel="noopener noreferrer">Q1 2026 earnings release ↗</a>
@@ -436,11 +456,65 @@
           </article>
         </div>
 
-        <section class="kpi-section fcf-quality-section" aria-labelledby="fcf-quality-title">
+        <section class="kpi-section operating-leverage-section" id="operating-leverage" aria-labelledby="operating-leverage-title">
+          <div class="section-head compact">
+            <div>
+              <span class="section-kicker">Operating leverage · FY2019–FY2025</span>
+              <h2 id="operating-leverage-title">Where gross profit is reinvested
+                <button class="info-tip" type="button" aria-label="Methodology: All expense and profit margins use reported GAAP annual line items divided by reported revenue." data-tooltip="All expense and profit margins use reported GAAP annual line items divided by reported revenue.">i</button>
+              </h2>
+            </div>
+            <p>Expense intensity shows whether scale is converting into GAAP profitability before below-the-line interest income.</p>
+          </div>
+
+          <div class="financial-section-read tone-cyan">
+            <div>
+              <span class="kpi-net-label">Investor read</span>
+              <p><b>Sales efficiency improved, but R&D absorbed the benefit.</b> S&amp;M fell from 40.4% of revenue in FY2019 to 27.9% in FY2025, while R&amp;D rose to 45.2%; GAAP operating margin ended FY2025 at −1.3%.</p>
+            </div>
+            <div class="financial-read-metrics" aria-label="FY2025 operating leverage summary">
+              <span><b>81.3%</b> total operating expenses / revenue</span>
+              <span><b>−3.3 ppt</b> operating-margin change versus FY2024</span>
+            </div>
+          </div>
+
+          <div class="kpi-chart-grid">
+            <article class="kpi-chart-card">
+              <div class="kpi-card-head">
+                <div><span class="kpi-card-kicker">Cost structure</span><h3>Operating expense mix</h3></div>
+                <a class="kpi-source" href="https://www.sec.gov/Archives/edgar/data/1561550/000162828026008819/ddog-20251231.htm" target="_blank" rel="noopener noreferrer">FY2025 Form 10-K ↗</a>
+              </div>
+              <p class="kpi-chart-note">Stacked as a percentage of revenue. COGS is excluded because gross margin is shown above.</p>
+              <canvas id="expense-mix-chart" class="financial-chart kpi-chart" role="img" aria-label="Datadog research and development, sales and marketing, and general and administrative expenses as a percentage of revenue from 2019 through 2025"></canvas>
+              <div class="chart-legend" id="expense-mix-legend"></div>
+            </article>
+
+            <article class="kpi-chart-card">
+              <div class="kpi-card-head">
+                <div><span class="kpi-card-kicker">Profit conversion</span><h3>GAAP profit versus cash margins
+                  <button class="info-tip" type="button" aria-label="Methodology: Reported FCF is company-defined. Owner FCF is analyst-adjusted and subtracts total stock-based compensation." data-tooltip="Reported FCF is company-defined. Owner FCF is analyst-adjusted and subtracts total stock-based compensation.">i</button>
+                </h3></div>
+                <a class="kpi-source" href="https://www.sec.gov/Archives/edgar/data/1561550/000162828026008819/ddog-20251231.htm" target="_blank" rel="noopener noreferrer">Statements &amp; cash flow ↗</a>
+              </div>
+              <p class="kpi-chart-note">FY2021–FY2025. The spread between reported FCF and GAAP margins is the core cash-quality question.</p>
+              <canvas id="profit-conversion-chart" class="financial-chart kpi-chart" role="img" aria-label="Datadog GAAP operating margin, net margin, reported free cash flow margin, and owner free cash flow margin from 2021 through 2025"></canvas>
+              <div class="chart-legend" id="profit-conversion-legend"></div>
+            </article>
+          </div>
+
+          <details class="kpi-source-trail financial-source-trail" id="operating-sources">
+            <summary>Annual calculations, methodology, and primary sources</summary>
+            <div></div>
+          </details>
+        </section>
+
+        <section class="kpi-section fcf-quality-section" id="fcf-quality" aria-labelledby="fcf-quality-title">
           <div class="section-head compact">
             <div>
               <span class="section-kicker">Cash-flow quality · FY2021–FY2025</span>
-              <h2 id="fcf-quality-title">Reported FCF versus owner economics</h2>
+              <h2 id="fcf-quality-title">Reported FCF versus owner economics
+                <button class="info-tip" type="button" aria-label="Methodology: Owner FCF subtracts total expensed and capitalized stock-based compensation from company-defined FCF." data-tooltip="Owner FCF subtracts total expensed and capitalized stock-based compensation from company-defined FCF. It is an economic sensitivity, not a reported liquidity measure.">i</button>
+              </h2>
             </div>
             <p>Owner FCF treats total stock-based compensation—including capitalized SBC—as an economic cost to existing shareholders.</p>
           </div>
@@ -484,24 +558,216 @@
           </details>
         </section>
 
+        <section class="kpi-section capital-economics-section" id="capital-economics" aria-labelledby="capital-economics-title">
+          <div class="section-head compact">
+            <div>
+              <span class="section-kicker">Balance sheet &amp; shareholder economics · through Q1 2026</span>
+              <h2 id="capital-economics-title">Capital base, returns &amp; dilution
+                <button class="info-tip" type="button" aria-label="Methodology: Liquidity and deferred revenue are reported. R&D-adjusted invested capital and ROIC use analyst assumptions." data-tooltip="Liquidity and deferred revenue are reported. R&amp;D-adjusted invested capital and ROIC use a 2% revenue cash floor, four-year R&amp;D life, lease-as-financing treatment, and 21% normalized tax rate.">i</button>
+              </h2>
+            </div>
+            <p>Reported balance-sheet strength is separated from analyst-adjusted returns and the continuing cost of share issuance.</p>
+          </div>
+
+          <div class="financial-section-read tone-violet">
+            <div>
+              <span class="kpi-net-label">Investor read</span>
+              <p><b>Liquidity is ample, while economic returns are moderating.</b> Cash and securities reached $4.76B in Q1 2026; FY2025 R&amp;D-adjusted ROIC was 16.7%, down from 30.5% in FY2022, as the estimated research asset compounded.</p>
+            </div>
+            <div class="financial-read-metrics" aria-label="Capital and dilution summary">
+              <span><b>$1.28B</b> deferred revenue / customer financing in Q1 2026</span>
+              <span><b>+3.0%</b> year-end share growth in FY2025</span>
+            </div>
+          </div>
+
+          <div class="kpi-chart-grid">
+            <article class="kpi-chart-card">
+              <div class="kpi-card-head">
+                <div><span class="kpi-card-kicker">Capital base</span><h3>Liquidity, customer financing &amp; R&amp;D capital</h3></div>
+                <a class="kpi-source" href="https://www.sec.gov/Archives/edgar/data/1561550/000162828026032328/ddog-20260331.htm" target="_blank" rel="noopener noreferrer">Q1 2026 Form 10-Q ↗</a>
+              </div>
+              <p class="kpi-chart-note">USD millions. Liquidity and deferred revenue are reported; R&amp;D-adjusted capital is analyst-constructed.</p>
+              <canvas id="capital-base-chart" class="financial-chart kpi-chart" role="img" aria-label="Datadog cash and marketable securities, deferred revenue, and research and development adjusted capital from 2019 through Q1 2026"></canvas>
+              <div class="chart-legend" id="capital-base-legend"></div>
+            </article>
+
+            <article class="kpi-chart-card">
+              <div class="kpi-card-head">
+                <div><span class="kpi-card-kicker">Shareholder economics</span><h3>R&amp;D-adjusted ROIC and dilution</h3></div>
+                <a class="kpi-source" href="https://www.sec.gov/Archives/edgar/data/1561550/000162828026008819/ddog-20251231.htm" target="_blank" rel="noopener noreferrer">FY2025 Form 10-K ↗</a>
+              </div>
+              <p class="kpi-chart-note">ROIC is analyst-adjusted; dilution uses reported year-end shares. Q1 2026 ROIC is not annualized.</p>
+              <canvas id="returns-dilution-chart" class="financial-chart kpi-chart" role="img" aria-label="Datadog research and development adjusted return on invested capital and year-end share growth from 2019 through 2025"></canvas>
+              <div class="chart-legend" id="returns-dilution-legend"></div>
+            </article>
+          </div>
+
+          <div class="methodology-note-grid" aria-label="Capital methodology notes">
+            <article><span>Reported</span><p>Cash, marketable securities, deferred revenue, and shares outstanding come directly from filed statements.</p></article>
+            <article><span>Analyst-adjusted</span><p>ROIC is a sensitivity, not a company KPI. Its level depends materially on the R&amp;D life, tax rate, and operating-cash assumption.</p></article>
+          </div>
+
+          <details class="kpi-source-trail financial-source-trail" id="capital-sources">
+            <summary>Annual calculations, assumptions, and primary sources</summary>
+            <div></div>
+          </details>
+        </section>
+
         <section class="kpi-section" aria-labelledby="financial-history-title">
           <div class="section-head compact">
             <div><span class="section-kicker">Audit surface</span><h2 id="financial-history-title">Quarterly financial history</h2></div>
             <p>Margins and YoY growth are derived directly from reported quarterly values.</p>
           </div>
-          <div class="kpi-table-wrap">
-            <table class="kpi-table financial-table">
-              <thead><tr><th>Period</th><th>Revenue</th><th>YoY growth</th><th>GAAP gross profit</th><th>GAAP gross margin</th><th>Non-GAAP gross profit</th><th>Non-GAAP gross margin</th><th>Source</th></tr></thead>
-              <tbody id="financial-history"></tbody>
+          <details class="financial-history-disclosure">
+            <summary><span>Open the complete quarterly audit table</span><b>27 quarters · Q3 2019–Q1 2026</b></summary>
+            <div class="kpi-table-wrap">
+              <table class="kpi-table financial-table">
+                <thead><tr><th>Period</th><th>Revenue</th><th>YoY growth</th><th>GAAP gross profit</th><th>GAAP gross margin</th><th>Non-GAAP gross profit</th><th>Non-GAAP gross margin</th><th>Source</th></tr></thead>
+                <tbody id="financial-history"></tbody>
+              </table>
+            </div>
+          </details>
+        </section>
+
+        <section class="kpi-method financial-method" aria-label="Financial analysis methodology">
+          <article><h3>Reported versus derived</h3><p>Revenue and gross profit are <b>reported facts</b>. Revenue growth and gross margins are <b>derived calculations</b> using those reported values.</p></article>
+          <article><h3>Non-GAAP boundary</h3><p>Non-GAAP gross profit follows Datadog’s company-defined adjustments and should not be treated as an audited GAAP measure.</p><a href="https://www.sec.gov/Archives/edgar/data/1561550/000162828026031677/ex-991x20260331x8k.htm" target="_blank" rel="noopener noreferrer">Reconciliation tables ↗</a></article>
+          <article><h3>Analyst-adjusted boundary</h3><p>Owner FCF and R&amp;D-adjusted ROIC are <b>economic sensitivities</b>. They should be read as alternative lenses, not replacements for filed GAAP or company-defined measures.</p></article>
+          <article><h3>Product margin limitation</h3><p>Datadog discloses one operating segment. Product-level revenue, COGS, and gross margins remain unavailable.</p><a href="https://www.sec.gov/Archives/edgar/data/1561550/000162828026008819/ddog-20251231.htm" target="_blank" rel="noopener noreferrer">FY2025 Form 10-K ↗</a></article>
+        </section>
+      </section>
+    </section>
+
+    <section
+      class="tab-panel"
+      id="peer-comps-panel"
+      role="tabpanel"
+      aria-labelledby="peer-comps-tab"
+      data-panel="peer-comps"
+      hidden
+    >
+      <section class="kpi-dashboard peer-dashboard" aria-labelledby="peer-dashboard-title">
+        <div class="section-head kpi-heading peer-heading">
+          <div>
+            <span class="section-kicker">Peer comps · market data at 31 July 2026</span>
+            <h2 id="peer-dashboard-title">Superior fundamentals. Exceptional expectations.</h2>
+          </div>
+          <p>A standardized nine-company view separates Datadog’s operating advantage from the valuation premium already embedded in the shares.</p>
+        </div>
+
+        <nav class="peer-section-nav" aria-label="Peer analysis sections">
+          <button type="button" data-peer-target="peer-overview">Overview</button>
+          <button type="button" data-peer-target="peer-valuation-map">Valuation map</button>
+          <button type="button" data-peer-target="peer-cash-quality">Cash quality</button>
+          <button type="button" data-peer-target="peer-sensitivity">Sensitivity</button>
+          <button type="button" data-peer-target="peer-table-section">Peer table</button>
+          <button type="button" data-peer-target="peer-methodology">Methodology</button>
+        </nav>
+
+        <div class="kpi-net-read peer-net-read" id="peer-overview">
+          <span class="kpi-net-label">Investor verdict</span>
+          <p><b>Datadog earns a fundamental premium, but the market price asks for much more.</b> Growth and standardized FCF conversion are above the peer medians; EV / NTM revenue is roughly three times the broad-peer median and almost five times the direct-peer median.</p>
+          <span class="peer-screening-label">Screening-grade · calendarized forward estimates</span>
+        </div>
+
+        <div class="peer-snapshot" id="peer-snapshot" aria-label="Datadog versus peer medians"></div>
+
+        <section class="kpi-section peer-valuation-section" id="peer-valuation-map" aria-labelledby="peer-valuation-title">
+          <div class="section-head compact">
+            <div><span class="section-kicker">Growth versus multiple</span><h2 id="peer-valuation-title">What the market pays for forward growth</h2></div>
+            <p>Bubble size represents market capitalization. Dashed lines mark the broad-peer medians; Datadog is highlighted.</p>
+          </div>
+          <div class="peer-visual-grid">
+            <article class="kpi-chart-card peer-scatter-card">
+              <div class="kpi-card-head">
+                <div><span class="kpi-card-kicker">Valuation map</span><h3>NTM growth vs EV / NTM revenue</h3></div>
+                <span class="kpi-source">31 Jul 2026</span>
+              </div>
+              <canvas id="peer-valuation-chart" class="financial-chart peer-scatter" role="img" aria-label="Peer NTM revenue growth versus enterprise value to NTM revenue"></canvas>
+              <div class="chart-legend" id="peer-valuation-legend"></div>
+            </article>
+            <article class="peer-gap-card">
+              <div class="kpi-card-head"><div><span class="kpi-card-kicker">Expectation gap</span><h3>Advantage versus premium</h3></div></div>
+              <p class="kpi-chart-note">Datadog relative to the broad-peer median. Percentage-point differences show fundamentals; percentage premiums show valuation.</p>
+              <div class="peer-gap-group"><h4>Fundamental advantage</h4><div id="peer-fundamental-gap"></div></div>
+              <div class="peer-gap-group valuation"><h4>Valuation premium</h4><div id="peer-valuation-gap"></div></div>
+            </article>
+          </div>
+        </section>
+
+        <section class="kpi-section peer-cash-section" id="peer-cash-quality" aria-labelledby="peer-cash-title">
+          <div class="section-head compact">
+            <div><span class="section-kicker">FCF, SBC &amp; dilution</span><h2 id="peer-cash-title">Cash quality changes the ranking</h2></div>
+            <p>Standardized FCF is compared with an economic sensitivity that treats SBC as a shareholder cost.</p>
+          </div>
+          <div class="financial-section-read tone-cyan peer-cash-read">
+            <div><span class="kpi-net-label">Investor read</span><p><b>Datadog’s 26.1% FCF margin falls to 4.8% after SBC.</b> Economic sensitivity remains above both peer medians because growth is strong, but the cash-conversion edge is far smaller than headline FCF suggests.</p></div>
+            <div class="financial-read-metrics" id="peer-cash-read-metrics"></div>
+          </div>
+          <div class="peer-cash-grid" id="peer-cash-grid"></div>
+        </section>
+
+        <section class="kpi-section peer-sensitivity-section" id="peer-sensitivity" aria-labelledby="peer-sensitivity-title">
+          <div class="section-head compact">
+            <div><span class="section-kicker">Valuation sensitivity</span><h2 id="peer-sensitivity-title">What different revenue multiples imply</h2></div>
+            <p>Uses Datadog’s NTM revenue proxy, current net cash and current share count. This is a mechanical scenario, not a price target.</p>
+          </div>
+          <div class="peer-sensitivity-card">
+            <div class="peer-slider-head">
+              <div><span>Selected EV / NTM revenue</span><b id="peer-selected-multiple">20.8×</b></div>
+              <div class="peer-presets" aria-label="Valuation multiple presets">
+                <button type="button" data-peer-multiple="12">12×</button>
+                <button type="button" data-peer-multiple="16">16×</button>
+                <button type="button" data-peer-multiple="20">20×</button>
+                <button type="button" data-peer-multiple="24">24×</button>
+              </div>
+            </div>
+            <input id="peer-multiple-slider" type="range" min="4" max="28" step="0.1" value="20.8" aria-label="EV to NTM revenue multiple">
+            <div class="peer-sensitivity-output">
+              <div><span>Implied share price</span><b id="peer-implied-price">—</b></div>
+              <div><span>Upside / downside</span><b id="peer-implied-return">—</b></div>
+              <div><span>Implied enterprise value</span><b id="peer-implied-ev">—</b></div>
+              <div><span>Current reference</span><b id="peer-current-reference">—</b></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="kpi-section" id="peer-table-section" aria-labelledby="peer-table-title">
+          <div class="section-head compact">
+            <div><span class="section-kicker">Audit surface</span><h2 id="peer-table-title">Full peer comparison</h2></div>
+            <p>Filter by peer role and sort any metric. All percentages and multiples are derived from the standardized inputs.</p>
+          </div>
+          <div class="peer-table-toolbar" id="peer-table-filters" aria-label="Peer table filters">
+            <button class="is-active" type="button" data-peer-filter="all">All</button>
+            <button type="button" data-peer-filter="direct">Direct</button>
+            <button type="button" data-peer-filter="infrastructure">Consumption &amp; infra</button>
+            <button type="button" data-peer-filter="adjacent">Adjacencies</button>
+          </div>
+          <div class="kpi-table-wrap peer-table-wrap">
+            <table class="kpi-table peer-table">
+              <thead><tr>
+                <th><button type="button" data-peer-sort="ticker">Company</button></th>
+                <th><button type="button" data-peer-sort="ltmGrowth">Revenue growth</button></th>
+                <th><button type="button" data-peer-sort="ntmGrowth">NTM growth</button></th>
+                <th><button type="button" data-peer-sort="grossMargin">Gross margin</button></th>
+                <th><button type="button" data-peer-sort="operatingMargin">GAAP op. margin</button></th>
+                <th><button type="button" data-peer-sort="fcfMargin">FCF margin</button></th>
+                <th><button type="button" data-peer-sort="rule40">Rule of 40</button></th>
+                <th><button type="button" data-peer-sort="sbcMargin">SBC / revenue</button></th>
+                <th><button type="button" data-peer-sort="dilution">Dilution</button></th>
+                <th><button type="button" data-peer-sort="economicSensitivity">Economic sensitivity</button></th>
+                <th><button type="button" data-peer-sort="evNtmRevenue">EV / NTM revenue</button></th>
+                <th><button type="button" data-peer-sort="equityNtmFcf">Equity / NTM FCF</button></th>
+              </tr></thead>
+              <tbody id="peer-table-body"></tbody>
             </table>
           </div>
         </section>
 
-        <section class="kpi-method" aria-label="Financial analysis methodology">
-          <article><h3>Reported versus derived</h3><p>Revenue and gross profit are <b>reported facts</b>. Revenue growth and gross margins are <b>derived calculations</b> using those reported values.</p></article>
-          <article><h3>Non-GAAP boundary</h3><p>Non-GAAP gross profit follows Datadog’s company-defined adjustments and should not be treated as an audited GAAP measure.</p><a href="https://www.sec.gov/Archives/edgar/data/1561550/000162828026031677/ex-991x20260331x8k.htm" target="_blank" rel="noopener noreferrer">Reconciliation tables ↗</a></article>
-          <article><h3>Product margin limitation</h3><p>Datadog discloses one operating segment. Product-level revenue, COGS, and gross margins remain unavailable.</p><a href="https://www.sec.gov/Archives/edgar/data/1561550/000162828026008819/ddog-20251231.htm" target="_blank" rel="noopener noreferrer">FY2025 Form 10-K ↗</a></article>
-        </section>
+        <details class="kpi-source-trail peer-methodology" id="peer-methodology">
+          <summary>Methodology, comparability limits, and source trail</summary>
+          <div id="peer-methodology-content"></div>
+        </details>
       </section>
     </section>
   </main>
@@ -521,6 +787,7 @@
 
   <script src="./data/product-map-data.js"></script>
   <script src="./data/kpi-data.js"></script>
+  <script src="./data/peer-comps-data.js"></script>
   <script src="./app.js"></script>
 </body>
 </html>
