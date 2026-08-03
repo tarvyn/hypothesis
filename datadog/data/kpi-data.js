@@ -60,12 +60,12 @@ window.KPI_DATA = {
   annualCapital: [
     ["2019",597.297,176.674,138.488,76.052,null,null,"https://www.sec.gov/Archives/edgar/data/1561550/000156155022000009/ddog-20211231.htm"],
     ["2020",224.927,1292.532,208.275,95.665,null,null,"https://www.sec.gov/Archives/edgar/data/1561550/000156155023000006/ddog-20221231.htm"],
-    ["2021",270.973,1283.473,385.881,315.078,962.323,null,"https://www.sec.gov/Archives/edgar/data/1561550/000156155023000006/ddog-20221231.htm"],
-    ["2022",338.985,1545.341,555.968,397.202,1597.549,.305157,"https://www.sec.gov/Archives/edgar/data/1561550/000156155023000006/ddog-20221231.htm"],
-    ["2023",330.339,2252.559,786.945,387.360,2176.611,.232527,"https://www.sec.gov/Archives/edgar/data/1561550/000162828026008819/ddog-20251231.htm"],
-    ["2024",1246.983,2942.076,984.546,421.169,2776.825,.197981,"https://www.sec.gov/Archives/edgar/data/1561550/000162828026008819/ddog-20251231.htm"],
-    ["2025",401.305,4073.531,1262.357,604.918,3687.208,.166765,"https://www.sec.gov/Archives/edgar/data/1561550/000162828026008819/ddog-20251231.htm"],
-    ["2026Q1",426.360,4332.257,1282.070,588.098,3829.688,null,"https://www.sec.gov/Archives/edgar/data/1561550/000162828026032328/ddog-20260331.htm"],
+    ["2021",270.973,1283.473,385.881,315.078,912.406,null,"https://www.sec.gov/Archives/edgar/data/1561550/000156155023000006/ddog-20221231.htm"],
+    ["2022",338.985,1545.341,555.968,397.202,1499.608,.292405,"https://www.sec.gov/Archives/edgar/data/1561550/000156155023000006/ddog-20221231.htm"],
+    ["2023",330.339,2252.559,786.945,387.360,1991.297,.211850,"https://www.sec.gov/Archives/edgar/data/1561550/000162828026008819/ddog-20251231.htm"],
+    ["2024",1246.983,2942.076,984.546,421.169,2466.287,.175618,"https://www.sec.gov/Archives/edgar/data/1561550/000162828026008819/ddog-20251231.htm"],
+    ["2025",401.305,4073.531,1262.357,604.918,3242.653,.151731,"https://www.sec.gov/Archives/edgar/data/1561550/000162828026008819/ddog-20251231.htm"],
+    ["2026Q1",426.360,4332.257,1282.070,588.098,3355.831,null,"https://www.sec.gov/Archives/edgar/data/1561550/000162828026032328/ddog-20260331.htm"],
   ],
   adoption: [
     ["2020Q2",.68,.15,null,null,null,"TR-2021Q2","https://investors.datadoghq.com/static-files/82ccb0c5-c0dd-4719-96c2-531de4fcb772","later-period comparative"],

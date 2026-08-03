@@ -86,7 +86,9 @@ if(kpis){
   const latestAnnualCapital = kpis.annualCapital.at(-2);
   assert(latestCapital[0] === "2026Q1", "Latest capital period must be Q1 2026");
   assert(Math.abs(latestCapital[1] + latestCapital[2] - 4758.617) < 0.001, "Q1 2026 liquidity tie-out failed");
-  assert(Math.abs(latestAnnualCapital[6] - 0.166765) < 0.001, "FY2025 R&D-adjusted ROIC tie-out failed");
+  assert(Math.abs(latestAnnualCapital[5] - 3242.653) < 0.001, "FY2025 three-year R&D-adjusted capital tie-out failed");
+  assert(Math.abs(latestAnnualCapital[6] - 0.151731) < 0.001, "FY2025 three-year R&D-adjusted ROIC tie-out failed");
+  assert(Math.abs(latestCapital[5] - 3355.831) < 0.001, "Q1 2026 three-year R&D-adjusted capital tie-out failed");
 }
 
 const peerSource = fs.readFileSync(path.join(root, "data", "peer-comps-data.js"), "utf8");
