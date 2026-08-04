@@ -17,7 +17,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./styles.css?v=20260804-3">
 </head>
 <body>
   <main class="wrap">
@@ -418,6 +418,7 @@
 
         <nav class="financial-section-nav" aria-label="Financial analysis sections">
           <button type="button" data-financial-target="financial-overview">Overview</button>
+          <button type="button" data-financial-target="cloud-efficiency">Cloud costs</button>
           <button type="button" data-financial-target="operating-leverage">Operating leverage</button>
           <button type="button" data-financial-target="fcf-quality">Cash quality</button>
           <button type="button" data-financial-target="capital-economics">Capital & dilution</button>
@@ -438,8 +439,8 @@
               <div><span class="kpi-card-kicker">Growth</span><h3>Quarterly revenue</h3></div>
               <a class="kpi-source" href="https://www.sec.gov/Archives/edgar/data/1561550/000162828026031677/ex-991x20260331x8k.htm" target="_blank" rel="noopener noreferrer">SEC exhibits ↗</a>
             </div>
-            <p class="kpi-chart-note">USD millions. YoY growth is calculated from reported revenue.</p>
-            <canvas id="revenue-chart" class="financial-chart kpi-chart" role="img" aria-label="Datadog quarterly revenue from Q3 2019 through Q1 2026"></canvas>
+            <p class="kpi-chart-note">Revenue uses the left USD axis; YoY growth uses the right percentage axis. Growth is calculated from reported revenue.</p>
+            <canvas id="revenue-chart" class="financial-chart kpi-chart" role="img" aria-label="Datadog quarterly revenue and year-over-year revenue growth from Q3 2019 through Q1 2026"></canvas>
             <div class="chart-legend" id="revenue-legend"></div>
             <details class="kpi-source-trail" id="revenue-sources"><summary>Sources by quarter</summary><div></div></details>
           </article>
@@ -455,6 +456,60 @@
             <details class="kpi-source-trail" id="margin-sources"><summary>Sources by quarter</summary><div></div></details>
           </article>
         </div>
+
+        <section class="kpi-section cloud-efficiency-section" id="cloud-efficiency" aria-labelledby="cloud-efficiency-title">
+          <div class="section-head compact">
+            <div>
+              <span class="section-kicker">Cloud cost efficiency · Q3 2020–Q1 2026</span>
+              <h2 id="cloud-efficiency-title">Did infrastructure costs normalize?
+                <button class="info-tip" type="button" aria-label="Methodology: Cost of revenue growth is a proxy for cloud delivery costs because Datadog does not disclose absolute quarterly hosting expense." data-tooltip="Cost of revenue equals reported revenue less GAAP gross profit. Its YoY growth is used as a proxy for cloud delivery-cost pressure. Datadog discloses selected changes in hosting costs, but not the absolute quarterly hosting-cost base, so this chart does not claim a quarterly hosting-expense series.">i</button>
+              </h2>
+            </div>
+            <p>Revenue growth is compared with total cost-of-revenue growth; the spread shows whether delivery costs are scaling faster or slower than sales.</p>
+          </div>
+
+          <div class="financial-section-read cloud-efficiency-read">
+            <div>
+              <span class="kpi-net-label">Investor read</span>
+              <p><b>The latest mismatch was concentrated in Q1 2025 and then largely corrected.</b> The longer history now shows earlier investment cycles as well: COGS substantially outgrew revenue in parts of 2021, reversed in 2022–2024, and converged again by Q3–Q4 2025. In Q1 2026, COGS grew 32.7% versus 32.2% revenue.</p>
+            </div>
+            <div class="financial-read-metrics" aria-label="Cloud cost efficiency summary">
+              <span><b>$149.8M</b> FY2025 increase in third-party cloud hosting and software costs</span>
+              <span><b>$28.8M</b> FY2025 COGS above a constant FY2024 cost ratio · analyst-derived</span>
+              <span><b>$41.8M</b> Q1 2026 YoY increase in cloud hosting and software costs</span>
+              <span><b>~80%</b> management’s long-run gross-margin operating range</span>
+            </div>
+          </div>
+
+          <div class="kpi-chart-grid cloud-efficiency-grid">
+            <article class="kpi-chart-card">
+              <div class="kpi-card-head">
+                <div><span class="kpi-card-kicker">Scaling test</span><h3>Revenue growth versus COGS growth</h3></div>
+                <a class="kpi-source" href="https://www.sec.gov/Archives/edgar/data/1561550/000162828026032328/ddog-20260331.htm" target="_blank" rel="noopener noreferrer">Q1 2026 Form 10-Q ↗</a>
+              </div>
+              <p class="kpi-chart-note">YoY growth from reported quarterly revenue and GAAP gross profit. The comparable series starts in Q3 2020 because reported history begins in Q3 2019.</p>
+              <canvas id="cloud-efficiency-chart" class="financial-chart kpi-chart" role="img" aria-label="Datadog quarterly revenue growth and cost of revenue growth from Q3 2020 through Q1 2026"></canvas>
+              <div class="chart-legend" id="cloud-efficiency-legend"></div>
+            </article>
+
+            <article class="cloud-signal-card" aria-label="Cloud cost interpretation timeline">
+              <div><span class="kpi-card-kicker">What changed</span><h3>Spike, optimization, stabilization</h3></div>
+              <ol class="cloud-signal-list">
+                <li class="warning"><b>Q1–Q2 2021 · capacity build</b><span>COGS grew 76% / 98% YoY versus 51% / 67% revenue growth. Filings attribute most of the gap to $18.2M / $24.7M increases in third-party hosting and software as Datadog expanded cloud capacity; GAAP gross margin fell 4 / 3 pts.</span></li>
+                <li class="warning"><b>Q1 2025 · mismatch</b><span>Large-customer usage spikes lifted hosting costs faster than expected; new capabilities also carried lower initial efficiency.</span></li>
+                <li><b>Q2 2025 · response</b><span>Engineering cloud-efficiency projects began producing measurable savings.</span></li>
+                <li><b>Q3–Q4 2025 · normalization</b><span>COGS growth converged with revenue growth and gross-margin pressure faded.</span></li>
+                <li class="current"><b>Q1 2026 · proportional scaling</b><span>The filing says revenue grew in proportion to third-party cloud infrastructure costs; the economic test now shifts to sustaining that balance.</span></li>
+              </ol>
+              <p class="cloud-limit"><b>Disclosure limit:</b> quarterly absolute hosting cost is not reported. The $149.8M and $41.8M figures are disclosed increases, not the full expense base.</p>
+            </article>
+          </div>
+
+          <details class="kpi-source-trail financial-source-trail" id="cloud-sources">
+            <summary>Calculations, management commentary, and primary sources</summary>
+            <div></div>
+          </details>
+        </section>
 
         <section class="kpi-section operating-leverage-section" id="operating-leverage" aria-labelledby="operating-leverage-title">
           <div class="section-head compact">
@@ -539,6 +594,7 @@
               <p class="kpi-chart-note">USD millions. Owner FCF = reported FCF − total SBC. The negative 2022 bar is shown below zero.</p>
               <canvas id="fcf-economics-chart" class="financial-chart kpi-chart" role="img" aria-label="Datadog reported free cash flow, total stock-based compensation, and owner free cash flow from 2021 through 2025"></canvas>
               <div class="chart-legend" id="fcf-economics-legend"></div>
+              <p class="chart-event-note"><b>2022 ·</b> SBC exceeded reported FCF ($378.0M vs $353.5M) after headcount expanded from roughly 3,200 to 4,800. Negative owner FCF flags dilution—not cash burn. <a href="https://www.sec.gov/Archives/edgar/data/1561550/000156155023000006/ddog-20221231.htm" target="_blank" rel="noopener noreferrer">10-K ↗</a></p>
             </article>
 
             <article class="kpi-chart-card">
@@ -552,8 +608,47 @@
             </article>
           </div>
 
+          <div class="quarterly-fcf-update" aria-labelledby="quarterly-fcf-title">
+            <div class="subsection-head">
+              <div>
+                <span class="section-kicker">Quarterly update · comparable Q1 periods</span>
+                <h3 id="quarterly-fcf-title">Early improvement, not full normalization
+                  <button class="info-tip" type="button" aria-label="Methodology: Q1 owner FCF is reported free cash flow less total expensed and capitalized stock-based compensation." data-tooltip="Reported FCF = operating cash flow − property and equipment purchases − capitalized software development costs. Owner FCF = reported FCF − expensed SBC − capitalized SBC. Q1 is compared only with the prior-year Q1 to reduce seasonality distortion.">i</button>
+                </h3>
+              </div>
+              <p>Q1 2026 owner FCF rose in dollars, but slower than revenue; the margin therefore remained below Q1 2025.</p>
+            </div>
+
+            <div class="quarterly-fcf-grid">
+              <article class="kpi-chart-card">
+                <div class="kpi-card-head">
+                  <div><span class="kpi-card-kicker">Q1 bridge</span><h3>Reported FCF, SBC &amp; owner FCF</h3></div>
+                  <a class="kpi-source" href="https://www.sec.gov/Archives/edgar/data/1561550/000162828026032328/ddog-20260331.htm" target="_blank" rel="noopener noreferrer">Q1 2026 Form 10-Q ↗</a>
+                </div>
+                <p class="kpi-chart-note">USD millions. Both periods use the same filed Q1 2026 comparative disclosure.</p>
+                <canvas id="quarterly-fcf-chart" class="financial-chart kpi-chart" role="img" aria-label="Datadog reported free cash flow, total stock-based compensation, and owner free cash flow in Q1 2025 and Q1 2026"></canvas>
+                <div class="chart-legend" id="quarterly-fcf-legend"></div>
+              </article>
+
+              <article class="quarterly-fcf-card">
+                <div id="quarterly-fcf-summary" class="quarterly-fcf-summary" aria-label="Q1 2026 free cash flow summary"></div>
+                <div class="kpi-table-wrap quarterly-fcf-table-wrap">
+                  <table class="kpi-table quarterly-fcf-table">
+                    <thead><tr><th>Metric</th><th>Q1 2025</th><th>Q1 2026</th><th>YoY</th></tr></thead>
+                    <tbody id="quarterly-fcf-table"></tbody>
+                  </table>
+                </div>
+                <p class="quarterly-fcf-note">A single quarter is an early signal only. Confirmation requires owner-FCF margin to recover while SBC growth stays below revenue growth over multiple quarters.</p>
+              </article>
+            </div>
+          </div>
+
           <details class="kpi-source-trail fcf-source-trail" id="fcf-sources">
             <summary>Annual calculations, definitions, and primary sources</summary>
+            <div></div>
+          </details>
+          <details class="kpi-source-trail financial-source-trail" id="quarterly-fcf-sources">
+            <summary>Q1 bridge inputs, definitions, and primary source</summary>
             <div></div>
           </details>
         </section>
@@ -790,6 +885,6 @@
   <script src="./data/product-map-data.js"></script>
   <script src="./data/kpi-data.js"></script>
   <script src="./data/peer-comps-data.js"></script>
-  <script src="./app.js"></script>
+  <script src="./app.js?v=20260803-4"></script>
 </body>
 </html>

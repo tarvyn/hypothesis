@@ -32,6 +32,7 @@ assert(kpis, "window.KPI_DATA must be exported");
 if(kpis){
   assert(kpis.quarterly.length === 27, "KPI history must contain 27 quarterly financial periods");
   assert(kpis.annualFcfEconomics?.length === 5, "FCF economics history must contain FY2021 through FY2025");
+  assert(kpis.quarterlyFcfEconomics?.length === 2, "Quarterly FCF economics must contain comparable Q1 2025 and Q1 2026 periods");
   assert(kpis.annualOperations?.length === 7, "Annual operations history must contain FY2019 through FY2025");
   assert(kpis.annualCapital?.length === 8, "Annual capital history must contain FY2019 through Q1 2026");
   assert(kpis.adoption.length === 24, "Product adoption history must contain 24 periods");
@@ -39,6 +40,10 @@ if(kpis){
   assert(kpis.adoption.at(-1)?.[0] === "2026Q1", "Latest adoption KPI period must be 2026Q1");
   assert(kpis.quarterly.every(row => row.length === 6 && row[5]?.startsWith("https://")), "Every financial KPI row needs an official source URL");
   assert(kpis.annualFcfEconomics?.every(row => row.length === 5 && row[4]?.startsWith("https://")), "Every FCF economics row needs an official source URL");
+  assert(kpis.quarterlyFcfEconomics?.every(row => row.length === 8 && row[7]?.startsWith("https://")), "Every quarterly FCF economics row needs complete bridge inputs and an official source URL");
+  assert(kpis.cloudCostEfficiency?.annualCloudCostIncrease === 149.8, "FY2025 disclosed cloud-cost increase must tie to $149.8M");
+  assert(kpis.cloudCostEfficiency?.q1CloudCostIncrease === 41.8, "Q1 2026 disclosed cloud-cost increase must tie to $41.8M");
+  assert(["annualSourceUrl","q1SourceUrl","q1ExplanationUrl","q2EfficiencyUrl","q3EfficiencyUrl"].every(key => isOfficialDatadogSource(kpis.cloudCostEfficiency?.[key])), "Cloud-cost evidence must use SEC or Datadog IR sources");
   assert(kpis.annualOperations?.every(row => row.length === 11 && row[10]?.startsWith("https://")), "Every annual operations row needs an official source URL");
   assert(kpis.annualCapital?.every(row => row.length === 8 && row[7]?.startsWith("https://")), "Every annual capital row needs an official source URL");
   assert(kpis.adoption.every(row => row.length === 9 && row[7]?.startsWith("https://")), "Every adoption KPI row needs an official source URL");
@@ -60,7 +65,7 @@ if(kpis){
   assert(kpis.grr.every(row => row[1] >= .9 && row[1] <= 1), "GRR visualization values must be stored as 1.00-based percentages");
   const auditableSeries = [
     ["quarterly",kpis.quarterly,5],["adoption",kpis.adoption,7],["total customers",kpis.totalCustomers,2],
-    ["annual FCF economics",kpis.annualFcfEconomics,4],["annual operations",kpis.annualOperations,10],["annual capital",kpis.annualCapital,7],
+    ["annual FCF economics",kpis.annualFcfEconomics,4],["quarterly FCF economics",kpis.quarterlyFcfEconomics,7],["annual operations",kpis.annualOperations,10],["annual capital",kpis.annualCapital,7],
     ["$1M customers",kpis.millionCustomers,2],["NRR",kpis.nrr,3],["GRR",kpis.grr,3],["AI customers",kpis.aiIntegrationCustomers,2],
   ];
   auditableSeries.forEach(([label,rows,urlIndex]) => {
@@ -78,6 +83,11 @@ if(kpis){
   assert(latestFcf[0] === "2025", "Latest annual FCF economics period must be FY2025");
   assert(Math.abs(latestFcf[2] - latestFcf[3] - 140.575) < 0.001, "FY2025 owner-FCF tie-out failed");
   assert(Math.abs((latestFcf[2] - latestFcf[3]) / latestFcf[1] - 0.041018) < 0.001, "FY2025 owner-FCF margin tie-out failed");
+  const latestQuarterlyFcf = kpis.quarterlyFcfEconomics.at(-1);
+  const latestQuarterlyOwnerFcf = latestQuarterlyFcf[2]-latestQuarterlyFcf[3]-latestQuarterlyFcf[4]-latestQuarterlyFcf[5]-latestQuarterlyFcf[6];
+  assert(latestQuarterlyFcf[0] === "2026Q1", "Latest quarterly FCF economics period must be Q1 2026");
+  assert(Math.abs(latestQuarterlyOwnerFcf - 83.061) < 0.001, "Q1 2026 owner-FCF bridge tie-out failed");
+  assert(Math.abs(latestQuarterlyOwnerFcf/latestQuarterlyFcf[1] - 0.082527) < 0.001, "Q1 2026 owner-FCF margin tie-out failed");
   const latestOperations = kpis.annualOperations.at(-1);
   assert(latestOperations[0] === "2025", "Latest annual operations period must be FY2025");
   assert(Math.abs(latestOperations[6] / latestOperations[1] - -0.012947) < 0.001, "FY2025 operating-margin tie-out failed");

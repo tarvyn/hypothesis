@@ -166,6 +166,8 @@
   const portfolioScale = document.getElementById("portfolio-scale");
   const kpiHistory = document.getElementById("kpi-history");
   const financialHistory = document.getElementById("financial-history");
+  const quarterlyFcfSummary = document.getElementById("quarterly-fcf-summary");
+  const quarterlyFcfTable = document.getElementById("quarterly-fcf-table");
   const financialSectionNav = document.querySelector(".financial-section-nav");
   const peerSectionNav = document.querySelector(".peer-section-nav");
   const peerSnapshot = document.getElementById("peer-snapshot");
@@ -175,11 +177,16 @@
   const financials = kpiModel.quarterly.map((row,index,rows) => {
     const [period,revenue,grossProfit,nonGaapGrossProfit,largeCustomers,sourceUrl] = row;
     const priorYear = index >= 4 ? rows[index - 4] : null;
+    const costOfRevenue = revenue-grossProfit;
+    const priorYearCostOfRevenue = priorYear ? priorYear[1]-priorYear[2] : null;
     return {
       period,revenue,grossProfit,nonGaapGrossProfit,largeCustomers,sourceUrl,
+      costOfRevenue,
       grossMargin:grossProfit / revenue,
       nonGaapGrossMargin:nonGaapGrossProfit / revenue,
       revenueGrowth:priorYear ? revenue / priorYear[1] - 1 : null,
+      costOfRevenueGrowth:priorYear ? costOfRevenue/priorYearCostOfRevenue-1 : null,
+      grossMarginChange:priorYear ? grossProfit/revenue-priorYear[2]/priorYear[1] : null,
       customerGrowth:priorYear ? largeCustomers / priorYear[4] - 1 : null,
     };
   });
@@ -209,6 +216,19 @@
     };
   });
   const annualFcfByPeriod = new Map(annualFcfEconomics.map(row => [row.period,row]));
+  const quarterlyFcfEconomics = kpiModel.quarterlyFcfEconomics.map(row => {
+    const [period,revenue,operatingCashFlow,propertyAndEquipment,capitalizedSoftware,expensedSbc,capitalizedSbc,sourceUrl] = row;
+    const reportedFcf = operatingCashFlow-propertyAndEquipment-capitalizedSoftware;
+    const totalSbc = expensedSbc+capitalizedSbc;
+    const ownerFcf = reportedFcf-totalSbc;
+    return {
+      period,revenue,operatingCashFlow,propertyAndEquipment,capitalizedSoftware,expensedSbc,capitalizedSbc,sourceUrl,
+      reportedFcf,totalSbc,ownerFcf,
+      reportedMargin:reportedFcf/revenue,
+      ownerMargin:ownerFcf/revenue,
+    };
+  });
+  const cloudEfficiencyQuarters = financials.filter(row => row.costOfRevenueGrowth != null);
   const annualOperations = kpiModel.annualOperations.map((row,index,rows) => {
     const [period,revenue,grossProfit,researchAndDevelopment,salesAndMarketing,generalAndAdministrative,operatingIncome,netIncome,dilutedShares,yearEndShares,sourceUrl] = row;
     const priorYear = index ? rows[index-1] : null;
@@ -379,12 +399,38 @@
     </article>`).join("");
   }
 
+  function renderQuarterlyFcfUpdate(){
+    if(!quarterlyFcfSummary || !quarterlyFcfTable) return;
+    const prior = quarterlyFcfEconomics[0];
+    const latest = quarterlyFcfEconomics.at(-1);
+    const revenueGrowth = latest.revenue/prior.revenue-1;
+    const reportedFcfGrowth = latest.reportedFcf/prior.reportedFcf-1;
+    const sbcGrowth = latest.totalSbc/prior.totalSbc-1;
+    const ownerFcfGrowth = latest.ownerFcf/prior.ownerFcf-1;
+    const ownerMarginChange = latest.ownerMargin-prior.ownerMargin;
+    const sbcMarginChange = latest.totalSbc/latest.revenue-prior.totalSbc/prior.revenue;
+    quarterlyFcfSummary.innerHTML = [
+      `<span><b>${esc(signedPct(revenueGrowth,1))}</b> revenue growth</span>`,
+      `<span><b>${esc(signedPct(ownerFcfGrowth,1))}</b> owner FCF growth</span>`,
+      `<span><b>${esc(pct(latest.ownerMargin))}</b> owner FCF margin · ${esc(signedPctPoints(ownerMarginChange))}</span>`,
+      `<span><b>${esc(pct(latest.totalSbc/latest.revenue))}</b> SBC / revenue · ${esc(signedPctPoints(sbcMarginChange))}</span>`,
+    ].join("");
+    const rows = [
+      ["Revenue",money(prior.revenue),money(latest.revenue),signedPct(revenueGrowth,1),"is-positive"],
+      ["Reported FCF",money(prior.reportedFcf),money(latest.reportedFcf),signedPct(reportedFcfGrowth,1),"is-positive"],
+      ["Total SBC",money(prior.totalSbc),money(latest.totalSbc),signedPct(sbcGrowth,1),"is-warning"],
+      ["Owner FCF",money(prior.ownerFcf),money(latest.ownerFcf),signedPct(ownerFcfGrowth,1),"is-positive"],
+      ["Owner FCF margin",pct(prior.ownerMargin),pct(latest.ownerMargin),signedPctPoints(ownerMarginChange),"is-warning"],
+    ];
+    quarterlyFcfTable.innerHTML = rows.map(row => `<tr><td>${esc(row[0])}</td><td>${esc(row[1])}</td><td>${esc(row[2])}</td><td class="${row[4]}">${esc(row[3])}</td></tr>`).join("");
+  }
+
   function niceMax(value){
     const power = 10 ** Math.floor(Math.log10(value || 1));
     return Math.ceil(value / power) * power;
   }
 
-  function renderLegend(elementId,series){
+  function renderChartLegend(elementId,series){
     const element = document.getElementById(elementId);
     if(!element) return;
     element.innerHTML = series.map(item => `<span><i style="--legend-color:${item.color}"></i>${esc(item.label)}</span>`).join("");
@@ -402,16 +448,21 @@
     ctx.scale(dpr,dpr);
     ctx.clearRect(0,0,width,height);
 
-    const margin = {top:12,right:16,bottom:50,left:52};
+    const hasRightAxis = config.series.some(series => series.axis === "right");
+    const margin = {top:12,right:hasRightAxis ? 54 : 16,bottom:50,left:52};
     const plotWidth = width-margin.left-margin.right;
     const plotHeight = height-margin.top-margin.bottom;
-    const allValues = config.series.flatMap(series => series.values.filter(value => value != null));
+    const allValues = config.series.filter(series => series.axis !== "right").flatMap(series => series.values.filter(value => value != null));
+    const rightValues = config.series.filter(series => series.axis === "right").flatMap(series => series.values.filter(value => value != null));
     const rawMin = config.yMin ?? Math.min(...allValues);
     const rawMax = config.yMax ?? Math.max(...allValues);
     const yMin = config.yMin ?? 0;
     const yMax = config.yMax ?? niceMax(rawMax*1.06);
+    const yRightMin = config.yRightMin ?? 0;
+    const yRightMax = config.yRightMax ?? niceMax(Math.max(...rightValues,1)*1.06);
     const x = index => margin.left + (config.labels.length === 1 ? plotWidth/2 : index*plotWidth/(config.labels.length-1));
     const y = value => margin.top + (yMax-value)/(yMax-yMin)*plotHeight;
+    const yRight = value => margin.top + (yRightMax-value)/(yRightMax-yRightMin)*plotHeight;
 
     ctx.font = '9px "JetBrains Mono", monospace';
     ctx.textBaseline = "middle";
@@ -422,6 +473,11 @@
       ctx.strokeStyle = "rgba(112,121,156,.23)";ctx.lineWidth = 1;ctx.stroke();
       ctx.fillStyle = "#70799c";ctx.textAlign = "right";
       ctx.fillText(config.yFormatter(value),margin.left-9,py);
+      if(hasRightAxis){
+        const rightValue = yRightMax-(yRightMax-yRightMin)*i/5;
+        ctx.fillStyle = "#70799c";ctx.textAlign = "left";
+        ctx.fillText(config.yRightFormatter(rightValue),width-margin.right+9,py);
+      }
     }
     if(yMin < 0 && yMax > 0){
       const zeroY = y(0);
@@ -437,24 +493,25 @@
     });
 
     config.series.forEach(series => {
+      const seriesY = series.axis === "right" ? yRight : y;
       ctx.strokeStyle = series.color;ctx.lineWidth = series.width || 2.5;ctx.lineJoin = "round";ctx.lineCap = "round";
       ctx.setLineDash(series.dash || []);
       let open = false;
       ctx.beginPath();
       series.values.forEach((value,index) => {
         if(value == null){if(!series.connectGaps) open=false;return;}
-        const px=x(index),py=y(value);
+        const px=x(index),py=seriesY(value);
         if(!open){ctx.moveTo(px,py);open=true;} else ctx.lineTo(px,py);
       });
       ctx.stroke();
       ctx.setLineDash([]);
       series.values.forEach((value,index) => {
         if(value == null) return;
-        ctx.beginPath();ctx.arc(x(index),y(value),2.2,0,Math.PI*2);ctx.fillStyle=series.color;ctx.fill();
+        ctx.beginPath();ctx.arc(x(index),seriesY(value),series.pointRadius || 2.2,0,Math.PI*2);ctx.fillStyle=series.color;ctx.fill();
       });
     });
     canvas._chartMeta = {config,width,height,margin,plotWidth,x};
-    renderLegend(config.legendId,config.series);
+    renderChartLegend(config.legendId,config.series);
   }
 
   function drawBarChart(config){
@@ -525,7 +582,7 @@
       config,width,height,margin,plotWidth,
       indexAtX:localX => Math.max(0,Math.min(config.labels.length-1,Math.floor((localX-margin.left)/groupWidth))),
     };
-    renderLegend(config.legendId,config.series);
+    renderChartLegend(config.legendId,config.series);
   }
 
   function showChartTooltip(event){
@@ -538,7 +595,7 @@
     const index = meta.indexAtX ? meta.indexAtX(localX) : Math.round(ratio*(meta.config.labels.length-1));
     const rows = meta.config.series
       .filter(series => series.values[index] != null)
-      .map(series => `<span><i style="--tip-color:${series.color}"></i>${esc(series.label)}: ${esc(series.displayValues?.[index] || meta.config.tooltipFormatter(series.values[index],index,series))}</span>`)
+      .map(series => `<span><i style="--tip-color:${series.color}"></i>${esc(series.label)}: ${esc(series.displayValues?.[index] || (series.tooltipFormatter || meta.config.tooltipFormatter)(series.values[index],index,series))}</span>`)
       .join("");
     chartTooltip.innerHTML = `<b>${esc(meta.config.labels[index])}</b>${rows || "No disclosure"}`;
     chartTooltip.hidden = false;
@@ -553,6 +610,17 @@
     const financialLinks = financials.map(row => sourceAnchor(row.sourceUrl,row.period)).join("");
     document.querySelector("#revenue-sources>div").innerHTML = financialLinks;
     document.querySelector("#margin-sources>div").innerHTML = financialLinks;
+    const fy2024 = annualOperations.find(row => row.period === "2024");
+    const fy2025 = annualOperations.find(row => row.period === "2025");
+    const fy2024CostRatio = (fy2024.revenue-fy2024.grossProfit)/fy2024.revenue;
+    const excessCostOfRevenue = fy2025.revenue-fy2025.grossProfit-fy2025.revenue*fy2024CostRatio;
+    document.querySelector("#cloud-sources>div").innerHTML = [
+      `<article class="financial-source-row"><b>Q1–Q2 2021 filings</b><span>COGS grew 76% / 98% YoY versus revenue growth of 51% / 67%.</span><span>Third-party hosting + software cost increases: $18.2M / $24.7M.</span>${sourceAnchor(kpiModel.cloudCostEfficiency.q1_2021SourceUrl,"Q1 Form 10-Q")} ${sourceAnchor(kpiModel.cloudCostEfficiency.q2_2021SourceUrl,"Q2 Form 10-Q")}</article>`,
+      `<article class="financial-source-row"><b>FY2025 filing</b><span>Cloud hosting + software cost increase ${esc(money(kpiModel.cloudCostEfficiency.annualCloudCostIncrease))}</span><span>COGS above constant FY2024 ratio ${esc(money(excessCostOfRevenue))}</span>${sourceAnchor(kpiModel.cloudCostEfficiency.annualSourceUrl,"Form 10-K")}</article>`,
+      `<article class="financial-source-row"><b>Q1 2025 call</b><span>Management linked the cost spike to rapid usage growth at large customers and initial new-capability inefficiency.</span>${sourceAnchor(kpiModel.cloudCostEfficiency.q1ExplanationUrl,"Transcript")}</article>`,
+      `<article class="financial-source-row"><b>Q2–Q3 2025 calls</b><span>Management reported savings from engineering-led cloud-efficiency projects and continued improvement.</span>${sourceAnchor(kpiModel.cloudCostEfficiency.q2EfficiencyUrl,"Q2 transcript")} ${sourceAnchor(kpiModel.cloudCostEfficiency.q3EfficiencyUrl,"Q3 transcript")}</article>`,
+      `<article class="financial-source-row"><b>Q1 2026 filing</b><span>Cloud hosting + software cost increase ${esc(money(kpiModel.cloudCostEfficiency.q1CloudCostIncrease))} YoY</span><span>Revenue and provider costs described as growing in proportion.</span>${sourceAnchor(kpiModel.cloudCostEfficiency.q1SourceUrl,"Form 10-Q")}</article>`,
+    ].join("") + `<p class="financial-definition"><b>Derived proxy and limitation.</b> Quarterly COGS equals reported revenue less GAAP gross profit. The chart compares its YoY growth with revenue growth; it does not reconstruct undisclosed absolute quarterly hosting expense. The ${esc(money(excessCostOfRevenue))} FY2025 figure is actual COGS less the COGS implied by holding FY2024's cost-of-revenue ratio constant.</p>`;
     document.querySelector("#fcf-sources>div").innerHTML = annualFcfEconomics.map(row =>
       `<article class="fcf-source-row">
         <b>${esc(row.period)}</b>
@@ -562,6 +630,15 @@
         ${sourceAnchor(row.sourceUrl,"Form 10-K")}
       </article>`
     ).join("") + `<p class="fcf-definition"><b>Analyst-adjusted measure.</b> Owner FCF subtracts total expensed and capitalized SBC from company-defined FCF. It is an economic sensitivity, not a GAAP or company-reported liquidity measure.</p>`;
+    document.querySelector("#quarterly-fcf-sources>div").innerHTML = quarterlyFcfEconomics.map(row =>
+      `<article class="financial-source-row">
+        <b>${esc(row.period === "2026Q1" ? "Q1 2026" : "Q1 2025")}</b>
+        <span>OCF ${esc(money(row.operatingCashFlow))} → reported FCF ${esc(money(row.reportedFcf))}</span>
+        <span>Expensed + capitalized SBC ${esc(money(row.expensedSbc))} + ${esc(money(row.capitalizedSbc))}</span>
+        <span>Owner FCF ${esc(money(row.ownerFcf))} · ${esc(pct(row.ownerMargin))} margin</span>
+        ${sourceAnchor(row.sourceUrl,"Form 10-Q")}
+      </article>`
+    ).join("") + `<p class="financial-definition"><b>Comparable-quarter bridge.</b> Reported FCF = OCF − PP&amp;E purchases − capitalized software development costs. Owner FCF then subtracts expensed and capitalized SBC. Capitalized SBC is separate from the cash capitalized-software line, so the bridge does not double count it.</p>`;
     document.querySelector("#operating-sources>div").innerHTML = annualOperations.map(row =>
       `<article class="financial-source-row">
         <b>FY${esc(row.period)}</b>
@@ -633,8 +710,15 @@
     const annualCapitalReturns = annualCapital.filter(row => row.period !== "2026Q1");
     const operationsByPeriod = new Map(annualOperations.map(row => [row.period,row]));
     financialChartConfigs = [
-      {canvasId:"revenue-chart",legendId:"revenue-legend",labels:financialLabels,yMin:0,yMax:1100,yFormatter:value=>`$${Math.round(value)}m`,tooltipFormatter:value=>money(value),series:[{label:"Revenue",color:"#33c6e6",values:financials.map(row=>row.revenue)}]},
+      {canvasId:"revenue-chart",legendId:"revenue-legend",labels:financialLabels,yMin:0,yMax:1100,yRightMin:0,yRightMax:1,yFormatter:value=>`$${Math.round(value)}m`,yRightFormatter:value=>pct(value,0),tooltipFormatter:value=>money(value),series:[
+        {label:"Revenue · left axis",color:"#33c6e6",values:financials.map(row=>row.revenue)},
+        {label:"YoY growth · right axis",color:"#ffb84d",axis:"right",width:3.5,pointRadius:3.2,dash:[8,4],tooltipFormatter:value=>pct(value),values:financials.map(row=>row.revenueGrowth)},
+      ]},
       {canvasId:"margin-chart",legendId:"margin-legend",labels:financialLabels,yMin:.70,yMax:.85,yFormatter:value=>pct(value,0),tooltipFormatter:value=>pct(value),series:[{label:"GAAP",color:"#2ed6a0",values:financials.map(row=>row.grossMargin)},{label:"Non-GAAP",color:"#7c6bf5",values:financials.map(row=>row.nonGaapGrossMargin)}]},
+      {canvasId:"cloud-efficiency-chart",legendId:"cloud-efficiency-legend",labels:cloudEfficiencyQuarters.map(row=>`${row.period.slice(4)} ${row.period.slice(2,4)}`),yMin:0,yMax:1,yFormatter:value=>pct(value,0),tooltipFormatter:value=>pct(value),series:[
+        {label:"Revenue growth",color:"#33c6e6",values:cloudEfficiencyQuarters.map(row=>row.revenueGrowth)},
+        {label:"COGS growth",color:"#f5b13f",values:cloudEfficiencyQuarters.map(row=>row.costOfRevenueGrowth)},
+      ]},
       {type:"bar",stacked:true,canvasId:"expense-mix-chart",legendId:"expense-mix-legend",labels:annualOperations.map(row=>row.period),yMin:0,yMax:.90,yFormatter:value=>pct(value,0),tooltipFormatter:value=>pct(value),series:[
         {label:"R&D / revenue",color:"#7c6bf5",values:annualOperations.map(row=>row.researchAndDevelopmentMargin)},
         {label:"S&M / revenue",color:"#33c6e6",values:annualOperations.map(row=>row.salesAndMarketingMargin)},
@@ -654,6 +738,11 @@
       {canvasId:"fcf-margin-chart",legendId:"fcf-margin-legend",labels:fcfLabels,yMin:-.05,yMax:.35,yFormatter:value=>pct(value,0),tooltipFormatter:value=>pct(value),series:[
         {label:"Reported FCF margin",color:"#33c6e6",values:annualFcfEconomics.map(row=>row.reportedMargin)},
         {label:"Owner FCF margin",color:"#2ed6a0",values:annualFcfEconomics.map(row=>row.ownerMargin)},
+      ]},
+      {type:"bar",canvasId:"quarterly-fcf-chart",legendId:"quarterly-fcf-legend",labels:quarterlyFcfEconomics.map(row=>row.period === "2025Q1" ? "Q1 25" : "Q1 26"),yMin:0,yMax:350,yFormatter:value=>`$${Math.round(value)}m`,tooltipFormatter:value=>money(value),series:[
+        {label:"Reported FCF",color:"#33c6e6",values:quarterlyFcfEconomics.map(row=>row.reportedFcf)},
+        {label:"Total SBC",color:"#7c6bf5",opacity:.74,values:quarterlyFcfEconomics.map(row=>row.totalSbc)},
+        {label:"Owner FCF",color:"#2ed6a0",values:quarterlyFcfEconomics.map(row=>row.ownerFcf)},
       ]},
       {type:"bar",canvasId:"capital-base-chart",legendId:"capital-base-legend",labels:capitalLabels,yMin:0,yMax:5000,yFormatter:value=>`$${Math.round(value/100)/10}B`,tooltipFormatter:value=>money(value),series:[
         {label:"Cash + securities",color:"#33c6e6",values:annualCapital.map(row=>row.liquidity)},
@@ -796,6 +885,7 @@
 
   function renderFinancials(){
     renderFinancialSnapshot();
+    renderQuarterlyFcfUpdate();
     renderSourceTrails();
     renderFinancialHistory();
     renderFinancialCharts();
@@ -905,7 +995,7 @@
     ctx.font='9px "JetBrains Mono", monospace';ctx.fillStyle="#70799c";ctx.textAlign="center";ctx.fillText("NTM revenue growth →",margin.left+plotWidth/2,height-8);
     ctx.save();ctx.translate(13,margin.top+plotHeight/2);ctx.rotate(-Math.PI/2);ctx.fillText("EV / NTM revenue →",0,0);ctx.restore();
     canvas._peerPoints=points;
-    renderLegend("peer-valuation-legend",Object.entries(peerModel.buckets).map(([,bucket])=>({label:bucket.label,color:bucket.color})));
+    renderChartLegend("peer-valuation-legend",Object.entries(peerModel.buckets).map(([,bucket])=>({label:bucket.label,color:bucket.color})));
   }
 
   function showPeerTooltip(event){
