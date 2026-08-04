@@ -1,0 +1,12 @@
+cache:
+  ttl_seconds: 604800
+  directory: "~/.cache/notion-agents/investment"
+
+data_sources:
+  repositories: "c1aa0ced-7962-475a-951a-b957a1ed0d9e"
+  skills: "e4177af9-2530-4137-8704-c29033cd6f8c"
+  skill_versions: "521cd50a-0121-4500-b6cb-4c0e9e7f1001"
+  plans: "a8043fef-0ec7-4999-8580-0a05b656e77e"
+  plan_versions: "e274ef23-9aac-41ab-ac7f-d0b6132c506e"
+  agents: "1553f806-dd8d-479c-8b88-f66d5c11e0f0"
+  agent_versions: "729ce738-872d-4be2-97c9-db6b4f8bcb18"

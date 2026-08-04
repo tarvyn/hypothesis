@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+script_dir="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+project_dir="$(cd -P "$script_dir/.." && pwd)"
+workspace_file="$project_dir/.agents/notion-workspace-id"
+
+if [ ! -f "$workspace_file" ]; then
+  echo "Missing project Notion workspace file: $workspace_file" >&2
+  exit 1
+fi
+
+NOTION_WORKSPACE_ID="$(tr -d '[:space:]' < "$workspace_file")"
+if [ -z "$NOTION_WORKSPACE_ID" ]; then
+  echo "Project Notion workspace ID is empty: $workspace_file" >&2
+  exit 1
+fi
+
+export NOTION_ENV="prod"
+export NOTION_WORKSPACE_ID
+exec ntn "$@"
