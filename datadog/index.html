@@ -17,7 +17,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./styles.css?v=20260804-6">
+  <link rel="stylesheet" href="./styles.css?v=20260805-2">
 </head>
 <body>
   <main class="wrap">
@@ -102,7 +102,19 @@
         data-tab="peer-comps"
         tabindex="-1"
       >
-        Peers &amp; valuation
+        Peers and relative valuation
+      </button>
+      <button
+        class="top-tab"
+        id="intrinsic-valuation-tab"
+        type="button"
+        role="tab"
+        aria-selected="false"
+        aria-controls="intrinsic-valuation-panel"
+        data-tab="intrinsic-valuation"
+        tabindex="-1"
+      >
+        Intrinsic valuation
       </button>
     </nav>
 
@@ -212,6 +224,80 @@
         call, company presentations, and product materials for directional
         product evidence. Market anchors are never mixed with company ARR.
       </p>
+    </section>
+
+    <section
+      class="tab-panel"
+      id="intrinsic-valuation-panel"
+      role="tabpanel"
+      aria-labelledby="intrinsic-valuation-tab"
+      data-panel="intrinsic-valuation"
+      hidden
+    >
+      <section class="kpi-dashboard intrinsic-dashboard" aria-labelledby="intrinsic-dashboard-title">
+        <div class="section-head kpi-heading intrinsic-heading">
+          <div>
+            <span class="section-kicker">Reverse DCF · market snapshot 5 August 2026</span>
+            <h2 id="intrinsic-dashboard-title">What must Datadog become?</h2>
+          </div>
+          <p>Three valuation anchors, one comparable FCFF lens: today’s market price, Morningstar’s $200 fair value, and our dilution-adjusted $135 calculator estimate.</p>
+        </div>
+
+        <div class="kpi-net-read intrinsic-net-read">
+          <span class="kpi-net-label">Investor verdict</span>
+          <p id="intrinsic-verdict"></p>
+          <span class="intrinsic-screening-label">Screening-grade · common lens across all three anchors</span>
+        </div>
+
+        <div class="intrinsic-snapshot" id="intrinsic-snapshot" aria-label="Reverse DCF valuation snapshot"></div>
+
+        <section class="kpi-section" aria-labelledby="intrinsic-targets-title">
+          <div class="section-head compact">
+            <div><span class="section-kicker">Valuation comparison</span><h2 id="intrinsic-targets-title">Market, Morningstar, and our estimate</h2></div>
+            <p>FY2026 starts at 26.1% growth. The model then solves one constant 2027–2035 growth rate while holding every other input fixed.</p>
+          </div>
+          <div class="intrinsic-target-grid" id="intrinsic-target-grid"></div>
+        </section>
+
+        <section class="kpi-section intrinsic-path-section" aria-labelledby="intrinsic-path-title">
+          <div class="section-head compact">
+            <div><span class="section-kicker">Revenue path · USD billions</span><h2 id="intrinsic-path-title">The distance compounds quickly</h2></div>
+            <p>The gap between the three anchors is modest near-term, then widens as nine years of implied growth compound.</p>
+          </div>
+          <div class="intrinsic-visual-grid">
+            <article class="kpi-chart-card intrinsic-chart-card">
+              <div class="kpi-card-head">
+                <div><span class="kpi-card-kicker">Common-lens reverse DCF</span><h3>Implied revenue trajectory</h3></div>
+                <span class="kpi-source">FY2025 actual → FY2035 implied</span>
+              </div>
+              <p class="kpi-chart-note">All three paths assume a 35% FY2035 GAAP EBIT margin and 3.25% perpetual growth.</p>
+              <canvas id="intrinsic-revenue-chart" class="financial-chart intrinsic-revenue-chart" role="img" aria-label="Revenue paths implied by Datadog current market price, Morningstar fair value, and our DCF calculator estimate"></canvas>
+              <div class="chart-legend" id="intrinsic-revenue-legend"></div>
+            </article>
+            <article class="intrinsic-gap-card" id="intrinsic-gap-card"></article>
+          </div>
+        </section>
+
+        <section class="kpi-section morningstar-model-section" aria-labelledby="morningstar-model-title">
+          <div class="section-head compact">
+            <div><span class="section-kicker">Morningstar’s disclosed model · 7 May 2026</span><h2 id="morningstar-model-title">What sits behind the $200 fair value</h2></div>
+            <p>Morningstar uses a three-stage, 20-year DCF. These disclosed inputs provide a cross-check, not a like-for-like replication of our 10-year backsolve.</p>
+          </div>
+          <div class="morningstar-model-grid" id="morningstar-model-grid"></div>
+        </section>
+
+        <section class="kpi-section intrinsic-assumptions-section" aria-labelledby="intrinsic-assumptions-title">
+          <div class="section-head compact">
+            <div><span class="section-kicker">Common model frame</span><h2 id="intrinsic-assumptions-title">Assumptions held constant</h2></div>
+            <p>Reverse DCF is only useful when the fixed assumptions are visible. A generous mature margin makes this primarily a growth stress test.</p>
+          </div>
+          <div class="intrinsic-assumption-grid" id="intrinsic-assumption-grid"></div>
+          <details class="kpi-source-trail intrinsic-source-trail" id="intrinsic-sources">
+            <summary>Methodology, limitations, and source trail</summary>
+            <div id="intrinsic-source-content"></div>
+          </details>
+        </section>
+      </section>
     </section>
 
     <section
@@ -501,6 +587,7 @@
                 <li><b>Q3–Q4 2025 · normalization</b><span>COGS growth converged with revenue growth and gross-margin pressure faded.</span></li>
                 <li class="current"><b>Q1 2026 · proportional scaling</b><span>The filing says revenue grew in proportion to third-party cloud infrastructure costs; the economic test now shifts to sustaining that balance.</span></li>
               </ol>
+              <p class="cloud-structural-note"><b>Structural read:</b> Consumption ties telemetry growth to compute and storage costs. Hyperscaler exposure, large-customer volume discounts, and initially inefficient launches can cap gross margin near 80%; the recurring optimization cycle adds volatility, but so far has not weakened the platform moat or the model’s attractiveness.</p>
               <p class="cloud-limit"><b>Disclosure limit:</b> quarterly absolute hosting cost is not reported. The $149.8M and $41.8M figures are disclosed increases, not the full expense base.</p>
             </article>
           </div>
@@ -954,6 +1041,7 @@
   <script src="./data/kpi-data.js"></script>
   <script src="./data/peer-comps-data.js?v=20260804-2"></script>
   <script src="./data/valuation-context-data.js?v=20260804-2"></script>
-  <script src="./app.js?v=20260805-1"></script>
+  <script src="./data/intrinsic-valuation-data.js?v=20260805-2"></script>
+  <script src="./app.js?v=20260805-5"></script>
 </body>
 </html>

@@ -193,6 +193,63 @@ if(valuationModel){
   assert(Object.values(valuationModel.sources).every(url => url.startsWith("https://")), "Valuation-context source registry must contain valid URLs");
 }
 
+const intrinsicSource = fs.readFileSync(path.join(root, "data", "intrinsic-valuation-data.js"), "utf8");
+vm.runInContext(intrinsicSource, sandbox, {filename:"intrinsic-valuation-data.js"});
+const intrinsicModel = sandbox.window.INTRINSIC_VALUATION;
+assert(intrinsicModel, "window.INTRINSIC_VALUATION must be exported");
+if(intrinsicModel){
+  const input=intrinsicModel.model;
+  const costOfEquity=input.riskFreeRate+input.beta*input.equityRiskPremium;
+  const wacc=costOfEquity*input.equityWeight+input.preTaxCostOfDebt*(1-input.marginalTaxRate)*input.debtWeight;
+  const netCash=input.cashAndMarketableSecurities-input.convertibleDebt-input.operatingLeaseLiabilities;
+  const runDcf=revenueGrowth=>{
+    let revenue=input.baseRevenue,previousNwc=input.historicalNwc,pvExplicit=0,terminalFcff=0;
+    input.forecastYears.forEach((year,index)=>{
+      const growth=index===0?input.firstForecastGrowth:revenueGrowth;
+      revenue*=1+growth;
+      const ebit=revenue*input.ebitMargin[index];
+      const cashTaxes=Math.max(ebit*input.cashTaxRate[index],0);
+      const da=revenue*input.daPercentRevenue[index];
+      const capex=revenue*input.capexPercentRevenue[index];
+      const nwc=revenue*input.nwcPercentRevenue[index];
+      const fcff=ebit-cashTaxes+da-capex-(nwc-previousNwc);
+      pvExplicit+=fcff/Math.pow(1+wacc,index+.5);
+      previousNwc=nwc;terminalFcff=fcff;
+    });
+    const pvTerminal=terminalFcff*(1+input.terminalGrowth)/(wacc-input.terminalGrowth)/Math.pow(1+wacc,input.forecastYears.length);
+    return {enterpriseValue:pvExplicit+pvTerminal,terminalRevenue:revenue,terminalFcff};
+  };
+  const solveTarget=target=>{
+    const targetEv=target.price*input.dilutedShares-netCash;
+    let low=-.2,high=.8;
+    for(let index=0;index<180;index++){
+      const midpoint=(low+high)/2;
+      if(runDcf(midpoint).enterpriseValue<targetEv) low=midpoint; else high=midpoint;
+    }
+    const growth=(low+high)/2;
+    return {growth,targetEv,...runDcf(growth)};
+  };
+  const marketTarget=intrinsicModel.targets.find(target=>target.id==="market");
+  const morningstarTarget=intrinsicModel.targets.find(target=>target.id==="morningstar");
+  const market=solveTarget(marketTarget);
+  const morningstar=solveTarget(morningstarTarget);
+  assert(intrinsicModel.meta.modelDate === "2026-08-05", "Intrinsic-valuation model date must be 2026-08-05");
+  assert(marketTarget?.price === 285.25, "Current-price reverse DCF must use the 5 August 2026 $285.25 snapshot");
+  assert(morningstarTarget?.price === 200, "Morningstar reverse DCF must use the $200 fair value");
+  assert(input.forecastYears.length === 10 && input.forecastYears[0] === 2026 && input.forecastYears.at(-1) === 2035, "Reverse DCF must span FY2026 through FY2035");
+  ["ebitMargin","cashTaxRate","daPercentRevenue","capexPercentRevenue","nwcPercentRevenue"].forEach(key=>assert(input[key].length===input.forecastYears.length, `Intrinsic-valuation ${key} must match the forecast horizon`));
+  assert(Math.abs(wacc-.097977)<.000001, "Reverse DCF WACC tie-out failed");
+  assert(Math.abs(netCash-3473.565)<.001, "Reverse DCF net-cash bridge tie-out failed");
+  assert(Math.abs(market.growth-.3048782)<.000001, "Current-price implied revenue growth tie-out failed");
+  assert(Math.abs(morningstar.growth-.2517281)<.000001, "Morningstar-price implied revenue growth tie-out failed");
+  assert(Math.abs(market.terminalRevenue-47381.266)<.01, "Current-price FY2035 revenue tie-out failed");
+  assert(Math.abs(morningstar.terminalRevenue-32588.688)<.01, "Morningstar-price FY2035 revenue tie-out failed");
+  assert(Math.abs(market.enterpriseValue-market.targetEv)<.01 && Math.abs(morningstar.enterpriseValue-morningstar.targetEv)<.01, "Reverse DCF enterprise values must tie to both target prices");
+  assert(intrinsicModel.morningstar.fairValue===morningstarTarget.price, "Morningstar disclosed fair value must tie to the reverse-DCF target");
+  assert(intrinsicModel.morningstar.forecastRevenue[2030]===10256 && intrinsicModel.morningstar.wacc===.086, "Morningstar disclosed model cross-check failed");
+  assert(Object.values(intrinsicModel.sources).every(source=>source.url?.startsWith("https://") && source.date), "Every intrinsic-valuation source needs a dated HTTPS route");
+}
+
 const categoryIds = new Set(model.categories.map(category => category.id));
 const maturityIds = new Set(Object.keys(model.maturity));
 const positionIds = new Set(Object.keys(model.position));

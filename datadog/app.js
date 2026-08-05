@@ -7,6 +7,8 @@
   if (!peerModel) throw new Error("Peer comps data did not load.");
   const valuationModel = window.VALUATION_CONTEXT;
   if (!valuationModel) throw new Error("Valuation context data did not load.");
+  const intrinsicModel = window.INTRINSIC_VALUATION;
+  if (!intrinsicModel) throw new Error("Intrinsic valuation data did not load.");
 
   const MOAT = {
     data_gravity:{label:"Data gravity",color:"#7c6bf5"},
@@ -125,7 +127,7 @@
   const state = {
     filters:new Set(),
     selected:null,
-    activeTab:["product-map","business-model","kpis","financials","peer-comps"].includes(window.location.hash.slice(1))
+    activeTab:["product-map","business-model","kpis","financials","intrinsic-valuation","peer-comps"].includes(window.location.hash.slice(1))
       ? window.location.hash.slice(1)
       : "product-map",
     showProductScores:false,
@@ -318,6 +320,7 @@
   let financialChartConfigs = [];
   let kpisInitialized = false;
   let financialsInitialized = false;
+  let intrinsicInitialized = false;
   let peersInitialized = false;
 
   model.categories.forEach(category => category.suites.forEach(suite => suite.products.forEach(product => {
@@ -926,6 +929,223 @@
     });
   }
 
+  function intrinsicModelConstants(){
+    const input=intrinsicModel.model;
+    const costOfEquity=input.riskFreeRate+input.beta*input.equityRiskPremium;
+    const wacc=costOfEquity*input.equityWeight+input.preTaxCostOfDebt*(1-input.marginalTaxRate)*input.debtWeight;
+    const netCash=input.cashAndMarketableSecurities-input.convertibleDebt-input.operatingLeaseLiabilities;
+    return {costOfEquity,wacc,netCash};
+  }
+
+  function runIntrinsicDcf(revenueGrowth){
+    const input=intrinsicModel.model;
+    const {wacc,netCash}=intrinsicModelConstants();
+    let revenue=input.baseRevenue;
+    let previousNwc=input.historicalNwc;
+    let pvExplicit=0;
+    let terminalFcff=0;
+    const rows=input.forecastYears.map((year,index)=>{
+      const growth=index===0?input.firstForecastGrowth:revenueGrowth;
+      revenue*=1+growth;
+      const ebit=revenue*input.ebitMargin[index];
+      const cashTaxes=Math.max(ebit*input.cashTaxRate[index],0);
+      const nopat=ebit-cashTaxes;
+      const da=revenue*input.daPercentRevenue[index];
+      const capex=revenue*input.capexPercentRevenue[index];
+      const nwc=revenue*input.nwcPercentRevenue[index];
+      const changeNwc=nwc-previousNwc;
+      const fcff=nopat+da-capex-changeNwc;
+      const pvFcff=fcff/Math.pow(1+wacc,index+.5);
+      pvExplicit+=pvFcff;
+      previousNwc=nwc;
+      terminalFcff=fcff;
+      return {year,growth,revenue,ebitMargin:input.ebitMargin[index],fcff,pvFcff};
+    });
+    const terminalValue=terminalFcff*(1+input.terminalGrowth)/(wacc-input.terminalGrowth);
+    const pvTerminal=terminalValue/Math.pow(1+wacc,input.forecastYears.length);
+    const enterpriseValue=pvExplicit+pvTerminal;
+    const equityValue=enterpriseValue+netCash;
+    return {
+      revenueGrowth,rows,pvExplicit,pvTerminal,enterpriseValue,equityValue,
+      valuePerShare:equityValue/input.dilutedShares,
+      terminalValueShare:pvTerminal/enterpriseValue,
+      terminalRevenue:rows.at(-1).revenue,
+      terminalFcff:rows.at(-1).fcff,
+    };
+  }
+
+  function solveIntrinsicTarget(target){
+    const {netCash}=intrinsicModelConstants();
+    const targetEnterpriseValue=target.price*intrinsicModel.model.dilutedShares-netCash;
+    let low=-.20,high=.80;
+    for(let index=0;index<180;index++){
+      const midpoint=(low+high)/2;
+      if(runIntrinsicDcf(midpoint).enterpriseValue<targetEnterpriseValue) low=midpoint;
+      else high=midpoint;
+    }
+    const result=runIntrinsicDcf((low+high)/2);
+    return {...target,...result,targetEnterpriseValue};
+  }
+
+  function intrinsicCases(){
+    return intrinsicModel.targets.map(solveIntrinsicTarget);
+  }
+
+  function intrinsicBillions(value,digits=1){
+    return `$${(value/1000).toFixed(digits)}B`;
+  }
+
+  function drawIntrinsicRevenueChart(cases){
+    if(!Array.isArray(cases)) cases=intrinsicCases();
+    const canvas=document.getElementById("intrinsic-revenue-chart");
+    if(!canvas) return;
+    const actual={year:intrinsicModel.model.historicalYear,revenue:intrinsicModel.model.baseRevenue};
+    const width=Math.max(320,Math.floor(canvas.clientWidth));
+    const height=Math.max(300,Math.floor(canvas.clientHeight));
+    const dpr=Math.min(window.devicePixelRatio||1,2);
+    canvas.width=Math.floor(width*dpr);canvas.height=Math.floor(height*dpr);
+    const ctx=canvas.getContext("2d");ctx.scale(dpr,dpr);ctx.clearRect(0,0,width,height);
+    const margin={top:24,right:26,bottom:48,left:56};
+    const plotWidth=width-margin.left-margin.right,plotHeight=height-margin.top-margin.bottom;
+    const intrinsicColors={market:"#ff5c8a",morningstar:"#2ed6a0",our:"#7c6bf5"};
+    const series=cases.map(item=>({
+      ...item,
+      color:intrinsicColors[item.tone]||"#7c6bf5",
+      values:[actual,...item.rows.map(row=>({year:row.year,revenue:row.revenue}))],
+    }));
+    const yMax=Math.ceil(Math.max(...series.flatMap(item=>item.values.map(row=>row.revenue)))/10000)*10000;
+    const years=series[0].values.map(row=>row.year);
+    const x=index=>margin.left+index/(years.length-1)*plotWidth;
+    const y=value=>margin.top+(yMax-value)/yMax*plotHeight;
+    ctx.font='9px "JetBrains Mono", monospace';ctx.textBaseline="middle";
+    for(let index=0;index<=5;index++){
+      const py=margin.top+plotHeight*index/5;
+      const value=yMax-yMax*index/5;
+      ctx.beginPath();ctx.moveTo(margin.left,py);ctx.lineTo(width-margin.right,py);ctx.strokeStyle="rgba(112,121,156,.22)";ctx.stroke();
+      ctx.fillStyle="#70799c";ctx.textAlign="right";ctx.fillText(`$${(value/1000).toFixed(0)}B`,margin.left-9,py);
+    }
+    const labelYears=new Set([2025,2027,2029,2031,2033,2035]);
+    years.forEach((year,index)=>{
+      if(!labelYears.has(year)) return;
+      ctx.fillStyle="#70799c";ctx.textAlign="center";ctx.fillText(String(year),x(index),height-22);
+    });
+    const points=[];
+    series.forEach(item=>{
+      const gradient=ctx.createLinearGradient(0,margin.top,0,height-margin.bottom);
+      gradient.addColorStop(0,`${item.color}20`);gradient.addColorStop(1,`${item.color}00`);
+      ctx.beginPath();item.values.forEach((row,index)=>index?ctx.lineTo(x(index),y(row.revenue)):ctx.moveTo(x(index),y(row.revenue)));
+      ctx.lineTo(x(item.values.length-1),height-margin.bottom);ctx.lineTo(x(0),height-margin.bottom);ctx.closePath();ctx.fillStyle=gradient;ctx.fill();
+      ctx.beginPath();item.values.forEach((row,index)=>index?ctx.lineTo(x(index),y(row.revenue)):ctx.moveTo(x(index),y(row.revenue)));
+      ctx.strokeStyle=item.color;ctx.lineWidth=2.3;ctx.stroke();
+      item.values.forEach((row,index)=>{
+        if(index!==0 && index!==5 && index!==item.values.length-1) return;
+        const px=x(index),py=y(row.revenue);
+        ctx.beginPath();ctx.arc(px,py,index===item.values.length-1?4.8:3.2,0,Math.PI*2);ctx.fillStyle=item.color;ctx.fill();ctx.strokeStyle="#0e1220";ctx.lineWidth=1.2;ctx.stroke();
+        points.push({case:item,row,x:px,y:py,radius:7});
+      });
+      const last=item.values.at(-1);
+      ctx.fillStyle=item.color;ctx.textAlign="right";ctx.font='700 10px "JetBrains Mono", monospace';
+      ctx.fillText(intrinsicBillions(last.revenue),width-margin.right,y(last.revenue)-12);
+    });
+    canvas._intrinsicPoints=points;
+    renderChartLegend("intrinsic-revenue-legend",series.map(item=>({label:`${item.label} · ${pct(item.revenueGrowth)} CAGR`,color:item.color})));
+  }
+
+  function showIntrinsicTooltip(event){
+    const canvas=event.currentTarget;
+    const rect=canvas.getBoundingClientRect();
+    const localX=event.clientX-rect.left,localY=event.clientY-rect.top;
+    const point=(canvas._intrinsicPoints||[]).map(item=>({...item,distance:Math.hypot(item.x-localX,item.y-localY)})).sort((a,b)=>a.distance-b.distance)[0];
+    if(!point||point.distance>28){hideChartTooltip();return;}
+    chartTooltip.innerHTML=`<b>${esc(point.case.label)} · FY${esc(point.row.year)}</b><span><i style="--tip-color:${point.case.color}"></i>Revenue: ${esc(intrinsicBillions(point.row.revenue))}</span><span>Implied 2027–35 CAGR: ${esc(pct(point.case.revenueGrowth))}</span>`;
+    chartTooltip.hidden=false;
+    chartTooltip.style.left=`${Math.min(window.innerWidth-242,event.clientX+14)}px`;
+    chartTooltip.style.top=`${Math.min(window.innerHeight-120,event.clientY+14)}px`;
+  }
+
+  function renderIntrinsicValuation(){
+    const cases=intrinsicCases();
+    const market=cases.find(item=>item.id==="market");
+    const morningstar=cases.find(item=>item.id==="morningstar");
+    const calculator=intrinsicModel.calculator;
+    const {wacc,netCash}=intrinsicModelConstants();
+    const growthGap=market.revenueGrowth-morningstar.revenueGrowth;
+    const terminalRevenueGap=market.terminalRevenue/morningstar.terminalRevenue-1;
+    const pricePremium=market.price/morningstar.price-1;
+    const market2030=market.rows.find(row=>row.year===2030).revenue;
+    const morningstar2030=intrinsicModel.morningstar.forecastRevenue[2030];
+    document.getElementById("intrinsic-verdict").innerHTML=`<b>The market price pays for an exceptional outcome, even after granting a 35% mature GAAP EBIT margin.</b> It requires ${esc(pct(market.revenueGrowth))} annual revenue growth from 2027–2035 and ${esc(intrinsicBillions(market.terminalRevenue))} of FY2035 revenue—${esc(pct(terminalRevenueGap))} above the path that supports Morningstar’s $200 fair value under the same lens.`;
+    const snapshot=[
+      {label:"Price premium",value:signedPct(pricePremium,1),note:`$${market.price.toFixed(2)} versus $${morningstar.price.toFixed(2)}`,tone:"price"},
+      {label:"Growth hurdle gap",value:signedPctPoints(growthGap),note:"Annual revenue growth · 2027–35",tone:"growth"},
+      {label:"FY2035 revenue gap",value:intrinsicBillions(market.terminalRevenue-morningstar.terminalRevenue),note:`${pct(terminalRevenueGap)} above the $200 path`,tone:"revenue"},
+      {label:"Shared WACC",value:pct(wacc,1),note:`${pct(intrinsicModel.model.terminalGrowth,2)} perpetual growth`,tone:"wacc"},
+    ];
+    document.getElementById("intrinsic-snapshot").innerHTML=snapshot.map(item=>`<article class="intrinsic-stat tone-${esc(item.tone)}"><span>${esc(item.label)}</span><strong>${esc(item.value)}</strong><p>${esc(item.note)}</p></article>`).join("");
+    document.getElementById("intrinsic-target-grid").innerHTML=cases.map(item=>{
+      const source=intrinsicModel.sources[item.sourceId];
+      const current=item.id==="market";
+      const our=item.id==="our-calculator";
+      if(our){
+        const scenarios=calculator.scenarios.map(scenario=>`<span>${esc(scenario.label)} · ${esc(pct(scenario.probability,0))}<b>$${scenario.fairValue.toFixed(0)}</b></span>`).join("");
+        return `<article class="intrinsic-target-card tone-${esc(item.tone)}">
+          <div class="intrinsic-target-head"><div><span>${esc(item.label)}</span><strong>~$${calculator.weightedFairValue.toFixed(0)}</strong></div><i>Our estimate</i></div>
+          <div class="intrinsic-hurdle"><span>Required 2027–35 revenue growth</span><b>${esc(pct(item.revenueGrowth))}</b><small>10-year FCFF cross-check at the $135 price anchor</small></div>
+          <div class="intrinsic-target-metrics intrinsic-calculator-scenarios">${scenarios}<span>Terminal shares<b>${calculator.terminalShares.toFixed(0)}M</b></span></div>
+          <p><b>${esc(calculator.metric)} · ${calculator.forecastYears}Y · ${esc(pct(calculator.annualGrowth,0))} growth · ${calculator.terminalPriceToFcf.toFixed(0)}× P/FCF · ${esc(pct(calculator.discountRate,0))} discount.</b> ${esc(calculator.note)}</p>
+          <span class="intrinsic-internal-source">Internal calculator cross-check · ${esc(calculator.modelDate)}</span>
+        </article>`;
+      }
+      return `<article class="intrinsic-target-card tone-${esc(item.tone)}">
+        <div class="intrinsic-target-head"><div><span>${esc(item.label)}</span><strong>$${item.price.toFixed(2)}</strong></div><i>${current?"Market data":"Analyst fair value"}</i></div>
+        <div class="intrinsic-hurdle"><span>Required 2027–35 revenue growth</span><b>${esc(pct(item.revenueGrowth))}</b><small>every year for nine years</small></div>
+        <div class="intrinsic-target-metrics">
+          <span>FY2035 revenue <b>${esc(intrinsicBillions(item.terminalRevenue))}</b></span>
+          <span>FY2035 FCFF <b>${esc(intrinsicBillions(item.terminalFcff))}</b></span>
+          <span>Target enterprise value <b>${esc(intrinsicBillions(item.targetEnterpriseValue))}</b></span>
+          <span>Terminal value / EV <b>${esc(pct(item.terminalValueShare))}</b></span>
+        </div>
+        <p>${current?"The price needs Datadog to compound near 30% for almost a decade while margin scales to a best-in-class level.":"The $200 anchor still requires elite durability, but its 2030 revenue path lands close to Morningstar’s disclosed forecast."}</p>
+        ${sourceAnchor(source.url,current?"Market-price source":"Morningstar access route")}
+      </article>`;
+    }).join("");
+    document.getElementById("intrinsic-gap-card").innerHTML=`
+      <div class="kpi-card-head"><div><span class="kpi-card-kicker">Expectation gap</span><h3>Where the paths diverge</h3></div></div>
+      <div class="intrinsic-gap-number"><span>FY2030 market-implied revenue</span><strong>${esc(intrinsicBillions(market2030))}</strong><small>${esc(signedPct(market2030/morningstar2030-1,1))} versus Morningstar’s disclosed ${esc(intrinsicBillions(morningstar2030))}</small></div>
+      <div class="intrinsic-gap-list">
+        <article><b>What is priced in</b><p>Near-30% growth persists well beyond today’s estimate window; margin reaches 35% without a separate dilution haircut.</p></article>
+        <article><b>What breaks first</b><p>Usage growth fades before operating leverage catches up, or SBC-driven share issuance absorbs part of the enterprise-value gain.</p></article>
+        <article><b>Action</b><p><span>Wait for proof</span> unless multi-product adoption, NRR, and large-customer growth sustain a path clearly above Morningstar’s forecast.</p></article>
+      </div>`;
+    const ms=intrinsicModel.morningstar;
+    const morningstarStats=[
+      ["Fair value",`$${ms.fairValue.toFixed(0)}`,"Per share"],
+      ["FY2026 revenue",intrinsicBillions(ms.forecastRevenue[2026]),"+30.0% growth"],
+      ["FY2030 revenue",intrinsicBillions(ms.forecastRevenue[2030]),`${pct(ms.fiveYearRevenueCagr)} 5-year CAGR`],
+      ["FY2030 operating margin",pct(ms.operatingMargin2030),"GAAP forecast"],
+      ["FY2030 FCFF margin",pct(ms.fcffMargin2030),"Morningstar forecast"],
+      ["WACC",pct(ms.wacc),`${pct(ms.costOfEquity)} cost of equity`],
+      ["Stage II EBI growth",pct(ms.stageTwoEbiGrowth),`${ms.perpetuityYear}-year DCF`],
+      ["Firm value",intrinsicBillions(ms.firmValue),`${intrinsicBillions(ms.equityValue)} equity value`],
+    ];
+    document.getElementById("morningstar-model-grid").innerHTML=morningstarStats.map(([label,value,note])=>`<article><span>${esc(label)}</span><strong>${esc(value)}</strong><p>${esc(note)}</p></article>`).join("");
+    const assumptions=[
+      ["WACC",pct(wacc,1),"Derived from 4.63% risk-free rate, 1.25 beta, and 4.18% ERP"],
+      ["Perpetual growth",pct(intrinsicModel.model.terminalGrowth,2),"Applied to FY2035 FCFF"],
+      ["FY2035 GAAP EBIT margin",pct(intrinsicModel.model.ebitMargin.at(-1)),"Same generous margin in both backsolves"],
+      ["Net cash bridge",intrinsicBillions(netCash),"Cash less converts and operating leases"],
+      ["Diluted shares",`${intrinsicModel.model.dilutedShares.toFixed(1)}M`,"Future issuance not separately forecast"],
+      ["FY2026 growth",pct(intrinsicModel.model.firstForecastGrowth),"Fixed first forecast year"],
+    ];
+    document.getElementById("intrinsic-assumption-grid").innerHTML=assumptions.map(([label,value,note])=>`<article><span>${esc(label)}</span><strong>${esc(value)}</strong><p>${esc(note)}</p></article>`).join("");
+    const methodCards=Object.entries(intrinsicModel.methodology).map(([label,copy])=>`<article><b>${esc(pretty(label))}</b><p>${esc(copy)}</p></article>`).join("");
+    const sourceRows=Object.values(intrinsicModel.sources).map(source=>`<article class="intrinsic-source-row"><b>${esc(source.label)}</b><span>${esc(source.publisher)} · ${esc(source.date)}</span><p>${esc(source.note)}</p>${sourceAnchor(source.url,"Open source")}</article>`).join("");
+    document.getElementById("intrinsic-source-content").innerHTML=`<div class="intrinsic-method-grid">${methodCards}</div><div class="intrinsic-source-list">${sourceRows}</div>`;
+    drawIntrinsicRevenueChart(cases);
+    const chart=document.getElementById("intrinsic-revenue-chart");
+    chart?.addEventListener("pointermove",showIntrinsicTooltip);chart?.addEventListener("pointerleave",hideChartTooltip);
+  }
+
   function peerMoney(value){
     if(Math.abs(value) >= 1e9) return `$${(value/1e9).toFixed(value >= 1e11 ? 0 : 1)}B`;
     return `$${(value/1e6).toFixed(0)}M`;
@@ -1395,6 +1615,11 @@
       button.tabIndex = active ? 0 : -1;
       if(active && focus) button.focus();
     });
+    const activeTabButton=tabButtons.find(button=>button.dataset.tab===tabId);
+    if(activeTabButton && tabList.scrollWidth>tabList.clientWidth){
+      const centeredLeft=activeTabButton.offsetLeft-(tabList.clientWidth-activeTabButton.offsetWidth)/2;
+      tabList.scrollTo({left:Math.max(0,centeredLeft),behavior:focus?"smooth":"auto"});
+    }
     tabPanels.forEach(panel => {
       panel.hidden = panel.dataset.panel !== tabId;
     });
@@ -1415,6 +1640,16 @@
           financialsInitialized = true;
         } else {
           renderFinancialCharts();
+        }
+      });
+    }
+    if(tabId === "intrinsic-valuation"){
+      requestAnimationFrame(() => {
+        if(!intrinsicInitialized){
+          renderIntrinsicValuation();
+          intrinsicInitialized = true;
+        } else {
+          drawIntrinsicRevenueChart();
         }
       });
     }
@@ -1732,10 +1967,19 @@
   window.addEventListener("resize",() => {
     if(state.activeTab === "kpis" && !kpisInitialized) return;
     if(state.activeTab === "financials" && !financialsInitialized) return;
+    if(state.activeTab === "intrinsic-valuation" && !intrinsicInitialized) return;
     if(state.activeTab === "peer-comps" && !peersInitialized) return;
-    if(!["kpis","financials","peer-comps"].includes(state.activeTab)) return;
+    if(!["kpis","financials","intrinsic-valuation","peer-comps"].includes(state.activeTab)) return;
     cancelAnimationFrame(resizeFrame);
-    resizeFrame = requestAnimationFrame(state.activeTab === "kpis" ? renderKpiCharts : state.activeTab === "financials" ? renderFinancialCharts : () => {drawPeerScatters();drawValuationHistory();});
+    resizeFrame = requestAnimationFrame(
+      state.activeTab === "kpis"
+        ? renderKpiCharts
+        : state.activeTab === "financials"
+          ? renderFinancialCharts
+          : state.activeTab === "intrinsic-valuation"
+            ? drawIntrinsicRevenueChart
+            : () => {drawPeerScatters();drawValuationHistory();}
+    );
   });
 
   activateTab(state.activeTab,{updateUrl:false});
