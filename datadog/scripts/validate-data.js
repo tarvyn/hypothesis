@@ -32,6 +32,7 @@ assert(kpis, "window.KPI_DATA must be exported");
 if(kpis){
   assert(kpis.quarterly.length === 27, "KPI history must contain 27 quarterly financial periods");
   assert(kpis.annualFcfEconomics?.length === 5, "FCF economics history must contain FY2021 through FY2025");
+  assert(kpis.quarterlyFcfEconomics?.length === 2, "Quarterly FCF economics must contain comparable Q1 2025 and Q1 2026 periods");
   assert(kpis.annualOperations?.length === 7, "Annual operations history must contain FY2019 through FY2025");
   assert(kpis.annualCapital?.length === 8, "Annual capital history must contain FY2019 through Q1 2026");
   assert(kpis.adoption.length === 24, "Product adoption history must contain 24 periods");
@@ -39,6 +40,10 @@ if(kpis){
   assert(kpis.adoption.at(-1)?.[0] === "2026Q1", "Latest adoption KPI period must be 2026Q1");
   assert(kpis.quarterly.every(row => row.length === 6 && row[5]?.startsWith("https://")), "Every financial KPI row needs an official source URL");
   assert(kpis.annualFcfEconomics?.every(row => row.length === 5 && row[4]?.startsWith("https://")), "Every FCF economics row needs an official source URL");
+  assert(kpis.quarterlyFcfEconomics?.every(row => row.length === 8 && row[7]?.startsWith("https://")), "Every quarterly FCF economics row needs complete bridge inputs and an official source URL");
+  assert(kpis.cloudCostEfficiency?.annualCloudCostIncrease === 149.8, "FY2025 disclosed cloud-cost increase must tie to $149.8M");
+  assert(kpis.cloudCostEfficiency?.q1CloudCostIncrease === 41.8, "Q1 2026 disclosed cloud-cost increase must tie to $41.8M");
+  assert(["annualSourceUrl","q1SourceUrl","q1ExplanationUrl","q2EfficiencyUrl","q3EfficiencyUrl"].every(key => isOfficialDatadogSource(kpis.cloudCostEfficiency?.[key])), "Cloud-cost evidence must use SEC or Datadog IR sources");
   assert(kpis.annualOperations?.every(row => row.length === 11 && row[10]?.startsWith("https://")), "Every annual operations row needs an official source URL");
   assert(kpis.annualCapital?.every(row => row.length === 8 && row[7]?.startsWith("https://")), "Every annual capital row needs an official source URL");
   assert(kpis.adoption.every(row => row.length === 9 && row[7]?.startsWith("https://")), "Every adoption KPI row needs an official source URL");
@@ -60,7 +65,7 @@ if(kpis){
   assert(kpis.grr.every(row => row[1] >= .9 && row[1] <= 1), "GRR visualization values must be stored as 1.00-based percentages");
   const auditableSeries = [
     ["quarterly",kpis.quarterly,5],["adoption",kpis.adoption,7],["total customers",kpis.totalCustomers,2],
-    ["annual FCF economics",kpis.annualFcfEconomics,4],["annual operations",kpis.annualOperations,10],["annual capital",kpis.annualCapital,7],
+    ["annual FCF economics",kpis.annualFcfEconomics,4],["quarterly FCF economics",kpis.quarterlyFcfEconomics,7],["annual operations",kpis.annualOperations,10],["annual capital",kpis.annualCapital,7],
     ["$1M customers",kpis.millionCustomers,2],["NRR",kpis.nrr,3],["GRR",kpis.grr,3],["AI customers",kpis.aiIntegrationCustomers,2],
   ];
   auditableSeries.forEach(([label,rows,urlIndex]) => {
@@ -78,6 +83,11 @@ if(kpis){
   assert(latestFcf[0] === "2025", "Latest annual FCF economics period must be FY2025");
   assert(Math.abs(latestFcf[2] - latestFcf[3] - 140.575) < 0.001, "FY2025 owner-FCF tie-out failed");
   assert(Math.abs((latestFcf[2] - latestFcf[3]) / latestFcf[1] - 0.041018) < 0.001, "FY2025 owner-FCF margin tie-out failed");
+  const latestQuarterlyFcf = kpis.quarterlyFcfEconomics.at(-1);
+  const latestQuarterlyOwnerFcf = latestQuarterlyFcf[2]-latestQuarterlyFcf[3]-latestQuarterlyFcf[4]-latestQuarterlyFcf[5]-latestQuarterlyFcf[6];
+  assert(latestQuarterlyFcf[0] === "2026Q1", "Latest quarterly FCF economics period must be Q1 2026");
+  assert(Math.abs(latestQuarterlyOwnerFcf - 83.061) < 0.001, "Q1 2026 owner-FCF bridge tie-out failed");
+  assert(Math.abs(latestQuarterlyOwnerFcf/latestQuarterlyFcf[1] - 0.082527) < 0.001, "Q1 2026 owner-FCF margin tie-out failed");
   const latestOperations = kpis.annualOperations.at(-1);
   assert(latestOperations[0] === "2025", "Latest annual operations period must be FY2025");
   assert(Math.abs(latestOperations[6] / latestOperations[1] - -0.012947) < 0.001, "FY2025 operating-margin tie-out failed");
@@ -86,7 +96,9 @@ if(kpis){
   const latestAnnualCapital = kpis.annualCapital.at(-2);
   assert(latestCapital[0] === "2026Q1", "Latest capital period must be Q1 2026");
   assert(Math.abs(latestCapital[1] + latestCapital[2] - 4758.617) < 0.001, "Q1 2026 liquidity tie-out failed");
-  assert(Math.abs(latestAnnualCapital[6] - 0.166765) < 0.001, "FY2025 R&D-adjusted ROIC tie-out failed");
+  assert(Math.abs(latestAnnualCapital[5] - 3242.653) < 0.001, "FY2025 three-year R&D-adjusted capital tie-out failed");
+  assert(Math.abs(latestAnnualCapital[6] - 0.151731) < 0.001, "FY2025 three-year R&D-adjusted ROIC tie-out failed");
+  assert(Math.abs(latestCapital[5] - 3355.831) < 0.001, "Q1 2026 three-year R&D-adjusted capital tie-out failed");
 }
 
 const peerSource = fs.readFileSync(path.join(root, "data", "peer-comps-data.js"), "utf8");
@@ -108,15 +120,20 @@ if(peerModel){
     const sbcMargin = row.ltmSbc / row.ltmRevenue;
     const enterpriseValue = row.marketCap + row.debt - row.cash;
     const ntmRevenue = row.ltmRevenue * (1+ntmGrowth);
+    const grossMargin = row.ltmGrossProfit / row.ltmRevenue;
     return {
       ltmGrowth, ntmGrowth, fcfMargin, sbcMargin,
-      grossMargin: row.ltmGrossProfit / row.ltmRevenue,
+      grossMargin,
       operatingMargin: row.ltmOperatingIncome / row.ltmRevenue,
       dilution: row.latestBasicShares / row.priorBasicShares - 1,
       rule40: ltmGrowth + fcfMargin,
       economicSensitivity: ltmGrowth + fcfMargin - sbcMargin,
+      evLtmRevenue: enterpriseValue / row.ltmRevenue,
       evNtmRevenue: enterpriseValue / ntmRevenue,
+      evNtmGrossProfit: enterpriseValue / (ntmRevenue * grossMargin),
       equityNtmFcf: row.marketCap / (ntmRevenue * fcfMargin),
+      ntmFcfYield: ntmRevenue * fcfMargin / row.marketCap,
+      ownerFcfYield: ntmRevenue * (fcfMargin-sbcMargin) / row.marketCap,
     };
   };
   const enriched = rows.map(row => ({...row,...metrics(row)}));
@@ -136,10 +153,101 @@ if(peerModel){
   assert(Math.abs(ddog.fcfMargin - .261277) < .00001, "DDOG standardized FCF margin tie-out failed");
   assert(Math.abs(ddog.rule40 - .556720) < .00001, "DDOG Rule of 40 tie-out failed");
   assert(Math.abs(ddog.economicSensitivity - .343419) < .00001, "DDOG Economic sensitivity tie-out failed");
+  assert(Math.abs(ddog.evLtmRevenue - 25.6709) < .001, "DDOG EV / LTM revenue tie-out failed");
   assert(Math.abs(ddog.evNtmRevenue - 20.7557) < .001, "DDOG EV / NTM revenue tie-out failed");
+  assert(Math.abs(ddog.evLtmRevenue - ddog.evNtmRevenue*(1+ddog.ntmGrowth)) < .00001, "DDOG LTM and NTM revenue multiples must reconcile");
+  assert(Math.abs(ddog.evNtmGrossProfit*ddog.grossMargin-ddog.evNtmRevenue) < .00001, "DDOG gross-profit multiple must reconcile to revenue multiple and gross margin");
+  assert(Math.abs(ddog.ntmFcfYield*ddog.equityNtmFcf-1) < .00001, "DDOG NTM FCF yield must reconcile to Equity / NTM FCF");
+  assert(ddog.ownerFcfYield > 0 && ddog.ownerFcfYield < ddog.ntmFcfYield, "DDOG owner FCF yield must remain positive and below standardized FCF yield");
   assert(Math.abs(median(broad.map(row => row.evNtmRevenue)) - 6.6872) < .001, "Broad-peer EV / NTM revenue median tie-out failed");
   assert(Math.abs(median(direct.map(row => row.evNtmRevenue)) - 4.2312) < .001, "Direct-peer EV / NTM revenue median tie-out failed");
   assert(ddog.evNtmRevenue / median(broad.map(row => row.evNtmRevenue)) - 1 > 2, "DDOG broad-peer valuation premium must exceed 200%");
+}
+
+const valuationSource = fs.readFileSync(path.join(root, "data", "valuation-context-data.js"), "utf8");
+vm.runInContext(valuationSource, sandbox, {filename:"valuation-context-data.js"});
+const valuationModel = sandbox.window.VALUATION_CONTEXT;
+assert(valuationModel, "window.VALUATION_CONTEXT must be exported");
+if(valuationModel){
+  const history = valuationModel.history.map(values => Object.fromEntries(valuationModel.historyFields.map((field,index) => [field,values[index]])));
+  const market = valuationModel.market.map(values => Object.fromEntries(valuationModel.marketFields.map((field,index) => [field,values[index]])));
+  const evLtmRevenue = row => (row.marketCap+row.debt-row.cash)/row.ltmRevenue;
+  const ltmGrowth = row => row.ltmRevenue/row.ltmPriorRevenue-1;
+  const highGrowthMarket = market.filter(row => ltmGrowth(row) >= .15);
+  const infrastructureTickers = valuationModel.segments.infrastructureSecurityData;
+  const infrastructureMarket = market.filter(row => infrastructureTickers.includes(row.ticker));
+  assert(valuationModel.meta.valuationDate === "2026-07-31", "Valuation-context date must match the peer snapshot");
+  assert(history.length >= 16 && isChronological(history.map(row => [row.date])), "DDOG valuation history must be chronological and span at least four years");
+  assert(history.at(-1)?.date === valuationModel.meta.valuationDate, "DDOG valuation history must end on the valuation date");
+  assert(Math.abs(evLtmRevenue(history.at(-1))-25.6709) < .001, "Current DDOG historical-context multiple must tie to peer comps");
+  assert(market.length === valuationModel.meta.broadSoftwareConstituentCount, "Broad-software count must tie to metadata");
+  assert(highGrowthMarket.length === valuationModel.meta.highGrowthConstituentCount, "High-growth software count must tie to metadata");
+  assert(infrastructureMarket.length === valuationModel.meta.infrastructureSecurityDataConstituentCount, "Infrastructure / security / data count must tie to metadata");
+  assert(new Set(infrastructureTickers).size === infrastructureTickers.length, "Infrastructure / security / data membership must not contain duplicates");
+  assert(!market.some(row => row.ticker === "DDOG"), "Datadog must be excluded from every software-market benchmark");
+  assert(market.every(row => row.marketCap >= 5e9), "Every broad-software constituent must have at least $5B market capitalization");
+  assert(highGrowthMarket.every(row => ltmGrowth(row) >= .15), "Every high-growth market constituent must have at least 15% LTM revenue growth");
+  assert(market.some(row => ltmGrowth(row) < .15), "Broad software must retain slower-growing companies omitted by the high-growth screen");
+  assert(market.every(row => row.ltmRevenue > 0 && row.ltmPriorRevenue > 0 && Number.isFinite(evLtmRevenue(row))), "Every software-market constituent needs valid EV / LTM revenue inputs");
+  assert(market.every(row => ["income","balance","market-cap"].every(statement => valuationModel.sourceFor(row.ticker,statement).startsWith("https://stockanalysis.com/"))), "Every software-market constituent needs valid source URLs");
+  assert(Object.values(valuationModel.sources).every(url => url.startsWith("https://")), "Valuation-context source registry must contain valid URLs");
+}
+
+const intrinsicSource = fs.readFileSync(path.join(root, "data", "intrinsic-valuation-data.js"), "utf8");
+vm.runInContext(intrinsicSource, sandbox, {filename:"intrinsic-valuation-data.js"});
+const intrinsicModel = sandbox.window.INTRINSIC_VALUATION;
+assert(intrinsicModel, "window.INTRINSIC_VALUATION must be exported");
+if(intrinsicModel){
+  const input=intrinsicModel.model;
+  const costOfEquity=input.riskFreeRate+input.beta*input.equityRiskPremium;
+  const wacc=costOfEquity*input.equityWeight+input.preTaxCostOfDebt*(1-input.marginalTaxRate)*input.debtWeight;
+  const netCash=input.cashAndMarketableSecurities-input.convertibleDebt-input.operatingLeaseLiabilities;
+  const runDcf=revenueGrowth=>{
+    let revenue=input.baseRevenue,previousNwc=input.historicalNwc,pvExplicit=0,terminalFcff=0;
+    input.forecastYears.forEach((year,index)=>{
+      const growth=index===0?input.firstForecastGrowth:revenueGrowth;
+      revenue*=1+growth;
+      const ebit=revenue*input.ebitMargin[index];
+      const cashTaxes=Math.max(ebit*input.cashTaxRate[index],0);
+      const da=revenue*input.daPercentRevenue[index];
+      const capex=revenue*input.capexPercentRevenue[index];
+      const nwc=revenue*input.nwcPercentRevenue[index];
+      const fcff=ebit-cashTaxes+da-capex-(nwc-previousNwc);
+      pvExplicit+=fcff/Math.pow(1+wacc,index+.5);
+      previousNwc=nwc;terminalFcff=fcff;
+    });
+    const pvTerminal=terminalFcff*(1+input.terminalGrowth)/(wacc-input.terminalGrowth)/Math.pow(1+wacc,input.forecastYears.length);
+    return {enterpriseValue:pvExplicit+pvTerminal,terminalRevenue:revenue,terminalFcff};
+  };
+  const solveTarget=target=>{
+    const targetEv=target.price*input.dilutedShares-netCash;
+    let low=-.2,high=.8;
+    for(let index=0;index<180;index++){
+      const midpoint=(low+high)/2;
+      if(runDcf(midpoint).enterpriseValue<targetEv) low=midpoint; else high=midpoint;
+    }
+    const growth=(low+high)/2;
+    return {growth,targetEv,...runDcf(growth)};
+  };
+  const marketTarget=intrinsicModel.targets.find(target=>target.id==="market");
+  const morningstarTarget=intrinsicModel.targets.find(target=>target.id==="morningstar");
+  const market=solveTarget(marketTarget);
+  const morningstar=solveTarget(morningstarTarget);
+  assert(intrinsicModel.meta.modelDate === "2026-08-05", "Intrinsic-valuation model date must be 2026-08-05");
+  assert(marketTarget?.price === 285.25, "Current-price reverse DCF must use the 5 August 2026 $285.25 snapshot");
+  assert(morningstarTarget?.price === 200, "Morningstar reverse DCF must use the $200 fair value");
+  assert(input.forecastYears.length === 10 && input.forecastYears[0] === 2026 && input.forecastYears.at(-1) === 2035, "Reverse DCF must span FY2026 through FY2035");
+  ["ebitMargin","cashTaxRate","daPercentRevenue","capexPercentRevenue","nwcPercentRevenue"].forEach(key=>assert(input[key].length===input.forecastYears.length, `Intrinsic-valuation ${key} must match the forecast horizon`));
+  assert(Math.abs(wacc-.097977)<.000001, "Reverse DCF WACC tie-out failed");
+  assert(Math.abs(netCash-3473.565)<.001, "Reverse DCF net-cash bridge tie-out failed");
+  assert(Math.abs(market.growth-.3048782)<.000001, "Current-price implied revenue growth tie-out failed");
+  assert(Math.abs(morningstar.growth-.2517281)<.000001, "Morningstar-price implied revenue growth tie-out failed");
+  assert(Math.abs(market.terminalRevenue-47381.266)<.01, "Current-price FY2035 revenue tie-out failed");
+  assert(Math.abs(morningstar.terminalRevenue-32588.688)<.01, "Morningstar-price FY2035 revenue tie-out failed");
+  assert(Math.abs(market.enterpriseValue-market.targetEv)<.01 && Math.abs(morningstar.enterpriseValue-morningstar.targetEv)<.01, "Reverse DCF enterprise values must tie to both target prices");
+  assert(intrinsicModel.morningstar.fairValue===morningstarTarget.price, "Morningstar disclosed fair value must tie to the reverse-DCF target");
+  assert(intrinsicModel.morningstar.forecastRevenue[2030]===10256 && intrinsicModel.morningstar.wacc===.086, "Morningstar disclosed model cross-check failed");
+  assert(Object.values(intrinsicModel.sources).every(source=>source.url?.startsWith("https://") && source.date), "Every intrinsic-valuation source needs a dated HTTPS route");
 }
 
 const categoryIds = new Set(model.categories.map(category => category.id));
