@@ -120,15 +120,20 @@ if(peerModel){
     const sbcMargin = row.ltmSbc / row.ltmRevenue;
     const enterpriseValue = row.marketCap + row.debt - row.cash;
     const ntmRevenue = row.ltmRevenue * (1+ntmGrowth);
+    const grossMargin = row.ltmGrossProfit / row.ltmRevenue;
     return {
       ltmGrowth, ntmGrowth, fcfMargin, sbcMargin,
-      grossMargin: row.ltmGrossProfit / row.ltmRevenue,
+      grossMargin,
       operatingMargin: row.ltmOperatingIncome / row.ltmRevenue,
       dilution: row.latestBasicShares / row.priorBasicShares - 1,
       rule40: ltmGrowth + fcfMargin,
       economicSensitivity: ltmGrowth + fcfMargin - sbcMargin,
+      evLtmRevenue: enterpriseValue / row.ltmRevenue,
       evNtmRevenue: enterpriseValue / ntmRevenue,
+      evNtmGrossProfit: enterpriseValue / (ntmRevenue * grossMargin),
       equityNtmFcf: row.marketCap / (ntmRevenue * fcfMargin),
+      ntmFcfYield: ntmRevenue * fcfMargin / row.marketCap,
+      ownerFcfYield: ntmRevenue * (fcfMargin-sbcMargin) / row.marketCap,
     };
   };
   const enriched = rows.map(row => ({...row,...metrics(row)}));
@@ -148,10 +153,44 @@ if(peerModel){
   assert(Math.abs(ddog.fcfMargin - .261277) < .00001, "DDOG standardized FCF margin tie-out failed");
   assert(Math.abs(ddog.rule40 - .556720) < .00001, "DDOG Rule of 40 tie-out failed");
   assert(Math.abs(ddog.economicSensitivity - .343419) < .00001, "DDOG Economic sensitivity tie-out failed");
+  assert(Math.abs(ddog.evLtmRevenue - 25.6709) < .001, "DDOG EV / LTM revenue tie-out failed");
   assert(Math.abs(ddog.evNtmRevenue - 20.7557) < .001, "DDOG EV / NTM revenue tie-out failed");
+  assert(Math.abs(ddog.evLtmRevenue - ddog.evNtmRevenue*(1+ddog.ntmGrowth)) < .00001, "DDOG LTM and NTM revenue multiples must reconcile");
+  assert(Math.abs(ddog.evNtmGrossProfit*ddog.grossMargin-ddog.evNtmRevenue) < .00001, "DDOG gross-profit multiple must reconcile to revenue multiple and gross margin");
+  assert(Math.abs(ddog.ntmFcfYield*ddog.equityNtmFcf-1) < .00001, "DDOG NTM FCF yield must reconcile to Equity / NTM FCF");
+  assert(ddog.ownerFcfYield > 0 && ddog.ownerFcfYield < ddog.ntmFcfYield, "DDOG owner FCF yield must remain positive and below standardized FCF yield");
   assert(Math.abs(median(broad.map(row => row.evNtmRevenue)) - 6.6872) < .001, "Broad-peer EV / NTM revenue median tie-out failed");
   assert(Math.abs(median(direct.map(row => row.evNtmRevenue)) - 4.2312) < .001, "Direct-peer EV / NTM revenue median tie-out failed");
   assert(ddog.evNtmRevenue / median(broad.map(row => row.evNtmRevenue)) - 1 > 2, "DDOG broad-peer valuation premium must exceed 200%");
+}
+
+const valuationSource = fs.readFileSync(path.join(root, "data", "valuation-context-data.js"), "utf8");
+vm.runInContext(valuationSource, sandbox, {filename:"valuation-context-data.js"});
+const valuationModel = sandbox.window.VALUATION_CONTEXT;
+assert(valuationModel, "window.VALUATION_CONTEXT must be exported");
+if(valuationModel){
+  const history = valuationModel.history.map(values => Object.fromEntries(valuationModel.historyFields.map((field,index) => [field,values[index]])));
+  const market = valuationModel.market.map(values => Object.fromEntries(valuationModel.marketFields.map((field,index) => [field,values[index]])));
+  const evLtmRevenue = row => (row.marketCap+row.debt-row.cash)/row.ltmRevenue;
+  const ltmGrowth = row => row.ltmRevenue/row.ltmPriorRevenue-1;
+  const highGrowthMarket = market.filter(row => ltmGrowth(row) >= .15);
+  const infrastructureTickers = valuationModel.segments.infrastructureSecurityData;
+  const infrastructureMarket = market.filter(row => infrastructureTickers.includes(row.ticker));
+  assert(valuationModel.meta.valuationDate === "2026-07-31", "Valuation-context date must match the peer snapshot");
+  assert(history.length >= 16 && isChronological(history.map(row => [row.date])), "DDOG valuation history must be chronological and span at least four years");
+  assert(history.at(-1)?.date === valuationModel.meta.valuationDate, "DDOG valuation history must end on the valuation date");
+  assert(Math.abs(evLtmRevenue(history.at(-1))-25.6709) < .001, "Current DDOG historical-context multiple must tie to peer comps");
+  assert(market.length === valuationModel.meta.broadSoftwareConstituentCount, "Broad-software count must tie to metadata");
+  assert(highGrowthMarket.length === valuationModel.meta.highGrowthConstituentCount, "High-growth software count must tie to metadata");
+  assert(infrastructureMarket.length === valuationModel.meta.infrastructureSecurityDataConstituentCount, "Infrastructure / security / data count must tie to metadata");
+  assert(new Set(infrastructureTickers).size === infrastructureTickers.length, "Infrastructure / security / data membership must not contain duplicates");
+  assert(!market.some(row => row.ticker === "DDOG"), "Datadog must be excluded from every software-market benchmark");
+  assert(market.every(row => row.marketCap >= 5e9), "Every broad-software constituent must have at least $5B market capitalization");
+  assert(highGrowthMarket.every(row => ltmGrowth(row) >= .15), "Every high-growth market constituent must have at least 15% LTM revenue growth");
+  assert(market.some(row => ltmGrowth(row) < .15), "Broad software must retain slower-growing companies omitted by the high-growth screen");
+  assert(market.every(row => row.ltmRevenue > 0 && row.ltmPriorRevenue > 0 && Number.isFinite(evLtmRevenue(row))), "Every software-market constituent needs valid EV / LTM revenue inputs");
+  assert(market.every(row => ["income","balance","market-cap"].every(statement => valuationModel.sourceFor(row.ticker,statement).startsWith("https://stockanalysis.com/"))), "Every software-market constituent needs valid source URLs");
+  assert(Object.values(valuationModel.sources).every(url => url.startsWith("https://")), "Valuation-context source registry must contain valid URLs");
 }
 
 const categoryIds = new Set(model.categories.map(category => category.id));

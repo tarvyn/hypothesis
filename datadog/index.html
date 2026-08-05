@@ -17,7 +17,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./styles.css?v=20260804-3">
+  <link rel="stylesheet" href="./styles.css?v=20260804-6">
 </head>
 <body>
   <main class="wrap">
@@ -754,8 +754,8 @@
 
         <nav class="peer-section-nav" aria-label="Peer analysis sections">
           <button type="button" data-peer-target="peer-overview">Overview</button>
+          <button type="button" data-peer-target="peer-valuation-context">Valuation context</button>
           <button type="button" data-peer-target="peer-valuation-map">Valuation map</button>
-          <button type="button" data-peer-target="peer-cash-quality">Cash quality</button>
           <button type="button" data-peer-target="peer-sensitivity">Sensitivity</button>
           <button type="button" data-peer-target="peer-table-section">Peer table</button>
           <button type="button" data-peer-target="peer-methodology">Methodology</button>
@@ -769,20 +769,72 @@
 
         <div class="peer-snapshot" id="peer-snapshot" aria-label="Datadog versus peer medians"></div>
 
-        <section class="kpi-section peer-valuation-section" id="peer-valuation-map" aria-labelledby="peer-valuation-title">
+        <section class="kpi-section valuation-context-section" id="peer-valuation-context" aria-labelledby="valuation-context-title">
           <div class="section-head compact">
-            <div><span class="section-kicker">Growth versus multiple</span><h2 id="peer-valuation-title">What the market pays for forward growth</h2></div>
-            <p>Bubble size represents market capitalization. Dashed lines mark the broad-peer medians; Datadog is highlighted.</p>
+            <div><span class="section-kicker">EV / LTM revenue · one definition, three lenses</span><h2 id="valuation-context-title">Valuation in context</h2></div>
+            <p>Datadog’s current multiple is compared with its own reconstructed history, the eight-company peer set, and only high-growth software companies from the BVP Nasdaq Emerging Cloud universe.</p>
           </div>
-          <div class="peer-visual-grid">
-            <article class="kpi-chart-card peer-scatter-card">
+          <div class="valuation-context-summary" id="valuation-context-summary" aria-label="Valuation context summary"></div>
+          <div class="valuation-context-grid">
+            <article class="kpi-chart-card valuation-history-card">
               <div class="kpi-card-head">
-                <div><span class="kpi-card-kicker">Valuation map</span><h3>NTM growth vs EV / NTM revenue</h3></div>
+                <div><span class="kpi-card-kicker">01 · Own history</span><h3>Datadog EV / LTM revenue</h3></div>
+                <span class="kpi-source">Quarterly · Mar 2022–Jul 2026</span>
+              </div>
+              <p class="kpi-chart-note">The shaded band marks the historical interquartile range; the dashed line marks the median. Quarter-end EV uses reported balance-sheet inputs.</p>
+              <canvas id="valuation-history-chart" class="financial-chart valuation-history-chart" role="img" aria-label="Datadog historical enterprise value to LTM revenue multiple"></canvas>
+              <div class="chart-legend" id="valuation-history-legend"></div>
+            </article>
+            <article class="valuation-benchmark-card">
+              <div class="kpi-card-head">
+                <div><span class="kpi-card-kicker">02 · Competitors</span><h3>Peer valuation range</h3></div>
                 <span class="kpi-source">31 Jul 2026</span>
               </div>
-              <canvas id="peer-valuation-chart" class="financial-chart peer-scatter" role="img" aria-label="Peer NTM revenue growth versus enterprise value to NTM revenue"></canvas>
-              <div class="chart-legend" id="peer-valuation-legend"></div>
+              <p class="kpi-chart-note">Datadog is excluded from benchmark statistics. Direct peers are Dynatrace and Elastic.</p>
+              <div class="valuation-distributions" id="valuation-peer-distributions"></div>
             </article>
+            <article class="valuation-benchmark-card high-growth-market-card">
+              <div class="kpi-card-head">
+                <div><span class="kpi-card-kicker">03 · Software market</span><h3>Market valuation range</h3></div>
+                <span class="kpi-source">3 cohorts</span>
+              </div>
+              <p class="kpi-chart-note">All cohorts start from ex-Datadog BVP Nasdaq Emerging Cloud constituents with market cap ≥ $5B. High-growth adds a ≥15% LTM growth cutoff; infrastructure / security / data is a disclosed thematic subset.</p>
+              <div class="valuation-distributions" id="valuation-market-distribution"></div>
+              <details class="valuation-cohort-details">
+                <summary>View the 39-company universe, cohort membership and exact values</summary>
+                <div class="kpi-table-wrap"><table class="kpi-table valuation-cohort-table"><thead><tr><th>Company</th><th>Cohorts</th><th>LTM growth</th><th>EV / LTM revenue</th></tr></thead><tbody id="valuation-market-body"></tbody></table></div>
+              </details>
+            </article>
+          </div>
+          <p class="valuation-context-footnote">Screening-grade reconstruction. Historical quarter-end observations and the current market screen are useful for relative framing, not a substitute for a point-in-time institutional data set.</p>
+        </section>
+
+        <section class="kpi-section peer-valuation-section" id="peer-valuation-map" aria-labelledby="peer-valuation-title">
+          <div class="section-head compact">
+            <div><span class="section-kicker">Growth versus multiple</span><h2 id="peer-valuation-title">What the market pays for growth</h2></div>
+            <p>Forward and reported views use matched time horizons. Bubble size represents market capitalization; dashed lines mark broad-peer medians.</p>
+          </div>
+          <div class="peer-visual-grid">
+            <div class="peer-scatter-stack">
+              <article class="kpi-chart-card peer-scatter-card">
+                <div class="kpi-card-head">
+                  <div><span class="kpi-card-kicker">Forward valuation map</span><h3>NTM growth vs EV / NTM revenue</h3></div>
+                  <span class="kpi-source">31 Jul 2026</span>
+                </div>
+                <p class="kpi-chart-note">Forward growth and forward revenue use the same calendarized horizon.</p>
+                <canvas id="peer-valuation-chart" class="financial-chart peer-scatter" role="img" aria-label="Peer NTM revenue growth versus enterprise value to NTM revenue"></canvas>
+                <div class="chart-legend" id="peer-valuation-legend"></div>
+              </article>
+              <article class="kpi-chart-card peer-scatter-card">
+                <div class="kpi-card-head">
+                  <div><span class="kpi-card-kicker">Reported valuation map</span><h3>LTM growth vs EV / LTM revenue</h3></div>
+                  <span class="kpi-source">31 Jul 2026</span>
+                </div>
+                <p class="kpi-chart-note">Trailing growth and trailing revenue provide an estimate-free sanity check.</p>
+                <canvas id="peer-reported-valuation-chart" class="financial-chart peer-scatter" role="img" aria-label="Peer LTM revenue growth versus enterprise value to LTM revenue"></canvas>
+                <div class="chart-legend" id="peer-reported-valuation-legend"></div>
+              </article>
+            </div>
             <article class="peer-gap-card">
               <div class="kpi-card-head"><div><span class="kpi-card-kicker">Expectation gap</span><h3>Advantage versus premium</h3></div></div>
               <p class="kpi-chart-note">Datadog relative to the broad-peer median. Percentage-point differences show fundamentals; percentage premiums show valuation.</p>
@@ -790,18 +842,6 @@
               <div class="peer-gap-group valuation"><h4>Valuation premium</h4><div id="peer-valuation-gap"></div></div>
             </article>
           </div>
-        </section>
-
-        <section class="kpi-section peer-cash-section" id="peer-cash-quality" aria-labelledby="peer-cash-title">
-          <div class="section-head compact">
-            <div><span class="section-kicker">FCF, SBC &amp; dilution</span><h2 id="peer-cash-title">Cash quality changes the ranking</h2></div>
-            <p>Standardized FCF is compared with an economic sensitivity that treats SBC as a shareholder cost.</p>
-          </div>
-          <div class="financial-section-read tone-cyan peer-cash-read">
-            <div><span class="kpi-net-label">Investor read</span><p><b>Datadog’s 26.1% FCF margin falls to 4.8% after SBC.</b> Economic sensitivity remains above both peer medians because growth is strong, but the cash-conversion edge is far smaller than headline FCF suggests.</p></div>
-            <div class="financial-read-metrics" id="peer-cash-read-metrics"></div>
-          </div>
-          <div class="peer-cash-grid" id="peer-cash-grid"></div>
         </section>
 
         <section class="kpi-section peer-sensitivity-section" id="peer-sensitivity" aria-labelledby="peer-sensitivity-title">
@@ -840,24 +880,52 @@
             <button type="button" data-peer-filter="infrastructure">Consumption &amp; infra</button>
             <button type="button" data-peer-filter="adjacent">Adjacencies</button>
           </div>
-          <div class="kpi-table-wrap peer-table-wrap">
-            <table class="kpi-table peer-table">
-              <thead><tr>
-                <th><button type="button" data-peer-sort="ticker">Company</button></th>
-                <th><button type="button" data-peer-sort="ltmGrowth">Revenue growth</button></th>
-                <th><button type="button" data-peer-sort="ntmGrowth">NTM growth</button></th>
-                <th><button type="button" data-peer-sort="grossMargin">Gross margin</button></th>
-                <th><button type="button" data-peer-sort="operatingMargin">GAAP op. margin</button></th>
-                <th><button type="button" data-peer-sort="fcfMargin">FCF margin</button></th>
-                <th><button type="button" data-peer-sort="rule40">Rule of 40</button></th>
-                <th><button type="button" data-peer-sort="sbcMargin">SBC / revenue</button></th>
-                <th><button type="button" data-peer-sort="dilution">Dilution</button></th>
-                <th><button type="button" data-peer-sort="economicSensitivity">Economic sensitivity</button></th>
-                <th><button type="button" data-peer-sort="evNtmRevenue">EV / NTM revenue</button></th>
-                <th><button type="button" data-peer-sort="equityNtmFcf">Equity / NTM FCF</button></th>
-              </tr></thead>
-              <tbody id="peer-table-body"></tbody>
-            </table>
+          <div class="peer-table-block">
+            <div class="peer-table-heading">
+              <span>01</span>
+              <div><h3>Operating fundamentals</h3><p>Growth, margins, efficiency, SBC and dilution—before asking what price the market assigns.</p></div>
+              <div class="peer-heat-legend" aria-label="Heatmap legend: weaker in red, stronger in green"><small>Weaker</small><i></i><small>Stronger</small></div>
+            </div>
+            <div class="kpi-table-wrap peer-table-wrap">
+              <table class="kpi-table peer-table peer-fundamentals-table">
+                <thead><tr>
+                  <th><button type="button" data-peer-table="fundamentals" data-peer-sort="ticker">Company</button></th>
+                  <th><button type="button" data-peer-table="fundamentals" data-peer-sort="ltmGrowth">LTM growth</button></th>
+                  <th><button type="button" data-peer-table="fundamentals" data-peer-sort="ntmGrowth">NTM growth</button></th>
+                  <th><button type="button" data-peer-table="fundamentals" data-peer-sort="grossMargin">Gross margin</button></th>
+                  <th><button type="button" data-peer-table="fundamentals" data-peer-sort="operatingMargin">GAAP op. margin</button></th>
+                  <th><button type="button" data-peer-table="fundamentals" data-peer-sort="fcfMargin">FCF margin</button></th>
+                  <th><button type="button" data-peer-table="fundamentals" data-peer-sort="gaapRule40">GAAP Rule of 40</button></th>
+                  <th><button type="button" data-peer-table="fundamentals" data-peer-sort="rule40">FCF Rule of 40</button></th>
+                  <th><button type="button" data-peer-table="fundamentals" data-peer-sort="economicSensitivity">SBC-adjusted Rule of 40*</button></th>
+                  <th><button type="button" data-peer-table="fundamentals" data-peer-sort="sbcMargin">SBC / revenue</button></th>
+                  <th><button type="button" data-peer-table="fundamentals" data-peer-sort="dilution">Dilution</button></th>
+                </tr></thead>
+                <tbody id="peer-fundamentals-body"></tbody>
+              </table>
+            </div>
+            <p class="peer-table-note">Colors use a continuous minimum-to-maximum scale across all nine companies, so similar values receive similar colors. Higher is stronger except SBC / revenue and dilution, where lower is better; exact rank appears on hover. * Analyst-adjusted sensitivity: FCF Rule of 40 less SBC / revenue; it is not a standardized industry KPI.</p>
+          </div>
+          <div class="peer-table-block peer-valuation-table-block">
+            <div class="peer-table-heading">
+              <span>02</span>
+              <div><h3>Valuation</h3><p>Reported and forward revenue multiples, gross-profit normalization and equity cash yields.</p></div>
+              <div class="peer-heat-legend valuation" aria-label="Heatmap legend: more expensive in red, cheaper in green"><small>Expensive</small><i></i><small>Cheaper</small></div>
+            </div>
+            <div class="kpi-table-wrap peer-table-wrap">
+              <table class="kpi-table peer-table peer-valuation-table">
+                <thead><tr>
+                  <th><button type="button" data-peer-table="valuation" data-peer-sort="ticker">Company</button></th>
+                  <th><button type="button" data-peer-table="valuation" data-peer-sort="evLtmRevenue">EV / LTM revenue</button></th>
+                  <th><button type="button" data-peer-table="valuation" data-peer-sort="evNtmRevenue">EV / NTM revenue</button></th>
+                  <th><button type="button" data-peer-table="valuation" data-peer-sort="evNtmGrossProfit">EV / NTM gross profit*</button></th>
+                  <th><button type="button" data-peer-table="valuation" data-peer-sort="ntmFcfYield">NTM FCF yield</button></th>
+                  <th><button type="button" data-peer-table="valuation" data-peer-sort="ownerFcfYield">Owner FCF yield†</button></th>
+                </tr></thead>
+                <tbody id="peer-valuation-body"></tbody>
+              </table>
+            </div>
+            <p class="peer-table-note">Colors use a continuous minimum-to-maximum scale across all nine companies: lower multiples and higher yields are greener; exact rank appears on hover. Color indicates standalone valuation attractiveness, not business quality or an investment recommendation. * NTM gross profit uses the NTM revenue proxy and latest LTM gross margin. † Owner FCF yield subtracts SBC and is an analyst-adjusted sensitivity, not reported cash flow.</p>
           </div>
         </section>
 
@@ -884,7 +952,8 @@
 
   <script src="./data/product-map-data.js"></script>
   <script src="./data/kpi-data.js"></script>
-  <script src="./data/peer-comps-data.js"></script>
-  <script src="./app.js?v=20260803-4"></script>
+  <script src="./data/peer-comps-data.js?v=20260804-2"></script>
+  <script src="./data/valuation-context-data.js?v=20260804-2"></script>
+  <script src="./app.js?v=20260805-1"></script>
 </body>
 </html>

@@ -5,6 +5,8 @@
   if (!kpiModel) throw new Error("KPI data did not load.");
   const peerModel = window.PEER_COMPS;
   if (!peerModel) throw new Error("Peer comps data did not load.");
+  const valuationModel = window.VALUATION_CONTEXT;
+  if (!valuationModel) throw new Error("Valuation context data did not load.");
 
   const MOAT = {
     data_gravity:{label:"Data gravity",color:"#7c6bf5"},
@@ -128,7 +130,10 @@
       : "product-map",
     showProductScores:false,
     peerFilter:"all",
-    peerSort:{key:"evNtmRevenue",direction:"desc"},
+    peerSort:{
+      fundamentals:{key:"ltmGrowth",direction:"desc"},
+      valuation:{key:"evNtmRevenue",direction:"desc"},
+    },
     peerMultiple:20.8,
   };
   const refs = {};
@@ -171,7 +176,8 @@
   const financialSectionNav = document.querySelector(".financial-section-nav");
   const peerSectionNav = document.querySelector(".peer-section-nav");
   const peerSnapshot = document.getElementById("peer-snapshot");
-  const peerTableBody = document.getElementById("peer-table-body");
+  const peerFundamentalsBody = document.getElementById("peer-fundamentals-body");
+  const peerValuationBody = document.getElementById("peer-valuation-body");
   const chartTooltip = document.getElementById("chart-tooltip");
 
   const financials = kpiModel.quarterly.map((row,index,rows) => {
@@ -256,6 +262,13 @@
     const middle = Math.floor(sorted.length/2);
     return sorted.length % 2 ? sorted[middle] : (sorted[middle-1]+sorted[middle])/2;
   };
+  const quantile = (values,percentile) => {
+    const sorted = [...values].filter(Number.isFinite).sort((a,b) => a-b);
+    if(!sorted.length) return null;
+    const position = (sorted.length-1)*percentile;
+    const lower = Math.floor(position),upper = Math.ceil(position);
+    return sorted[lower]+(sorted[upper]-sorted[lower])*(position-lower);
+  };
   const peerRows = peerModel.companies.map(values => {
     const row = Object.fromEntries(peerModel.fields.map((field,index) => [field,values[index]]));
     const ltmGrowth = row.ltmRevenue/row.ltmPriorRevenue-1;
@@ -265,24 +278,42 @@
     const sbcMargin = row.ltmSbc/row.ltmRevenue;
     const ntmRevenue = row.ltmRevenue*(1+ntmGrowth);
     const enterpriseValue = row.marketCap+row.debt-row.cash;
+    const grossMargin = row.ltmGrossProfit/row.ltmRevenue;
+    const fcfLessSbcMargin = fcfMargin-sbcMargin;
     return {
       ...row,ltmGrowth,ntmGrowth,standardizedFcf,fcfMargin,sbcMargin,ntmRevenue,enterpriseValue,
-      grossMargin:row.ltmGrossProfit/row.ltmRevenue,
+      grossMargin,
       operatingMargin:row.ltmOperatingIncome/row.ltmRevenue,
       rule40:ltmGrowth+fcfMargin,
-      fcfLessSbcMargin:fcfMargin-sbcMargin,
+      fcfLessSbcMargin,
       economicSensitivity:ltmGrowth+fcfMargin-sbcMargin,
       gaapRule40:ltmGrowth+row.ltmOperatingIncome/row.ltmRevenue,
       dilution:row.latestBasicShares/row.priorBasicShares-1,
+      evLtmRevenue:enterpriseValue/row.ltmRevenue,
       evNtmRevenue:enterpriseValue/ntmRevenue,
+      evNtmGrossProfit:enterpriseValue/(ntmRevenue*grossMargin),
       equityNtmFcf:row.marketCap/(ntmRevenue*fcfMargin),
       ntmFcfYield:ntmRevenue*fcfMargin/row.marketCap,
+      ownerFcfYield:ntmRevenue*fcfLessSbcMargin/row.marketCap,
     };
   });
   const ddogPeer = peerRows.find(row => row.ticker === "DDOG");
   const broadPeers = peerRows.filter(row => row.ticker !== "DDOG");
   const directPeers = peerRows.filter(row => row.bucket === "direct");
   const peerMedian = (rows,key) => median(rows.map(row => row[key]));
+  const valuationHistory = valuationModel.history.map(values => {
+    const row = Object.fromEntries(valuationModel.historyFields.map((field,index) => [field,values[index]]));
+    return {...row,enterpriseValue:row.marketCap+row.debt-row.cash,evLtmRevenue:(row.marketCap+row.debt-row.cash)/row.ltmRevenue};
+  });
+  const broadSoftwareMarket = valuationModel.market.map(values => {
+    const row = Object.fromEntries(valuationModel.marketFields.map((field,index) => [field,values[index]]));
+    const ltmGrowth = row.ltmRevenue/row.ltmPriorRevenue-1;
+    const enterpriseValue = row.marketCap+row.debt-row.cash;
+    return {...row,ltmGrowth,enterpriseValue,evLtmRevenue:enterpriseValue/row.ltmRevenue};
+  });
+  const highGrowthMarket = broadSoftwareMarket.filter(row=>row.ltmGrowth>=.15);
+  const infrastructureSecurityDataTickers = new Set(valuationModel.segments.infrastructureSecurityData);
+  const infrastructureSecurityDataMarket = broadSoftwareMarket.filter(row=>infrastructureSecurityDataTickers.has(row.ticker));
   let kpiChartConfigs = [];
   let financialChartConfigs = [];
   let kpisInitialized = false;
@@ -912,22 +943,126 @@
     return `${value >= 0 ? "+" : "−"}${Math.abs(value*100).toFixed(digits)}%`;
   }
 
+  function valuationStats(rows){
+    const values=rows.map(row=>row.evLtmRevenue).filter(Number.isFinite);
+    return {count:values.length,min:Math.min(...values),p25:quantile(values,.25),median:median(values),p75:quantile(values,.75),max:Math.max(...values)};
+  }
+
+  function valuationPercentile(value,rows){
+    const values=rows.map(row=>row.evLtmRevenue).filter(Number.isFinite);
+    return values.length ? values.filter(item=>item<value).length/values.length : 0;
+  }
+
+  function valuationDistribution(label,rows,note){
+    const stats=valuationStats(rows);
+    const scaleMax=50;
+    const position=value=>Math.max(0,Math.min(100,value/scaleMax*100));
+    const premium=ddogPeer.evLtmRevenue/stats.median-1;
+    return `<div class="valuation-distribution">
+      <div class="valuation-distribution-head"><div><b>${esc(label)}</b><span>${esc(note)}</span></div><strong>${esc(multiple(stats.median))}<small>median</small></strong></div>
+      <div class="valuation-distribution-track" role="img" aria-label="${esc(label)}: ${multiple(stats.p25)} to ${multiple(stats.p75)} interquartile range, ${multiple(stats.median)} median, Datadog ${multiple(ddogPeer.evLtmRevenue)}">
+        <i class="valuation-range" style="left:${position(stats.p25)}%;width:${Math.max(1,position(stats.p75)-position(stats.p25))}%"></i>
+        <i class="valuation-median" style="left:${position(stats.median)}%"></i>
+        <i class="valuation-target" style="left:${position(ddogPeer.evLtmRevenue)}%"><span>DDOG ${esc(multiple(ddogPeer.evLtmRevenue))}</span></i>
+      </div>
+      <div class="valuation-distribution-axis"><span>0×</span><span>10×</span><span>20×</span><span>30×</span><span>40×</span><span>50×</span></div>
+      <div class="valuation-distribution-read"><span>IQR <b>${esc(multiple(stats.p25))}–${esc(multiple(stats.p75))}</b></span><span>DDOG premium <b>${esc(signedPct(premium))}</b></span></div>
+    </div>`;
+  }
+
+  function renderValuationContext(){
+    const historicalObservations=valuationHistory.slice(0,-1);
+    const historicalStats=valuationStats(historicalObservations);
+    const broadStats=valuationStats(broadPeers);
+    const marketStats=valuationStats(highGrowthMarket);
+    const historicalPercentile=valuationPercentile(ddogPeer.evLtmRevenue,historicalObservations);
+    const marketRank=1+highGrowthMarket.filter(row=>row.evLtmRevenue>ddogPeer.evLtmRevenue).length;
+    const summary=[
+      {label:"Current DDOG",value:multiple(ddogPeer.evLtmRevenue),note:"EV / LTM revenue · 31 Jul 2026"},
+      {label:"Own history",value:multiple(historicalStats.median),note:`Median · current at ${Math.round(historicalPercentile*100)}th percentile`},
+      {label:"Eight competitors",value:multiple(broadStats.median),note:`Median · DDOG ${signedPct(ddogPeer.evLtmRevenue/broadStats.median-1)} premium`},
+      {label:"High-growth software",value:multiple(marketStats.median),note:`Median · DDOG ranks ${marketRank} of ${highGrowthMarket.length+1}`},
+    ];
+    document.getElementById("valuation-context-summary").innerHTML=summary.map(item=>`<article><span>${esc(item.label)}</span><strong>${esc(item.value)}</strong><p>${esc(item.note)}</p></article>`).join("");
+    document.getElementById("valuation-peer-distributions").innerHTML=
+      valuationDistribution("Broad peer set",broadPeers,`${broadPeers.length} companies · all comparison roles`)+
+      valuationDistribution("Direct observability",directPeers,"Dynatrace + Elastic");
+    document.getElementById("valuation-market-distribution").innerHTML=
+      valuationDistribution("High-growth software",highGrowthMarket,`${highGrowthMarket.length} companies · growth ≥15% · market cap ≥$5B`)+
+      valuationDistribution("Broad software",broadSoftwareMarket,`${broadSoftwareMarket.length} companies · same universe · no growth cutoff`)+
+      valuationDistribution("Infrastructure / security / data",infrastructureSecurityDataMarket,`${infrastructureSecurityDataMarket.length} companies · disclosed thematic subset`);
+    document.getElementById("valuation-market-body").innerHTML=[...broadSoftwareMarket].sort((a,b)=>b.evLtmRevenue-a.evLtmRevenue).map(row=>`<tr>
+      <td><span class="valuation-cohort-company"><b>${esc(row.ticker)}</b><small>${esc(row.name)}</small></span></td>
+      <td><span class="valuation-cohort-tags"><i>Broad</i>${row.ltmGrowth>=.15?"<i>High-growth</i>":""}${infrastructureSecurityDataTickers.has(row.ticker)?"<i>Infra / security / data</i>":""}</span></td>
+      <td>${esc(pct(row.ltmGrowth))}</td><td>${esc(multiple(row.evLtmRevenue))}</td>
+    </tr>`).join("");
+    drawValuationHistory();
+  }
+
+  function drawValuationHistory(){
+    const canvas=document.getElementById("valuation-history-chart");
+    if(!canvas) return;
+    const width=Math.max(320,Math.floor(canvas.clientWidth));
+    const height=Math.max(300,Math.floor(canvas.clientHeight));
+    const dpr=Math.min(window.devicePixelRatio||1,2);
+    canvas.width=Math.floor(width*dpr);canvas.height=Math.floor(height*dpr);
+    const ctx=canvas.getContext("2d");ctx.scale(dpr,dpr);ctx.clearRect(0,0,width,height);
+    const margin={top:24,right:22,bottom:46,left:50};
+    const plotWidth=width-margin.left-margin.right,plotHeight=height-margin.top-margin.bottom;
+    const benchmark=valuationHistory.slice(0,-1);
+    const stats=valuationStats(benchmark);
+    const yMax=Math.ceil(Math.max(...valuationHistory.map(row=>row.evLtmRevenue))/5)*5;
+    const x=index=>margin.left+index/(valuationHistory.length-1)*plotWidth;
+    const y=value=>margin.top+(yMax-value)/yMax*plotHeight;
+    ctx.fillStyle="rgba(124,107,245,.08)";ctx.fillRect(margin.left,y(stats.p75),plotWidth,y(stats.p25)-y(stats.p75));
+    ctx.font='9px "JetBrains Mono", monospace';ctx.textBaseline="middle";
+    for(let i=0;i<=5;i++){
+      const value=yMax-yMax*i/5,py=margin.top+plotHeight*i/5;
+      ctx.beginPath();ctx.moveTo(margin.left,py);ctx.lineTo(width-margin.right,py);ctx.strokeStyle="rgba(112,121,156,.22)";ctx.stroke();
+      ctx.fillStyle="#70799c";ctx.textAlign="right";ctx.fillText(`${value.toFixed(0)}×`,margin.left-8,py);
+    }
+    ctx.setLineDash([6,5]);ctx.strokeStyle="rgba(245,177,63,.75)";ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(margin.left,y(stats.median));ctx.lineTo(width-margin.right,y(stats.median));ctx.stroke();ctx.setLineDash([]);
+    ctx.beginPath();valuationHistory.forEach((row,index)=>index?ctx.lineTo(x(index),y(row.evLtmRevenue)):ctx.moveTo(x(index),y(row.evLtmRevenue)));ctx.strokeStyle="#7c6bf5";ctx.lineWidth=2;ctx.stroke();
+    const points=valuationHistory.map((row,index)=>{
+      const px=x(index),py=y(row.evLtmRevenue),current=index===valuationHistory.length-1;
+      ctx.beginPath();ctx.arc(px,py,current?5.5:3.6,0,Math.PI*2);ctx.fillStyle=current?"#f4f1ff":"#7c6bf5";ctx.fill();ctx.strokeStyle=current?"#7c6bf5":"#141a2b";ctx.lineWidth=current?2.5:1;ctx.stroke();
+      return {row,x:px,y:py,radius:current?7:6};
+    });
+    const labels=[0,4,8,12,16,17].filter(index=>index<valuationHistory.length);
+    ctx.fillStyle="#70799c";ctx.textAlign="center";ctx.font='8px "JetBrains Mono", monospace';
+    labels.forEach(index=>{const date=new Date(`${valuationHistory[index].date}T00:00:00Z`);const label=index===valuationHistory.length-1?"Jul ’26":`${["Q1","Q2","Q3","Q4"][Math.floor(date.getUTCMonth()/3)]} ’${String(date.getUTCFullYear()).slice(-2)}`;ctx.fillText(label,x(index),height-20);});
+    canvas._valuationPoints=points;
+    renderChartLegend("valuation-history-legend",[
+      {label:"EV / LTM revenue",color:"#7c6bf5"},{label:`Historical median ${multiple(stats.median)}`,color:"#f5b13f"},{label:`IQR ${multiple(stats.p25)}–${multiple(stats.p75)}`,color:"rgba(124,107,245,.5)"},
+    ]);
+  }
+
+  function showValuationHistoryTooltip(event){
+    const canvas=event.currentTarget,rect=canvas.getBoundingClientRect();
+    const localX=event.clientX-rect.left,localY=event.clientY-rect.top;
+    const point=(canvas._valuationPoints||[]).map(item=>({...item,distance:Math.hypot(item.x-localX,item.y-localY)})).sort((a,b)=>a.distance-b.distance)[0];
+    if(!point||point.distance>28){hideChartTooltip();return;}
+    const date=new Date(`${point.row.date}T00:00:00Z`).toLocaleDateString("en-US",{month:"short",year:"numeric",timeZone:"UTC"});
+    chartTooltip.innerHTML=`<b>Datadog · ${esc(date)}</b><span><i style="--tip-color:#7c6bf5"></i>EV / LTM revenue: ${esc(multiple(point.row.evLtmRevenue))}</span><span>Enterprise value: ${esc(peerMoney(point.row.enterpriseValue))}</span><span>LTM revenue: ${esc(peerMoney(point.row.ltmRevenue))}</span>`;
+    chartTooltip.hidden=false;chartTooltip.style.left=`${Math.min(window.innerWidth-242,event.clientX+14)}px`;chartTooltip.style.top=`${Math.min(window.innerHeight-130,event.clientY+14)}px`;
+  }
+
   function renderPeerSnapshot(){
     const metrics = [
+      {label:"GAAP Rule of 40",key:"gaapRule40",format:value=>pct(value),note:"LTM growth + GAAP operating margin"},
+      {label:"FCF Rule of 40",key:"rule40",format:value=>pct(value),note:"LTM growth + standardized FCF margin"},
+      {label:"SBC-adjusted Rule of 40",key:"economicSensitivity",format:value=>pct(value),note:"FCF Rule of 40 less SBC / revenue",adjusted:true},
       {label:"NTM revenue growth",key:"ntmGrowth",format:value=>pct(value),note:"Calendarized proxy"},
-      {label:"Standardized FCF margin",key:"fcfMargin",format:value=>pct(value),note:"CFO less capex & capitalized software"},
-      {label:"Rule of 40",key:"rule40",format:value=>pct(value),note:"LTM growth + standardized FCF margin"},
-      {label:"Economic sensitivity",key:"economicSensitivity",format:value=>pct(value),note:"Rule of 40 less SBC / revenue"},
       {label:"EV / NTM revenue",key:"evNtmRevenue",format:value=>multiple(value),note:"Enterprise-value multiple"},
       {label:"Equity / NTM FCF",key:"equityNtmFcf",format:value=>multiple(value),note:"Holds LTM FCF margin constant"},
     ];
     peerSnapshot.innerHTML = metrics.map(metric => {
       const broad = peerMedian(broadPeers,metric.key);
       const direct = peerMedian(directPeers,metric.key);
-      return `<article class="peer-stat">
+      return `<article class="peer-stat${metric.adjusted?" is-analyst-adjusted":""}">
         <span>${esc(metric.label)}</span><strong>${esc(metric.format(ddogPeer[metric.key]))}</strong>
         <div><span>Broad median <b>${esc(metric.format(broad))}</b></span><span>Direct median <b>${esc(metric.format(direct))}</b></span></div>
-        <p>${esc(metric.note)}</p>
+        <p>${metric.adjusted?'<i>Analyst-adjusted</i> ':''}${esc(metric.note)}</p>
       </article>`;
     }).join("");
   }
@@ -935,8 +1070,8 @@
   function renderPeerGaps(){
     const fundamentals = [
       ["LTM revenue growth",ddogPeer.ltmGrowth-peerMedian(broadPeers,"ltmGrowth")],
-      ["Rule of 40",ddogPeer.rule40-peerMedian(broadPeers,"rule40")],
-      ["Economic sensitivity",ddogPeer.economicSensitivity-peerMedian(broadPeers,"economicSensitivity")],
+      ["FCF Rule of 40",ddogPeer.rule40-peerMedian(broadPeers,"rule40")],
+      ["SBC-adjusted Rule of 40",ddogPeer.economicSensitivity-peerMedian(broadPeers,"economicSensitivity")],
     ];
     const valuations = [
       ["EV / NTM revenue · broad",ddogPeer.evNtmRevenue/peerMedian(broadPeers,"evNtmRevenue")-1],
@@ -951,8 +1086,8 @@
     document.getElementById("peer-valuation-gap").innerHTML = bars(valuations,4,value=>signedPct(value));
   }
 
-  function drawPeerScatter(){
-    const canvas = document.getElementById("peer-valuation-chart");
+  function drawPeerScatter({canvasId,xKey,yKey,xLabel,yLabel,legendId}){
+    const canvas = document.getElementById(canvasId);
     if(!canvas) return;
     const width = Math.max(320,Math.floor(canvas.clientWidth));
     const height = Math.max(320,Math.floor(canvas.clientHeight));
@@ -962,10 +1097,10 @@
     const margin = {top:24,right:24,bottom:52,left:58};
     const plotWidth = width-margin.left-margin.right;
     const plotHeight = height-margin.top-margin.bottom;
-    const xMin = Math.max(0,Math.floor(Math.min(...peerRows.map(row=>row.ntmGrowth))*100/5)*.05-.01);
-    const xMax = Math.ceil(Math.max(...peerRows.map(row=>row.ntmGrowth))*100/5)*.05+.01;
+    const xMin = Math.max(0,Math.floor(Math.min(...peerRows.map(row=>row[xKey]))*100/5)*.05-.01);
+    const xMax = Math.ceil(Math.max(...peerRows.map(row=>row[xKey]))*100/5)*.05+.01;
     const yMin = 0;
-    const yMax = Math.ceil(Math.max(...peerRows.map(row=>row.evNtmRevenue))/5)*5;
+    const yMax = Math.ceil(Math.max(...peerRows.map(row=>row[yKey]))/5)*5;
     const x = value => margin.left+(value-xMin)/(xMax-xMin)*plotWidth;
     const y = value => margin.top+(yMax-value)/(yMax-yMin)*plotHeight;
     ctx.font = '9px "JetBrains Mono", monospace';ctx.textBaseline="middle";
@@ -978,12 +1113,12 @@
       const px=margin.left+plotWidth*i/5;const value=xMin+(xMax-xMin)*i/5;
       ctx.fillStyle="#70799c";ctx.textAlign="center";ctx.fillText(pct(value,0),px,height-28);
     }
-    const medianX=peerMedian(broadPeers,"ntmGrowth"),medianY=peerMedian(broadPeers,"evNtmRevenue");
+    const medianX=peerMedian(broadPeers,xKey),medianY=peerMedian(broadPeers,yKey);
     ctx.setLineDash([5,5]);ctx.strokeStyle="rgba(222,226,242,.45)";ctx.lineWidth=1;
     ctx.beginPath();ctx.moveTo(x(medianX),margin.top);ctx.lineTo(x(medianX),height-margin.bottom);ctx.stroke();
     ctx.beginPath();ctx.moveTo(margin.left,y(medianY));ctx.lineTo(width-margin.right,y(medianY));ctx.stroke();ctx.setLineDash([]);
     const points = peerRows.slice().sort((a,b)=>b.marketCap-a.marketCap).map(row => {
-      const px=x(row.ntmGrowth),py=y(row.evNtmRevenue);
+      const px=x(row[xKey]),py=y(row[yKey]);
       const radius=5+Math.sqrt(row.marketCap/1e9)*.55;
       const color=peerModel.buckets[row.bucket].color;
       ctx.beginPath();ctx.arc(px,py,radius,0,Math.PI*2);ctx.fillStyle=`${color}${row.ticker==="DDOG"?"e8":"b8"}`;ctx.fill();
@@ -992,10 +1127,16 @@
       ctx.fillStyle=row.ticker==="DDOG"?"#f4f1ff":"#aeb6d5";ctx.textAlign="center";ctx.fillText(row.ticker,px,py-radius-8);
       return {row,x:px,y:py,radius};
     });
-    ctx.font='9px "JetBrains Mono", monospace';ctx.fillStyle="#70799c";ctx.textAlign="center";ctx.fillText("NTM revenue growth →",margin.left+plotWidth/2,height-8);
-    ctx.save();ctx.translate(13,margin.top+plotHeight/2);ctx.rotate(-Math.PI/2);ctx.fillText("EV / NTM revenue →",0,0);ctx.restore();
+    ctx.font='9px "JetBrains Mono", monospace';ctx.fillStyle="#70799c";ctx.textAlign="center";ctx.fillText(`${xLabel} →`,margin.left+plotWidth/2,height-8);
+    ctx.save();ctx.translate(13,margin.top+plotHeight/2);ctx.rotate(-Math.PI/2);ctx.fillText(`${yLabel} →`,0,0);ctx.restore();
     canvas._peerPoints=points;
-    renderChartLegend("peer-valuation-legend",Object.entries(peerModel.buckets).map(([,bucket])=>({label:bucket.label,color:bucket.color})));
+    canvas._peerChart={xKey,yKey,xLabel,yLabel};
+    renderChartLegend(legendId,Object.entries(peerModel.buckets).map(([,bucket])=>({label:bucket.label,color:bucket.color})));
+  }
+
+  function drawPeerScatters(){
+    drawPeerScatter({canvasId:"peer-valuation-chart",xKey:"ntmGrowth",yKey:"evNtmRevenue",xLabel:"NTM revenue growth",yLabel:"EV / NTM revenue",legendId:"peer-valuation-legend"});
+    drawPeerScatter({canvasId:"peer-reported-valuation-chart",xKey:"ltmGrowth",yKey:"evLtmRevenue",xLabel:"LTM revenue growth",yLabel:"EV / LTM revenue",legendId:"peer-reported-valuation-legend"});
   }
 
   function showPeerTooltip(event){
@@ -1005,18 +1146,11 @@
     const point=(canvas._peerPoints||[]).map(item=>({...item,distance:Math.hypot(item.x-localX,item.y-localY)})).sort((a,b)=>a.distance-b.distance)[0];
     if(!point || point.distance>32){hideChartTooltip();return;}
     const row=point.row;
-    chartTooltip.innerHTML=`<b>${esc(row.name)} · ${esc(row.ticker)}</b><span><i style="--tip-color:${peerModel.buckets[row.bucket].color}"></i>NTM growth: ${esc(pct(row.ntmGrowth))}</span><span>EV / NTM revenue: ${esc(multiple(row.evNtmRevenue))}</span><span>Market cap: ${esc(peerMoney(row.marketCap))}</span>`;
+    const chart=canvas._peerChart;
+    chartTooltip.innerHTML=`<b>${esc(row.name)} · ${esc(row.ticker)}</b><span><i style="--tip-color:${peerModel.buckets[row.bucket].color}"></i>${esc(chart.xLabel)}: ${esc(pct(row[chart.xKey]))}</span><span>${esc(chart.yLabel)}: ${esc(multiple(row[chart.yKey]))}</span><span>Market cap: ${esc(peerMoney(row.marketCap))}</span>`;
     chartTooltip.hidden=false;
     chartTooltip.style.left=`${Math.min(window.innerWidth-242,event.clientX+14)}px`;
     chartTooltip.style.top=`${Math.min(window.innerHeight-130,event.clientY+14)}px`;
-  }
-
-  function renderPeerCashQuality(){
-    document.getElementById("peer-cash-read-metrics").innerHTML=`<span><b>${pct(ddogPeer.fcfLessSbcMargin)}</b> FCF less SBC margin</span><span><b>${pct(ddogPeer.dilution)}</b> basic-share dilution</span>`;
-    document.getElementById("peer-cash-grid").innerHTML=peerRows.slice().sort((a,b)=>b.economicSensitivity-a.economicSensitivity).map(row=>`<article class="peer-cash-card ${row.ticker==="DDOG"?"is-target":""}" style="--peer-color:${peerModel.buckets[row.bucket].color}">
-      <div><b>${esc(row.ticker)}</b><span>${esc(peerModel.buckets[row.bucket].shortLabel)}</span></div>
-      <dl><div><dt>FCF margin</dt><dd>${pct(row.fcfMargin)}</dd></div><div><dt>After SBC</dt><dd class="${row.fcfLessSbcMargin<0?"is-negative":""}">${pct(row.fcfLessSbcMargin)}</dd></div><div><dt>Economic sensitivity</dt><dd>${pct(row.economicSensitivity)}</dd></div><div><dt>Dilution</dt><dd class="${row.dilution>0?"is-negative":""}">${pct(row.dilution)}</dd></div></dl>
-    </article>`).join("");
   }
 
   function renderPeerSensitivity(){
@@ -1037,20 +1171,40 @@
   }
 
   function renderPeerTable(){
-    const rows=peerRows.filter(row=>state.peerFilter==="all" || row.bucket==="target" || row.bucket===state.peerFilter);
-    rows.sort((a,b)=>{
-      const av=a[state.peerSort.key],bv=b[state.peerSort.key];
+    const filteredRows=peerRows.filter(row=>state.peerFilter==="all" || row.bucket==="target" || row.bucket===state.peerFilter);
+    const sortedRows=table=>[...filteredRows].sort((a,b)=>{
+      const sort=state.peerSort[table];
+      const av=a[sort.key],bv=b[sort.key];
       const comparison=typeof av==="string"?av.localeCompare(bv):av-bv;
-      return state.peerSort.direction==="asc"?comparison:-comparison;
+      return sort.direction==="asc"?comparison:-comparison;
     });
-    peerTableBody.innerHTML=rows.map(row=>`<tr class="${row.ticker==="DDOG"?"is-target":""}">
-      <td><span class="peer-company"><i style="--peer-color:${peerModel.buckets[row.bucket].color}"></i><b>${esc(row.ticker)}</b><small>${esc(row.name)}</small></span></td>
-      <td>${pct(row.ltmGrowth)}</td><td>${pct(row.ntmGrowth)}</td><td>${pct(row.grossMargin)}</td><td class="${row.operatingMargin<0?"is-negative":""}">${pct(row.operatingMargin)}</td><td>${pct(row.fcfMargin)}</td><td>${pct(row.rule40)}</td><td>${pct(row.sbcMargin)}</td><td class="${row.dilution>0?"is-negative":""}">${pct(row.dilution)}</td><td>${pct(row.economicSensitivity)}</td><td>${multiple(row.evNtmRevenue)}</td><td>${multiple(row.equityNtmFcf)}</td>
+    const companyCell=row=>`<span class="peer-company"><i style="--peer-color:${peerModel.buckets[row.bucket].color}"></i><b>${esc(row.ticker)}</b><small>${esc(row.name)}</small></span>`;
+    const heatCell=(row,key,format,direction="higher")=>{
+      const value=row[key];
+      const values=peerRows.map(item=>item[key]).filter(Number.isFinite);
+      const betterCount=values.filter(item=>direction==="higher"?item>value:item<value).length;
+      const rank=betterCount+1;
+      const min=Math.min(...values),max=Math.max(...values);
+      const rangePosition=max>min?(value-min)/(max-min):.5;
+      const quality=direction==="higher"?rangePosition:1-rangePosition;
+      const hue=Math.round(4+quality*138);
+      const strength=(.09+Math.abs(quality-.5)*.16).toFixed(3);
+      const directionLabel=direction==="higher"?"higher is stronger":"lower is more attractive";
+      return `<td class="peer-heat" style="--heat-hue:${hue};--heat-strength:${strength}" title="Rank ${rank} of ${values.length}; ${directionLabel}" aria-label="${esc(format(value))}; rank ${rank} of ${values.length}; ${directionLabel}">${esc(format(value))}</td>`;
+    };
+    peerFundamentalsBody.innerHTML=sortedRows("fundamentals").map(row=>`<tr class="${row.ticker==="DDOG"?"is-target":""}">
+      <td>${companyCell(row)}</td>
+      ${heatCell(row,"ltmGrowth",pct)}${heatCell(row,"ntmGrowth",pct)}${heatCell(row,"grossMargin",pct)}${heatCell(row,"operatingMargin",pct)}${heatCell(row,"fcfMargin",pct)}${heatCell(row,"gaapRule40",pct)}${heatCell(row,"rule40",pct)}${heatCell(row,"economicSensitivity",pct)}${heatCell(row,"sbcMargin",pct,"lower")}${heatCell(row,"dilution",pct,"lower")}
+    </tr>`).join("");
+    peerValuationBody.innerHTML=sortedRows("valuation").map(row=>`<tr class="${row.ticker==="DDOG"?"is-target":""}">
+      <td>${companyCell(row)}</td>
+      ${heatCell(row,"evLtmRevenue",multiple,"lower")}${heatCell(row,"evNtmRevenue",multiple,"lower")}${heatCell(row,"evNtmGrossProfit",multiple,"lower")}${heatCell(row,"ntmFcfYield",value=>pct(value,2))}${heatCell(row,"ownerFcfYield",value=>pct(value,2))}
     </tr>`).join("");
     document.querySelectorAll("[data-peer-sort]").forEach(button=>{
-      const active=button.dataset.peerSort===state.peerSort.key;
+      const sort=state.peerSort[button.dataset.peerTable];
+      const active=button.dataset.peerSort===sort.key;
       button.classList.toggle("is-active",active);
-      button.dataset.direction=active?state.peerSort.direction:"";
+      button.dataset.direction=active?sort.direction:"";
     });
   }
 
@@ -1061,9 +1215,12 @@
   }
 
   function renderPeers(){
-    renderPeerSnapshot();renderPeerGaps();drawPeerScatter();renderPeerCashQuality();renderPeerSensitivity();renderPeerTable();renderPeerMethodology();
-    const scatter=document.getElementById("peer-valuation-chart");
-    scatter?.addEventListener("pointermove",showPeerTooltip);scatter?.addEventListener("pointerleave",hideChartTooltip);
+    renderPeerSnapshot();renderValuationContext();renderPeerGaps();drawPeerScatters();renderPeerSensitivity();renderPeerTable();renderPeerMethodology();
+    document.querySelectorAll("#peer-comps-panel .peer-scatter").forEach(scatter=>{
+      scatter.addEventListener("pointermove",showPeerTooltip);scatter.addEventListener("pointerleave",hideChartTooltip);
+    });
+    const historyChart=document.getElementById("valuation-history-chart");
+    historyChart?.addEventListener("pointermove",showValuationHistoryTooltip);historyChart?.addEventListener("pointerleave",hideChartTooltip);
   }
 
   filters.innerHTML = FILTERS.map(filter =>
@@ -1267,7 +1424,7 @@
           renderPeers();
           peersInitialized = true;
         } else {
-          drawPeerScatter();
+          drawPeerScatters();drawValuationHistory();
         }
       });
     }
@@ -1527,11 +1684,13 @@
     renderPeerTable();
   });
 
-  document.querySelector(".peer-table thead")?.addEventListener("click",event => {
+  document.getElementById("peer-table-section")?.addEventListener("click",event => {
     const button=event.target.closest("[data-peer-sort]");
     if(!button) return;
+    const table=button.dataset.peerTable;
     const key=button.dataset.peerSort;
-    state.peerSort=state.peerSort.key===key?{key,direction:state.peerSort.direction==="asc"?"desc":"asc"}:{key,direction:key==="ticker"?"asc":"desc"};
+    const current=state.peerSort[table];
+    state.peerSort[table]=current.key===key?{key,direction:current.direction==="asc"?"desc":"asc"}:{key,direction:key==="ticker"?"asc":"desc"};
     renderPeerTable();
   });
 
@@ -1576,7 +1735,7 @@
     if(state.activeTab === "peer-comps" && !peersInitialized) return;
     if(!["kpis","financials","peer-comps"].includes(state.activeTab)) return;
     cancelAnimationFrame(resizeFrame);
-    resizeFrame = requestAnimationFrame(state.activeTab === "kpis" ? renderKpiCharts : state.activeTab === "financials" ? renderFinancialCharts : drawPeerScatter);
+    resizeFrame = requestAnimationFrame(state.activeTab === "kpis" ? renderKpiCharts : state.activeTab === "financials" ? renderFinancialCharts : () => {drawPeerScatters();drawValuationHistory();});
   });
 
   activateTab(state.activeTab,{updateUrl:false});

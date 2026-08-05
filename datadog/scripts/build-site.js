@@ -23,6 +23,7 @@ const copies = [
   [path.join("data", "product-map-data.js"), path.join(client, "data", "product-map-data.js")],
   [path.join("data", "kpi-data.js"), path.join(client, "data", "kpi-data.js")],
   [path.join("data", "peer-comps-data.js"), path.join(client, "data", "peer-comps-data.js")],
+  [path.join("data", "valuation-context-data.js"), path.join(client, "data", "valuation-context-data.js")],
   [path.join("schema", "product-map.schema.json"), path.join(client, "schema", "product-map.schema.json")],
   [path.join("worker", "index.js"), path.join(server, "index.js")],
 ];
