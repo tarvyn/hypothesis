@@ -143,6 +143,10 @@
   const esc = value => String(value ?? "")
     .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
   const pretty = value => String(value).replace(/_/g," ").replace(/\b\w/g,letter => letter.toUpperCase());
+  const formatPeriod = period => {
+    const match=String(period).match(/^(\d{4})Q([1-4])$/);
+    return match ? `Q${match[2]} ${match[1]}` : `FY${period}`;
+  };
 
   const headlineStats = document.getElementById("headline-stats");
   const filters = document.getElementById("filters");
@@ -175,6 +179,8 @@
   const financialHistory = document.getElementById("financial-history");
   const quarterlyFcfSummary = document.getElementById("quarterly-fcf-summary");
   const quarterlyFcfTable = document.getElementById("quarterly-fcf-table");
+  const quarterEvidence = document.getElementById("quarter-evidence");
+  const epsQualityBridge = document.getElementById("eps-quality-bridge");
   const financialSectionNav = document.querySelector(".financial-section-nav");
   const peerSectionNav = document.querySelector(".peer-section-nav");
   const peerSnapshot = document.getElementById("peer-snapshot");
@@ -316,6 +322,7 @@
   const highGrowthMarket = broadSoftwareMarket.filter(row=>row.ltmGrowth>=.15);
   const infrastructureSecurityDataTickers = new Set(valuationModel.segments.infrastructureSecurityData);
   const infrastructureSecurityDataMarket = broadSoftwareMarket.filter(row=>infrastructureSecurityDataTickers.has(row.ticker));
+  state.peerMultiple=Number(ddogPeer.evNtmRevenue.toFixed(1));
   let kpiChartConfigs = [];
   let financialChartConfigs = [];
   let kpisInitialized = false;
@@ -335,7 +342,7 @@
     `<span class="chip"><b>${uniqueMappedEntities}</b> mapped entities</span>`,
     `<span class="chip"><b>${model.meta.companyReportedProductCount}</b> company-reported products</span>`,
     `<span class="chip">AI = <b>overlay</b>, not TAM</span>`,
-    `<span class="chip">NRR <b>low-120%</b> · TTM</span>`,
+    `<span class="chip">NRR <b>${esc(nrr.at(-1).label)}</b> · TTM</span>`,
   ].join("");
 
   function renderCompanyLens(){
@@ -389,16 +396,19 @@
   function renderKpiSnapshot(){
     const latest = financials.at(-1);
     const latestAdoption = adoption.at(-1);
-    const latestTotalCustomers = totalCustomers.at(-1).value;
+    const latestTotalCustomerRow = totalCustomers.at(-1);
+    const priorYearTotalCustomers = totalCustomersByPeriod.get(`${Number(latestTotalCustomerRow.period.slice(0,4))-1}${latestTotalCustomerRow.period.slice(4)}`)?.value;
+    const latestTotalCustomers = latestTotalCustomerRow.value;
     const latestMillionCustomers = millionCustomers.at(-1).value;
     const latestAiCustomers = aiCustomers.at(-1).value;
+    const priorYearAdoption = adoptionByPeriod.get(`${Number(latestAdoption.period.slice(0,4))-1}${latestAdoption.period.slice(4)}`);
     const stats = [
-      {label:"TTM net retention",value:"low-120s",change:"up from ~120%",note:"Expansion net of contraction and churn",color:"var(--m-core)",url:nrr.at(-1).sourceUrl},
-      {label:"Gross retention",value:"mid–high 90s",change:"stable",note:"Management disclosure band",color:"var(--dev)",url:grr.at(-1).sourceUrl},
-      {label:"Total customers",value:number(latestTotalCustomers),change:"+2,700 YoY",note:"Point-in-time customer base",color:"var(--obs)",url:totalCustomers.at(-1).sourceUrl},
-      {label:"Customers >$100K ARR",value:number(latest.largeCustomers),change:`+${pct(latest.customerGrowth)} YoY`,note:"~90% of company ARR",color:"var(--ai)",url:latest.sourceUrl},
-      {label:"Customers on 4+ products",value:pct(latestAdoption.p4,0),change:`+${((latestAdoption.p4-adoptionByPeriod.get("2025Q1").p4)*100).toFixed(0)} ppt YoY`,note:"Primary cross-sell KPI",color:"var(--sec)",url:latestAdoption.sourceUrl},
-      {label:"AI integration customers",value:number(latestAiCustomers),change:"+62.5% YoY",note:`${number(latestMillionCustomers)} customers >$1M ARR`,color:"var(--m-option)",url:aiCustomers.at(-1).sourceUrl},
+      {label:"TTM net retention",value:nrr.at(-1).label,change:"stable QoQ",note:"Expansion net of contraction and churn",color:"var(--m-core)",url:nrr.at(-1).sourceUrl},
+      {label:"Gross retention",value:grr.at(-1).label,change:"stable",note:"Management disclosure band",color:"var(--dev)",url:grr.at(-1).sourceUrl},
+      {label:"Total customers",value:number(latestTotalCustomers),change:priorYearTotalCustomers?`+${number(latestTotalCustomers-priorYearTotalCustomers)} YoY`:"YoY comparison not disclosed",note:"Only +200 sequentially",color:"var(--obs)",url:latestTotalCustomerRow.sourceUrl},
+      {label:"Customers >$100K ARR",value:number(latest.largeCustomers),change:`+${pct(latest.customerGrowth)} YoY`,note:"91% of company ARR",color:"var(--ai)",url:latest.sourceUrl},
+      {label:"Customers on 4+ products",value:pct(latestAdoption.p4,0),change:priorYearAdoption?`+${((latestAdoption.p4-priorYearAdoption.p4)*100).toFixed(0)} ppt YoY`:"YoY not disclosed",note:"Primary cross-sell KPI",color:"var(--sec)",url:latestAdoption.sourceUrl},
+      {label:"AI integration customers",value:number(latestAiCustomers),change:"Latest disclosure · Q1 2026",note:`${number(latestMillionCustomers)} customers >$1M ARR at FY2025`,color:"var(--m-option)",url:aiCustomers.at(-1).sourceUrl},
     ];
     kpiSnapshot.innerHTML = stats.map(stat => `<article class="kpi-stat" style="--stat-color:${stat.color}">
       <span class="kpi-stat-label">${esc(stat.label)}</span>
@@ -412,15 +422,15 @@
   function renderFinancialSnapshot(){
     const latest = financials.at(-1);
     const priorYear = financials.at(-5);
-    const latestAnnual = annualOperations.at(-1);
-    const latestFcf = annualFcfEconomics.at(-1);
+    const latestQuarterlyFcf = quarterlyFcfEconomics.at(-1);
+    const q2=kpiModel.q2Evidence.reported;
     const latestAnnualCapital = annualCapital.find(row => row.period === "2025");
     const stats = [
-      {label:"Quarterly revenue",period:"Q1 2026 · Reported",value:money(latest.revenue),change:`+${pct(latest.revenueGrowth)} YoY`,note:"First quarter above $1B",color:"var(--dev)",url:latest.sourceUrl},
-      {label:"GAAP gross margin",period:"Q1 2026 · Derived",value:pct(latest.grossMargin),change:`${((latest.grossMargin-priorYear.grossMargin)*100).toFixed(1)} ppt YoY`,note:"Reported gross profit divided by revenue",color:"var(--m-core)",url:latest.sourceUrl,tooltip:"Gross margin equals reported GAAP gross profit divided by reported revenue. It excludes operating expenses such as R&D, sales and marketing, and G&A."},
-      {label:"GAAP operating margin",period:"FY2025 · Derived",value:pct(latestAnnual.operatingMargin),change:`${((latestAnnual.operatingMargin-annualOperations.at(-2).operatingMargin)*100).toFixed(1)} ppt YoY`,note:"Below gross profit, after operating expenses",color:"var(--m-contested)",url:latestAnnual.sourceUrl,tooltip:"Operating margin equals reported GAAP operating income or loss divided by revenue. It includes stock-based compensation recorded in operating expenses."},
-      {label:"Reported FCF margin",period:"FY2025 · Company-defined",value:pct(latestFcf.reportedMargin),change:`${((latestFcf.reportedMargin-annualFcfEconomics.at(-2).reportedMargin)*100).toFixed(1)} ppt YoY`,note:"Operating cash flow less company capex",color:"var(--obs)",url:latestFcf.sourceUrl,tooltip:"Datadog defines free cash flow as net cash from operating activities less capital expenditures and capitalized software development costs. It is non-GAAP."},
-      {label:"Owner FCF margin",period:"FY2025 · Analyst-adjusted",value:pct(latestFcf.ownerMargin),change:`${((latestFcf.ownerMargin-annualFcfEconomics.at(-2).ownerMargin)*100).toFixed(1)} ppt YoY`,note:"Reported FCF less total SBC",color:"var(--ai)",url:latestFcf.sourceUrl,tooltip:"Owner FCF subtracts total expensed and capitalized stock-based compensation from company-defined FCF. It is an economic sensitivity, not a reported liquidity measure."},
+      {label:"Quarterly revenue",period:`${formatPeriod(latest.period)} · Reported`,value:money(latest.revenue),change:`+${pct(latest.revenueGrowth)} YoY`,note:"Growth accelerated from 32% in Q1",color:"var(--dev)",url:latest.sourceUrl},
+      {label:"GAAP gross margin",period:`${formatPeriod(latest.period)} · Derived`,value:pct(latest.grossMargin),change:`${((latest.grossMargin-priorYear.grossMargin)*100).toFixed(1)} ppt YoY`,note:"Cloud costs grew faster than revenue",color:"var(--m-core)",url:latest.sourceUrl,tooltip:"Gross margin equals reported GAAP gross profit divided by reported revenue. It excludes operating expenses such as R&D, sales and marketing, and G&A."},
+      {label:"GAAP / adjusted op. margin",period:`${formatPeriod(latest.period)} · Reported / non-GAAP`,value:`${pct(q2.gaapOperatingIncome/latest.revenue)} / ${pct(q2.nonGaapOperatingIncome/latest.revenue)}`,change:"22.4 ppt adjustment gap",note:"SBC remains the largest reconciliation item",color:"var(--m-contested)",url:kpiModel.anchors.latestRelease,tooltip:"GAAP operating margin includes stock-based compensation. Datadog's non-GAAP operating margin excludes SBC, related payroll taxes, acquisition costs, and amortization."},
+      {label:"Reported FCF margin",period:`${formatPeriod(latest.period)} · Company-defined`,value:pct(latestQuarterlyFcf.reportedMargin),change:`+${((latestQuarterlyFcf.reportedMargin-quarterlyFcfEconomics[0].reportedMargin)*100).toFixed(1)} ppt YoY`,note:"OCF less PP&E and capitalized software",color:"var(--obs)",url:latestQuarterlyFcf.sourceUrl,tooltip:"Datadog defines free cash flow as net cash from operating activities less capital expenditures and capitalized software development costs. It is non-GAAP."},
+      {label:"Owner FCF margin",period:`${formatPeriod(latest.period)} · Analyst-adjusted`,value:pct(latestQuarterlyFcf.ownerMargin),change:"Improved from −2.5% YoY",note:"Reported FCF less expensed and capitalized SBC",color:"var(--ai)",url:latestQuarterlyFcf.sourceUrl,tooltip:"Owner FCF subtracts total expensed and capitalized stock-based compensation from company-defined FCF. It is an economic sensitivity, not a reported liquidity measure."},
       {label:"R&D-adjusted ROIC",period:"FY2025 · Analyst-adjusted",value:pct(latestAnnualCapital.rdAdjustedRoic),change:`${((latestAnnualCapital.rdAdjustedRoic-annualCapital.find(row=>row.period==="2024").rdAdjustedRoic)*100).toFixed(1)} ppt YoY`,note:"Return on capital after capitalizing R&D",color:"var(--m-option)",url:latestAnnualCapital.sourceUrl,tooltip:"Three-year straight-line R&D life. Research asset equals current R&D plus two-thirds of prior-year R&D plus one-third of R&D from two years ago. Adjusted EBIT equals reported EBIT plus current R&D less amortization. ROIC applies a 21% normalized tax rate and uses average adjusted invested capital."},
     ];
     financialSnapshot.innerHTML = stats.map(stat => `<article class="kpi-stat" style="--stat-color:${stat.color}">
@@ -440,12 +450,12 @@
     const revenueGrowth = latest.revenue/prior.revenue-1;
     const reportedFcfGrowth = latest.reportedFcf/prior.reportedFcf-1;
     const sbcGrowth = latest.totalSbc/prior.totalSbc-1;
-    const ownerFcfGrowth = latest.ownerFcf/prior.ownerFcf-1;
+    const ownerFcfGrowth = prior.ownerFcf>0 ? latest.ownerFcf/prior.ownerFcf-1 : null;
     const ownerMarginChange = latest.ownerMargin-prior.ownerMargin;
     const sbcMarginChange = latest.totalSbc/latest.revenue-prior.totalSbc/prior.revenue;
     quarterlyFcfSummary.innerHTML = [
       `<span><b>${esc(signedPct(revenueGrowth,1))}</b> revenue growth</span>`,
-      `<span><b>${esc(signedPct(ownerFcfGrowth,1))}</b> owner FCF growth</span>`,
+      `<span><b>${ownerFcfGrowth==null?"Negative → positive":esc(signedPct(ownerFcfGrowth,1))}</b> owner FCF</span>`,
       `<span><b>${esc(pct(latest.ownerMargin))}</b> owner FCF margin · ${esc(signedPctPoints(ownerMarginChange))}</span>`,
       `<span><b>${esc(pct(latest.totalSbc/latest.revenue))}</b> SBC / revenue · ${esc(signedPctPoints(sbcMarginChange))}</span>`,
     ].join("");
@@ -453,10 +463,30 @@
       ["Revenue",money(prior.revenue),money(latest.revenue),signedPct(revenueGrowth,1),"is-positive"],
       ["Reported FCF",money(prior.reportedFcf),money(latest.reportedFcf),signedPct(reportedFcfGrowth,1),"is-positive"],
       ["Total SBC",money(prior.totalSbc),money(latest.totalSbc),signedPct(sbcGrowth,1),"is-warning"],
-      ["Owner FCF",money(prior.ownerFcf),money(latest.ownerFcf),signedPct(ownerFcfGrowth,1),"is-positive"],
+      ["Owner FCF",signedMoney(prior.ownerFcf),signedMoney(latest.ownerFcf),ownerFcfGrowth==null?"Negative → positive":signedPct(ownerFcfGrowth,1),"is-positive"],
       ["Owner FCF margin",pct(prior.ownerMargin),pct(latest.ownerMargin),signedPctPoints(ownerMarginChange),"is-warning"],
     ];
     quarterlyFcfTable.innerHTML = rows.map(row => `<tr><td>${esc(row[0])}</td><td>${esc(row[1])}</td><td>${esc(row[2])}</td><td class="${row[4]}">${esc(row[3])}</td></tr>`).join("");
+  }
+
+  function renderQuarterEvidence(){
+    if(!quarterEvidence || !epsQualityBridge) return;
+    const evidence=kpiModel.q2Evidence;
+    const reported=evidence.reported;
+    const claims=evidence.managementClaims;
+    quarterEvidence.innerHTML=[
+      {label:"Growth breadth",value:claims.nonAiRevenueGrowth,note:`Non-AI customer revenue growth, up from ${claims.priorQuarterNonAiRevenueGrowth} in Q1`,url:evidence.sourceUrl,source:"Management claim"},
+      {label:"New-logo contribution",value:pct(claims.newCustomerGrowthContribution,0),note:"Share of Q2 growth from customers not present one year earlier",url:evidence.sourceUrl,source:"Management claim"},
+      {label:"RPO",value:money(reported.rpo),note:`+${pct(reported.rpoGrowth,0)} YoY; current RPO +${pct(reported.currentRpoGrowth,0)}`,url:evidence.supplementalUrl,source:"Reported"},
+      {label:"Largest-customer risk",value:"Q3 usage down",note:evidence.filingRisk,url:evidence.filingUrl,source:"Filed risk"},
+    ].map(item=>`<article class="kpi-stat" style="--stat-color:var(--m-contested)"><span class="kpi-stat-label">${esc(item.label)}</span><strong>${esc(item.value)}</strong><span class="kpi-stat-change">${esc(item.source)}</span><p>${esc(item.note)}</p>${sourceAnchor(item.url,"Evidence")}</article>`).join("");
+    const totalSbcMargin=reported.totalSbc/financials.at(-1).revenue;
+    epsQualityBridge.innerHTML=[
+      ["Operating profit",`${money(reported.gaapOperatingIncome)} GAAP`,`${money(reported.nonGaapOperatingIncome)} adjusted`,"SBC and related exclusions create a 22-point margin gap."],
+      ["Diluted EPS",`$${reported.gaapEps.toFixed(2)} GAAP`,`$${reported.nonGaapEps.toFixed(2)} adjusted`,`${money(reported.netOtherIncome)} of net other income supported GAAP pretax profit.`],
+      ["Cash conversion",`${money(reported.reportedFcf)} reported FCF`,`${money(reported.ownerFcf)} owner FCF`,`Owner FCF is ${pct(reported.ownerFcf/financials.at(-1).revenue)} of revenue after total SBC.`],
+      ["Shareholder cost",money(reported.totalSbc),pct(totalSbcMargin),"Expensed plus capitalized SBC; analyst-adjusted economic sensitivity."],
+    ].map(([label,value,comparison,note])=>`<article><span>${esc(label)}</span><strong>${esc(value)}</strong><b>${esc(comparison)}</b><p>${esc(note)}</p></article>`).join("");
   }
 
   function niceMax(value){
@@ -654,6 +684,7 @@
       `<article class="financial-source-row"><b>Q1 2025 call</b><span>Management linked the cost spike to rapid usage growth at large customers and initial new-capability inefficiency.</span>${sourceAnchor(kpiModel.cloudCostEfficiency.q1ExplanationUrl,"Transcript")}</article>`,
       `<article class="financial-source-row"><b>Q2–Q3 2025 calls</b><span>Management reported savings from engineering-led cloud-efficiency projects and continued improvement.</span>${sourceAnchor(kpiModel.cloudCostEfficiency.q2EfficiencyUrl,"Q2 transcript")} ${sourceAnchor(kpiModel.cloudCostEfficiency.q3EfficiencyUrl,"Q3 transcript")}</article>`,
       `<article class="financial-source-row"><b>Q1 2026 filing</b><span>Cloud hosting + software cost increase ${esc(money(kpiModel.cloudCostEfficiency.q1CloudCostIncrease))} YoY</span><span>Revenue and provider costs described as growing in proportion.</span>${sourceAnchor(kpiModel.cloudCostEfficiency.q1SourceUrl,"Form 10-Q")}</article>`,
+      `<article class="financial-source-row"><b>Q2 2026 filing</b><span>Third-party cloud infrastructure hosting + software cost increase ${esc(money(kpiModel.cloudCostEfficiency.q2CloudCostIncrease))} YoY</span><span>GAAP gross margin fell as provider costs outgrew revenue.</span>${sourceAnchor(kpiModel.cloudCostEfficiency.q2SourceUrl,"Form 10-Q")}</article>`,
     ].join("") + `<p class="financial-definition"><b>Derived proxy and limitation.</b> Quarterly COGS equals reported revenue less GAAP gross profit. The chart compares its YoY growth with revenue growth; it does not reconstruct undisclosed absolute quarterly hosting expense. The ${esc(money(excessCostOfRevenue))} FY2025 figure is actual COGS less the COGS implied by holding FY2024's cost-of-revenue ratio constant.</p>`;
     document.querySelector("#fcf-sources>div").innerHTML = annualFcfEconomics.map(row =>
       `<article class="fcf-source-row">
@@ -666,7 +697,7 @@
     ).join("") + `<p class="fcf-definition"><b>Analyst-adjusted measure.</b> Owner FCF subtracts total expensed and capitalized SBC from company-defined FCF. It is an economic sensitivity, not a GAAP or company-reported liquidity measure.</p>`;
     document.querySelector("#quarterly-fcf-sources>div").innerHTML = quarterlyFcfEconomics.map(row =>
       `<article class="financial-source-row">
-        <b>${esc(row.period === "2026Q1" ? "Q1 2026" : "Q1 2025")}</b>
+        <b>${esc(formatPeriod(row.period))}</b>
         <span>OCF ${esc(money(row.operatingCashFlow))} → reported FCF ${esc(money(row.reportedFcf))}</span>
         <span>Expensed + capitalized SBC ${esc(money(row.expensedSbc))} + ${esc(money(row.capitalizedSbc))}</span>
         <span>Owner FCF ${esc(money(row.ownerFcf))} · ${esc(pct(row.ownerMargin))} margin</span>
@@ -684,13 +715,13 @@
     ).join("") + `<p class="financial-definition"><b>Derived calculations.</b> Expense and profit margins divide reported GAAP line items by reported revenue. Share growth uses year-end shares outstanding, not weighted-average diluted shares.</p>`;
     document.querySelector("#capital-sources>div").innerHTML = annualCapital.map(row =>
       `<article class="financial-source-row">
-        <b>${esc(row.period === "2026Q1" ? "Q1 2026" : `FY${row.period}`)}</b>
+        <b>${esc(formatPeriod(row.period))}</b>
         <span>Cash + securities ${esc(money(row.liquidity))}</span>
         <span>Deferred revenue ${esc(money(row.deferredRevenue))}</span>
         <span>${row.rdAdjustedRoic==null?"ROIC not annualized":`R&D-adjusted ROIC ${esc(pct(row.rdAdjustedRoic))}`}</span>
-        ${sourceAnchor(row.sourceUrl,row.period === "2026Q1"?"Form 10-Q":"Form 10-K")}
+        ${sourceAnchor(row.sourceUrl,row.period.includes("Q")?"Form 10-Q":"Form 10-K")}
       </article>`
-    ).join("") + `<p class="financial-definition"><b>Analyst-adjusted capital framework.</b> Liquidity and deferred revenue are reported balance-sheet facts. Operating capital retains a 2% revenue cash floor; R&D is capitalized over three years; ROIC uses a 21% normalized tax rate. Q1 2026 returns are intentionally not annualized.</p>`;
+    ).join("") + `<p class="financial-definition"><b>Analyst-adjusted capital framework.</b> Liquidity and deferred revenue are reported balance-sheet facts. Operating capital retains a 2% revenue cash floor; R&D is capitalized over three years; ROIC uses a 21% normalized tax rate. Interim-period ROIC is intentionally not annualized.</p>`;
     document.querySelector("#customer-sources>div").innerHTML = financialLinks;
     document.querySelector("#total-customer-sources>div").innerHTML = totalCustomers.map(row =>
       `<a href="${esc(row.sourceUrl)}" title="${esc(row.basis)}" target="_blank" rel="noopener noreferrer">${esc(row.period)}</a>`
@@ -740,11 +771,11 @@
     const financialLabels = financials.map(row => row.period);
     const fcfLabels = annualFcfEconomics.map(row => row.period);
     const conversionOperations = annualOperations.filter(row => annualFcfByPeriod.has(row.period));
-    const capitalLabels = annualCapital.map(row => row.period === "2026Q1" ? "Q1 26" : row.period);
-    const annualCapitalReturns = annualCapital.filter(row => row.period !== "2026Q1");
+    const capitalLabels = annualCapital.map(row => row.period.includes("Q") ? `${row.period.slice(4)} ${row.period.slice(2,4)}` : row.period);
+    const annualCapitalReturns = annualCapital.filter(row => Number.isFinite(row.rdAdjustedRoic));
     const operationsByPeriod = new Map(annualOperations.map(row => [row.period,row]));
     financialChartConfigs = [
-      {canvasId:"revenue-chart",legendId:"revenue-legend",labels:financialLabels,yMin:0,yMax:1100,yRightMin:0,yRightMax:1,yFormatter:value=>`$${Math.round(value)}m`,yRightFormatter:value=>pct(value,0),tooltipFormatter:value=>money(value),series:[
+      {canvasId:"revenue-chart",legendId:"revenue-legend",labels:financialLabels,yMin:0,yMax:1200,yRightMin:0,yRightMax:1,yFormatter:value=>`$${Math.round(value)}m`,yRightFormatter:value=>pct(value,0),tooltipFormatter:value=>money(value),series:[
         {label:"Revenue · left axis",color:"#33c6e6",values:financials.map(row=>row.revenue)},
         {label:"YoY growth · right axis",color:"#ffb84d",axis:"right",width:3.5,pointRadius:3.2,dash:[8,4],tooltipFormatter:value=>pct(value),values:financials.map(row=>row.revenueGrowth)},
       ]},
@@ -773,7 +804,7 @@
         {label:"Reported FCF margin",color:"#33c6e6",values:annualFcfEconomics.map(row=>row.reportedMargin)},
         {label:"Owner FCF margin",color:"#2ed6a0",values:annualFcfEconomics.map(row=>row.ownerMargin)},
       ]},
-      {type:"bar",canvasId:"quarterly-fcf-chart",legendId:"quarterly-fcf-legend",labels:quarterlyFcfEconomics.map(row=>row.period === "2025Q1" ? "Q1 25" : "Q1 26"),yMin:0,yMax:350,yFormatter:value=>`$${Math.round(value)}m`,tooltipFormatter:value=>money(value),series:[
+      {type:"bar",canvasId:"quarterly-fcf-chart",legendId:"quarterly-fcf-legend",labels:quarterlyFcfEconomics.map(row=>`${row.period.slice(4)} ${row.period.slice(2,4)}`),yMin:-50,yMax:350,yFormatter:value=>`${value<0?"−":""}$${Math.abs(Math.round(value))}m`,tooltipFormatter:value=>signedMoney(value),series:[
         {label:"Reported FCF",color:"#33c6e6",values:quarterlyFcfEconomics.map(row=>row.reportedFcf)},
         {label:"Total SBC",color:"#7c6bf5",opacity:.74,values:quarterlyFcfEconomics.map(row=>row.totalSbc)},
         {label:"Owner FCF",color:"#2ed6a0",values:quarterlyFcfEconomics.map(row=>row.ownerFcf)},
@@ -853,7 +884,7 @@
     aiActivity.innerHTML = kpiModel.aiActivity.map(row => `<article class="activity-card">
       <span>${esc(row[3])}</span><strong>${esc(row[2])}</strong><h3>${esc(row[0])}</h3>
       <p>Management-reported activity growth; no revenue attribution disclosed.</p>
-      ${sourceAnchor(row[4],"Q1 2026 transcript")}
+      ${sourceAnchor(row[4],row[3].includes("Q2 2026")?"Q2 2026 transcript":"Q1 2026 transcript")}
     </article>`).join("");
   }
 
@@ -920,6 +951,7 @@
   function renderFinancials(){
     renderFinancialSnapshot();
     renderQuarterlyFcfUpdate();
+    renderQuarterEvidence();
     renderSourceTrails();
     renderFinancialHistory();
     renderFinancialCharts();
@@ -1074,7 +1106,7 @@
     const pricePremium=market.price/morningstar.price-1;
     const market2030=market.rows.find(row=>row.year===2030).revenue;
     const morningstar2030=intrinsicModel.morningstar.forecastRevenue[2030];
-    document.getElementById("intrinsic-verdict").innerHTML=`<b>The market price pays for an exceptional outcome, even after granting a 35% mature GAAP EBIT margin.</b> It requires ${esc(pct(market.revenueGrowth))} annual revenue growth from 2027–2035 and ${esc(intrinsicBillions(market.terminalRevenue))} of FY2035 revenue—${esc(pct(terminalRevenueGap))} above the path that supports Morningstar’s $200 fair value under the same lens.`;
+    document.getElementById("intrinsic-verdict").innerHTML=`<b>The post-earnings selloff narrowed the valuation gap, but the stock still requires exceptional growth durability.</b> At $${market.price.toFixed(2)}, the common lens requires ${esc(pct(market.revenueGrowth))} annual revenue growth from 2027–2035 and ${esc(intrinsicBillions(market.terminalRevenue))} of FY2035 revenue—${esc(pct(terminalRevenueGap))} above the path that supports Morningstar’s $200 fair value.`;
     const snapshot=[
       {label:"Price premium",value:signedPct(pricePremium,1),note:`$${market.price.toFixed(2)} versus $${morningstar.price.toFixed(2)}`,tone:"price"},
       {label:"Growth hurdle gap",value:signedPctPoints(growthGap),note:"Annual revenue growth · 2027–35",tone:"growth"},
@@ -1090,9 +1122,9 @@
         const scenarios=calculator.scenarios.map(scenario=>`<span>${esc(scenario.label)} · ${esc(pct(scenario.probability,0))}<b>$${scenario.fairValue.toFixed(0)}</b></span>`).join("");
         return `<article class="intrinsic-target-card tone-${esc(item.tone)}">
           <div class="intrinsic-target-head"><div><span>${esc(item.label)}</span><strong>~$${calculator.weightedFairValue.toFixed(0)}</strong></div><i>Our estimate</i></div>
-          <div class="intrinsic-hurdle"><span>Required 2027–35 revenue growth</span><b>${esc(pct(item.revenueGrowth))}</b><small>10-year FCFF cross-check at the $135 price anchor</small></div>
+          <div class="intrinsic-hurdle"><span>Required 2027–35 revenue growth</span><b>${esc(pct(item.revenueGrowth))}</b><small>10-year FCFF cross-check at the $${item.price.toFixed(0)} price anchor</small></div>
           <div class="intrinsic-target-metrics intrinsic-calculator-scenarios">${scenarios}<span>Terminal shares<b>${calculator.terminalShares.toFixed(0)}M</b></span></div>
-          <p><b>${esc(calculator.metric)} · ${calculator.forecastYears}Y · ${esc(pct(calculator.annualGrowth,0))} growth · ${calculator.terminalPriceToFcf.toFixed(0)}× P/FCF · ${esc(pct(calculator.discountRate,0))} discount.</b> ${esc(calculator.note)}</p>
+          <p><b>${esc(calculator.metric)} · ${calculator.forecastYears}Y · ${esc(pct(calculator.annualGrowth,0))} growth · ${calculator.terminalPriceToFcf.toFixed(0)}× P/FCF · ${esc(pct(calculator.discountRate,0))} discount.</b></p>
           <span class="intrinsic-internal-source">Internal calculator cross-check · ${esc(calculator.modelDate)}</span>
         </article>`;
       }
@@ -1105,7 +1137,7 @@
           <span>Target enterprise value <b>${esc(intrinsicBillions(item.targetEnterpriseValue))}</b></span>
           <span>Terminal value / EV <b>${esc(pct(item.terminalValueShare))}</b></span>
         </div>
-        <p>${current?"The price needs Datadog to compound near 30% for almost a decade while margin scales to a best-in-class level.":"The $200 anchor still requires elite durability, but its 2030 revenue path lands close to Morningstar’s disclosed forecast."}</p>
+        <p>${current?`The price needs Datadog to compound near ${Math.round(item.revenueGrowth*100)}% for almost a decade while margin scales to a best-in-class level.`:"The $200 anchor still requires elite durability, but its 2030 revenue path lands close to Morningstar’s disclosed forecast."}</p>
         ${sourceAnchor(source.url,current?"Market-price source":"Morningstar access route")}
       </article>`;
     }).join("");
@@ -1113,9 +1145,9 @@
       <div class="kpi-card-head"><div><span class="kpi-card-kicker">Expectation gap</span><h3>Where the paths diverge</h3></div></div>
       <div class="intrinsic-gap-number"><span>FY2030 market-implied revenue</span><strong>${esc(intrinsicBillions(market2030))}</strong><small>${esc(signedPct(market2030/morningstar2030-1,1))} versus Morningstar’s disclosed ${esc(intrinsicBillions(morningstar2030))}</small></div>
       <div class="intrinsic-gap-list">
-        <article><b>What is priced in</b><p>Near-30% growth persists well beyond today’s estimate window; margin reaches 35% without a separate dilution haircut.</p></article>
-        <article><b>What breaks first</b><p>Usage growth fades before operating leverage catches up, or SBC-driven share issuance absorbs part of the enterprise-value gain.</p></article>
-        <article><b>Action</b><p><span>Wait for proof</span> unless multi-product adoption, NRR, and large-customer growth sustain a path clearly above Morningstar’s forecast.</p></article>
+        <article><b>What is priced in</b><p>High-20s growth persists well beyond today’s estimate window; margin reaches 35% without a separate future-dilution forecast.</p></article>
+        <article><b>What breaks first</b><p>The largest-customer usage decline spreads into weaker NRR before operating leverage catches up, or SBC-driven share issuance absorbs part of the enterprise-value gain.</p></article>
+        <article><b>Action</b><p><span>Wait for proof</span> until Q3–Q4 show that ex-largest acceleration can absorb the disclosed optimization without another guide reset.</p></article>
       </div>`;
     const ms=intrinsicModel.morningstar;
     const morningstarStats=[
@@ -1135,7 +1167,7 @@
       ["FY2035 GAAP EBIT margin",pct(intrinsicModel.model.ebitMargin.at(-1)),"Same generous margin in both backsolves"],
       ["Net cash bridge",intrinsicBillions(netCash),"Cash less converts and operating leases"],
       ["Diluted shares",`${intrinsicModel.model.dilutedShares.toFixed(1)}M`,"Future issuance not separately forecast"],
-      ["FY2026 growth",pct(intrinsicModel.model.firstForecastGrowth),"Fixed first forecast year"],
+      ["FY2026 growth",pct(intrinsicModel.model.firstForecastGrowth),"Fixed to the $4.46B company-guide midpoint"],
     ];
     document.getElementById("intrinsic-assumption-grid").innerHTML=assumptions.map(([label,value,note])=>`<article><span>${esc(label)}</span><strong>${esc(value)}</strong><p>${esc(note)}</p></article>`).join("");
     const methodCards=Object.entries(intrinsicModel.methodology).map(([label,copy])=>`<article><b>${esc(pretty(label))}</b><p>${esc(copy)}</p></article>`).join("");
@@ -1198,7 +1230,7 @@
     const historicalPercentile=valuationPercentile(ddogPeer.evLtmRevenue,historicalObservations);
     const marketRank=1+highGrowthMarket.filter(row=>row.evLtmRevenue>ddogPeer.evLtmRevenue).length;
     const summary=[
-      {label:"Current DDOG",value:multiple(ddogPeer.evLtmRevenue),note:"EV / LTM revenue · 31 Jul 2026"},
+      {label:"Current DDOG",value:multiple(ddogPeer.evLtmRevenue),note:`EV / LTM revenue · ${peerModel.meta.valuationDate}`},
       {label:"Own history",value:multiple(historicalStats.median),note:`Median · current at ${Math.round(historicalPercentile*100)}th percentile`},
       {label:"Eight competitors",value:multiple(broadStats.median),note:`Median · DDOG ${signedPct(ddogPeer.evLtmRevenue/broadStats.median-1)} premium`},
       {label:"High-growth software",value:multiple(marketStats.median),note:`Median · DDOG ranks ${marketRank} of ${highGrowthMarket.length+1}`},
@@ -1248,9 +1280,9 @@
       ctx.beginPath();ctx.arc(px,py,current?5.5:3.6,0,Math.PI*2);ctx.fillStyle=current?"#f4f1ff":"#7c6bf5";ctx.fill();ctx.strokeStyle=current?"#7c6bf5":"#141a2b";ctx.lineWidth=current?2.5:1;ctx.stroke();
       return {row,x:px,y:py,radius:current?7:6};
     });
-    const labels=[0,4,8,12,16,17].filter(index=>index<valuationHistory.length);
+    const labels=[0,4,8,12,16,valuationHistory.length-1].filter((index,position,array)=>index<valuationHistory.length&&array.indexOf(index)===position);
     ctx.fillStyle="#70799c";ctx.textAlign="center";ctx.font='8px "JetBrains Mono", monospace';
-    labels.forEach(index=>{const date=new Date(`${valuationHistory[index].date}T00:00:00Z`);const label=index===valuationHistory.length-1?"Jul ’26":`${["Q1","Q2","Q3","Q4"][Math.floor(date.getUTCMonth()/3)]} ’${String(date.getUTCFullYear()).slice(-2)}`;ctx.fillText(label,x(index),height-20);});
+    labels.forEach(index=>{const date=new Date(`${valuationHistory[index].date}T00:00:00Z`);const label=index===valuationHistory.length-1?`${date.toLocaleDateString("en-US",{month:"short",timeZone:"UTC"})} ’${String(date.getUTCFullYear()).slice(-2)}`:`${["Q1","Q2","Q3","Q4"][Math.floor(date.getUTCMonth()/3)]} ’${String(date.getUTCFullYear()).slice(-2)}`;ctx.fillText(label,x(index),height-20);});
     canvas._valuationPoints=points;
     renderChartLegend("valuation-history-legend",[
       {label:"EV / LTM revenue",color:"#7c6bf5"},{label:`Historical median ${multiple(stats.median)}`,color:"#f5b13f"},{label:`IQR ${multiple(stats.p25)}–${multiple(stats.p75)}`,color:"rgba(124,107,245,.5)"},

@@ -130,6 +130,16 @@ const SOURCE_REGISTRY = {
     hoverText:"Our customers' usage of AI within the Datadog platform continues to grow rapidly.",
     hoverType:"quote",
   },
+  "datadog-q2-2026-call":{
+    label:"Datadog FQ2 2026 earnings call",
+    publisher:"Datadog Investor Relations",
+    date:"2026-08-06",
+    sourceClass:"company_directional",
+    access:"public",
+    url:"https://investors.datadoghq.com/static-files/2360a5cc-f17a-4731-b74a-fb6f4617baf5",
+    hoverText:"We saw acceleration across both our AI and non-AI customer base.",
+    hoverType:"quote",
+  },
   "datadog-product-site":{
     label:"Datadog product portfolio",
     publisher:"Datadog",
@@ -914,7 +924,7 @@ const PLATFORM_ENABLERS = [
     name:"Cloud Prem / BYOC",
     entityType:"deployment",
     tags:["byoc","regulated"],
-    description:"Runs supported Datadog products in customer-controlled infrastructure for sovereignty, residency, and very large workloads.",
+    description:"Runs supported Datadog products in customer-controlled infrastructure for sovereignty, residency, and very large workloads; Q2 evidence included a $30M+ TCV media-company win spanning petabyte-scale logs with planned metrics and traces expansion.",
     dcf:["new_tam","gross_margin_risk","r_and_d_intensity"],
   },
   {
@@ -936,7 +946,7 @@ const PLATFORM_ENABLERS = [
 ];
 
 const COMPANY_ASSESSMENT = {
-  asOf:"2026-Q1",
+  asOf:"2026-Q2",
   verdicts:[
     {
       id:"business-model",
@@ -976,22 +986,22 @@ const COMPANY_ASSESSMENT = {
       value:"Strengthening",
       tone:"positive",
       confidence:"Medium",
-      note:"Multi-product adoption and workflow embedding are deepening faster than per-share economics.",
+      note:"Multi-product adoption and non-AI growth strengthened, while customer concentration and owner-cash conversion remain the key constraints.",
       sourceId:"internal-moat-analysis",
     },
   ],
   facts:[
-    {value:"4,550",label:"customers above $100k ARR"},
-    {value:"≈90%",label:"ARR from the $100k+ cohort"},
+    {value:"4,720",label:"customers above $100k ARR"},
+    {value:"91%",label:"ARR from the $100k+ cohort"},
     {value:"low-120s",label:"TTM NRR"},
     {value:"mid–high 90s",label:"gross retention"},
-    {value:"56% / 35% / 20%",label:"customers using 4+ / 6+ / 8+ products"},
+    {value:"58% / 37% / 22%",label:"customers using 4+ / 6+ / 8+ products"},
   ],
   watchlist:[
     {
       label:"Retention & platform depth",
       confirmation:"NRR ≥120%, GRR in the mid–high 90s, and 6+/8+ adoption keeps rising.",
-      warning:"NRR <115% or the 8+ product cohort stagnates.",
+      warning:"NRR <115% for two quarters or the 8+ product cohort stagnates.",
     },
     {
       label:"Infrastructure economics",
@@ -1005,8 +1015,13 @@ const COMPANY_ASSESSMENT = {
     },
     {
       label:"Portability & concentration",
-      confirmation:"OpenTelemetry-native monetization expands and AI growth broadens across customers.",
-      warning:"Large workloads move to neutral backends or AI growth concentrates further.",
+      confirmation:"Non-AI growth stays in the high-20s and AI growth broadens beyond the largest customer.",
+      warning:"The largest-customer usage decline overwhelms ex-largest acceleration or AI growth concentrates further.",
+    },
+    {
+      label:"Largest-customer usage",
+      confirmation:"Q3–Q4 revenue absorbs the disclosed optimization while NRR remains in the low-120s.",
+      warning:"Usage declines beyond the amount embedded in guidance or drives another material guide reset.",
     },
   ],
 };
@@ -1080,6 +1095,107 @@ const Q1_EVIDENCE = {
       scope:"capability",
       confidence:"medium",
       asOf:"2026-Q1",
+    },
+  ],
+};
+
+const Q2_EVIDENCE = {
+  "Real User Monitoring":[
+    {
+      claim:"RUM exceeded $200M ARR and grew more than 50% year over year.",
+      source:"Datadog FQ2 2026 earnings call",
+      sourceId:"datadog-q2-2026-call",
+      locator:"Prepared remarks, pp. 5-6",
+      excerpt:"RUM is now over $200 million in ARR and growing over 50% year-over-year.",
+      excerptType:"quote",
+      sourceClass:"company_directional",
+      scope:"product",
+      confidence:"medium",
+      asOf:"2026-Q2",
+    },
+  ],
+  "GPU Monitoring":[
+    {
+      claim:"Two additional seven-figure AI-neolab training wins expanded the training-observability evidence beyond the prior hyperscaler examples.",
+      source:"Datadog FQ2 2026 earnings call",
+      sourceId:"datadog-q2-2026-call",
+      locator:"Prepared remarks, pp. 6-7",
+      excerpt:"two seven-figure new logo deals with neolabs for their AI training environments",
+      excerptType:"quote",
+      sourceClass:"company_directional",
+      scope:"product_and_bundle",
+      confidence:"medium",
+      asOf:"2026-Q2",
+    },
+  ],
+  "Datadog MCP Server":[
+    {
+      claim:"MCP tool calls quadrupled again quarter over quarter and were more than 22 times Q4 2025 levels.",
+      source:"Datadog FQ2 2026 earnings call",
+      sourceId:"datadog-q2-2026-call",
+      locator:"Prepared remarks, p. 5",
+      excerpt:"quadrupled quarter-over-quarter again, and grew more than 22 times compared to Q4 2025",
+      excerptType:"quote",
+      sourceClass:"company_directional",
+      scope:"usage",
+      confidence:"medium",
+      asOf:"2026-Q2",
+    },
+  ],
+  "Bits AI SRE Agent":[
+    {
+      claim:"Management said customers using Bits deploy more products, dashboards, alerts, and users; a new AI-credit package is rolling out, but revenue conversion remains undisclosed.",
+      source:"Datadog FQ2 2026 earnings call",
+      sourceId:"datadog-q2-2026-call",
+      locator:"Q&A, pp. 17-20",
+      excerpt:"customers who are using Bits are deploying more products, more dashboards, more alerts, and more users",
+      excerptType:"quote",
+      sourceClass:"company_directional",
+      scope:"usage_and_attach",
+      confidence:"medium",
+      asOf:"2026-Q2",
+    },
+  ],
+  "Bits AI Security Analyst":[
+    {
+      claim:"The standalone security agent is being positioned as an AI-SOC wedge that can operate with third-party SIEMs; commercial proof remains incomplete.",
+      source:"Datadog FQ2 2026 earnings call",
+      sourceId:"datadog-q2-2026-call",
+      locator:"Q&A, pp. 22-23",
+      excerpt:"we separated it from our own SIEM so customers can use it with other SIEMs",
+      excerptType:"quote",
+      sourceClass:"company_directional",
+      scope:"go_to_market",
+      confidence:"medium",
+      asOf:"2026-Q2",
+    },
+  ],
+  "Log Management":[
+    {
+      claim:"A $30M+ TCV media-company BYOC deal started with petabyte-scale logs and included a path to metrics and traces.",
+      source:"Datadog FQ2 2026 earnings call",
+      sourceId:"datadog-q2-2026-call",
+      locator:"Prepared remarks, pp. 6-7",
+      excerpt:"a greater than $30 million TCV deal with a large media company",
+      excerptType:"quote",
+      sourceClass:"company_directional",
+      scope:"product_and_bundle",
+      confidence:"medium",
+      asOf:"2026-Q2",
+    },
+  ],
+  "Infrastructure Monitoring":[
+    {
+      claim:"Infinite Cardinality changes packaging around high-cardinality metrics to improve bill predictability; management described adoption as early.",
+      source:"Datadog FQ2 2026 earnings call",
+      sourceId:"datadog-q2-2026-call",
+      locator:"Q&A, pp. 12-14",
+      excerpt:"we are changing the packaging so customers don't have to worry about cardinality",
+      excerptType:"quote",
+      sourceClass:"company_directional",
+      scope:"packaging",
+      confidence:"medium",
+      asOf:"2026-Q2",
     },
   ],
 };
@@ -1357,7 +1473,7 @@ const buildAssessmentEvidence = (product,meta,legacyEvidence,q1Evidence) => {
     maturity:{
       rationale:maturityRationale,
       confidence:meta.evidenceConfidence?.maturity || (maturityEvidence ? "medium" : "low"),
-      asOf:"2026-Q1",
+      asOf:"2026-Q2",
       sources:[
         maturitySource,
         productSource(
@@ -1370,19 +1486,19 @@ const buildAssessmentEvidence = (product,meta,legacyEvidence,q1Evidence) => {
     position:{
       rationale:positionRationale,
       confidence:meta.evidenceConfidence?.position || (competitorNames.length ? "medium" : "low"),
-      asOf:"2026-Q1",
+      asOf:"2026-Q2",
       sources:positionSources,
     },
     momentum:{
       rationale:momentumRationale,
       confidence:meta.evidenceConfidence?.momentum || (latest || traction ? "medium" : "low"),
-      asOf:"2026-Q1",
+      asOf:"2026-Q2",
       sources:momentumSources,
     },
     moatConviction:{
       rationale:moatRationale,
       confidence:meta.evidenceConfidence?.moatConviction || (["strong","credible"].includes(moatKey) ? "medium" : "low"),
-      asOf:"2026-Q1",
+      asOf:"2026-Q2",
       sources:moatSources,
     },
   };
@@ -1396,6 +1512,7 @@ const normalizeProducts = () => {
 
   DATA.forEach(category => category.suites.forEach(suite => suite.products.forEach(product => {
     const meta = PRODUCT_META[product.n] || {};
+    const currentEvidence = [...(Q1_EVIDENCE[product.n] || []),...(Q2_EVIDENCE[product.n] || [])];
     const legacyEvidence = TRACTION[product.n]
       ? [{
           claim:TRACTION[product.n].text,
@@ -1443,8 +1560,8 @@ const normalizeProducts = () => {
         source:"Datadog Investor Day taxonomy mapped to stable market backbone",
       }],
       competitors:COMPETITIVE_SETS[product.n] || [],
-      evidence:[...legacyEvidence,...(Q1_EVIDENCE[product.n] || [])],
-      assessmentEvidence:buildAssessmentEvidence(product,meta,legacyEvidence,Q1_EVIDENCE[product.n] || []),
+      evidence:[...legacyEvidence,...currentEvidence],
+      assessmentEvidence:buildAssessmentEvidence(product,meta,legacyEvidence,currentEvidence),
       boundary:BOUNDARY_CONVENTIONS[product.n],
     });
   })));
@@ -1469,9 +1586,9 @@ window.PRODUCT_MAP = {
   sources:SOURCE_REGISTRY,
   productSources:PRODUCT_SOURCES,
   meta:{
-    asOf:"2026-Q1",
+    asOf:"2026-Q2",
     companyReportedProductCount:26,
     auditedSource:"FY2025 10-K",
-    directionalSource:"Q1 2026 earnings call and company presentations",
+    directionalSource:"Q2 2026 earnings call and company presentations",
   },
 };
