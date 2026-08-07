@@ -1,6 +1,7 @@
 window.VALUATION_CONTEXT = {
   meta: {
-    valuationDate: "2026-07-31",
+    valuationDate: "2026-08-06",
+    marketSnapshotDate: "2026-07-31",
     currency: "USD",
     reliability: "Screening-grade",
     historicalProvider: "S&P Global MI and Fiscal.ai via StockAnalysis",
@@ -11,7 +12,7 @@ window.VALUATION_CONTEXT = {
     infrastructureSecurityDataConstituentCount: 18,
   },
   methodology: {
-    history: "Quarter-end market capitalization plus period-end debt less cash, divided by reported LTM revenue. The 31 July 2026 point uses the current peer-comps snapshot. This is a screening reconstruction, not a point-in-time consensus series.",
+    history: "Quarter-end market capitalization plus period-end debt less cash, divided by reported LTM revenue. The 6 August 2026 point is a post-earnings snapshot using Q2 actuals; the 31 July point remains the pre-print reference. This is a screening reconstruction, not a point-in-time consensus series.",
     competitors: "The same eight-company peer set used throughout this tab. Datadog is excluded from peer medians; DT and ESTC form the direct-observability subset.",
     market: "The BVP Nasdaq Emerging Cloud Index is the starting software universe. Broad software excludes Datadog and applies a $5B market-cap floor. High-growth additionally requires at least 15% reported LTM revenue growth. Infrastructure / security / data is a disclosed thematic subset of the broad cohort.",
     multiple: "EV / LTM revenue = (market capitalization + debt − cash and short-term investments) / reported revenue for the latest four quarters.",
@@ -44,6 +45,7 @@ window.VALUATION_CONTEXT = {
     ["2025-12-31",47687715157,4474836000,1279005000,3427158000],
     ["2026-03-31",41772149388,4758617000,1285052000,3672031000],
     ["2026-07-31",97736966070,4758617000,1285052000,3672031000],
+    ["2026-08-06",81620000000,4985438000,985545000,3966725000],
   ],
   marketFields: ["ticker","name","latestQuarter","marketCap","cash","debt","ltmRevenue","ltmPriorRevenue"],
   market: [
