@@ -136,6 +136,7 @@
       fundamentals:{key:"ltmGrowth",direction:"desc"},
       valuation:{key:"evNtmRevenue",direction:"desc"},
     },
+    peerGapCohort:"broad",
     peerMultiple:20.8,
   };
   const refs = {};
@@ -1320,22 +1321,30 @@
   }
 
   function renderPeerGaps(){
-    const fundamentals = [
-      ["LTM revenue growth",ddogPeer.ltmGrowth-peerMedian(broadPeers,"ltmGrowth")],
-      ["FCF Rule of 40",ddogPeer.rule40-peerMedian(broadPeers,"rule40")],
-      ["SBC-adjusted Rule of 40",ddogPeer.economicSensitivity-peerMedian(broadPeers,"economicSensitivity")],
+    const cohort=state.peerGapCohort==="direct"?directPeers:broadPeers;
+    const indexed=(key)=>ddogPeer[key]/peerMedian(cohort,key);
+    const fundamentals=[
+      ["NTM revenue growth",indexed("ntmGrowth")],
+      ["Standardized FCF margin",indexed("fcfMargin")],
+      ["SBC-adjusted Rule of 40",indexed("economicSensitivity")],
     ];
-    const valuations = [
-      ["EV / NTM revenue · broad",ddogPeer.evNtmRevenue/peerMedian(broadPeers,"evNtmRevenue")-1],
-      ["EV / NTM revenue · direct",ddogPeer.evNtmRevenue/peerMedian(directPeers,"evNtmRevenue")-1],
-      ["Equity / NTM FCF · broad",ddogPeer.equityNtmFcf/peerMedian(broadPeers,"equityNtmFcf")-1],
+    const valuations=[
+      ["EV / NTM revenue",indexed("evNtmRevenue")],
+      ["Equity / NTM FCF",indexed("equityNtmFcf")],
     ];
-    const bars = (rows,max,formatter) => rows.map(([label,value]) => `<div class="peer-gap-row">
-      <div><span>${esc(label)}</span><b>${esc(formatter(value))}</b></div>
-      <i><span style="width:${Math.max(3,Math.min(100,value/max*100))}%"></span></i>
+    const width=value=>Math.max(0,Math.min(100,(value-1)/2.5*100));
+    const rows=(items,group)=>items.map(([label,value])=>`<div class="expectation-row">
+      <span>${esc(label)}</span>
+      <i class="expectation-track" role="img" aria-label="${esc(label)}: ${esc(value.toFixed(2))} times the selected peer median"><b class="expectation-bar ${group}" style="width:${width(value)}%"></b></i>
+      <strong>${esc(value.toFixed(2))}×</strong>
     </div>`).join("");
-    document.getElementById("peer-fundamental-gap").innerHTML = bars(fundamentals,.10,value=>signedPctPoints(value));
-    document.getElementById("peer-valuation-gap").innerHTML = bars(valuations,4,value=>signedPct(value));
+    document.getElementById("peer-quality-index").innerHTML=rows(fundamentals,"quality");
+    document.getElementById("peer-premium-index").innerHTML=rows(valuations,"premium");
+    const qualityHigh=Math.max(...fundamentals.map(([,value])=>value));
+    const premiumLow=Math.min(...valuations.map(([,value])=>value));
+    document.getElementById("peer-expectation-gap-value").textContent=`+${(premiumLow-qualityHigh).toFixed(1)}× gap`;
+    document.getElementById("peer-expectation-gap-copy").textContent=`Measured quality tops out at ${qualityHigh.toFixed(1)}× peers; valuation starts at ${premiumLow.toFixed(1)}×.`;
+    document.querySelectorAll("[data-peer-gap-cohort]").forEach(button=>button.setAttribute("aria-pressed",String(button.dataset.peerGapCohort===state.peerGapCohort)));
   }
 
   function drawPeerScatter({canvasId,xKey,yKey,xLabel,yLabel,legendId}){
@@ -1949,6 +1958,13 @@
     state.peerFilter=button.dataset.peerFilter;
     document.querySelectorAll("[data-peer-filter]").forEach(item=>item.classList.toggle("is-active",item===button));
     renderPeerTable();
+  });
+
+  document.querySelector(".peer-gap-toggle")?.addEventListener("click",event=>{
+    const button=event.target.closest("[data-peer-gap-cohort]");
+    if(!button) return;
+    state.peerGapCohort=button.dataset.peerGapCohort;
+    renderPeerGaps();
   });
 
   document.getElementById("peer-table-section")?.addEventListener("click",event => {
