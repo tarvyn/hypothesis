@@ -915,32 +915,54 @@
             <div><span class="section-kicker">Growth versus multiple</span><h2 id="peer-valuation-title">What the market pays for growth</h2></div>
             <p>Forward and reported views use matched time horizons. Bubble size represents market capitalization; dashed lines mark broad-peer medians.</p>
           </div>
-          <div class="peer-visual-grid">
-            <div class="peer-scatter-stack">
-              <article class="kpi-chart-card peer-scatter-card">
-                <div class="kpi-card-head">
-                  <div><span class="kpi-card-kicker">Forward valuation map</span><h3>NTM growth vs EV / NTM revenue</h3></div>
-                  <span class="kpi-source">6 Aug 2026</span>
-                </div>
-                <p class="kpi-chart-note">Forward growth and forward revenue use the same calendarized horizon.</p>
-                <canvas id="peer-valuation-chart" class="financial-chart peer-scatter" role="img" aria-label="Peer NTM revenue growth versus enterprise value to NTM revenue"></canvas>
-                <div class="chart-legend" id="peer-valuation-legend"></div>
-              </article>
-              <article class="kpi-chart-card peer-scatter-card">
-                <div class="kpi-card-head">
-                  <div><span class="kpi-card-kicker">Reported valuation map</span><h3>LTM growth vs EV / LTM revenue</h3></div>
-                  <span class="kpi-source">6 Aug 2026</span>
-                </div>
-                <p class="kpi-chart-note">Trailing growth and trailing revenue provide an estimate-free sanity check.</p>
-                <canvas id="peer-reported-valuation-chart" class="financial-chart peer-scatter" role="img" aria-label="Peer LTM revenue growth versus enterprise value to LTM revenue"></canvas>
-                <div class="chart-legend" id="peer-reported-valuation-legend"></div>
-              </article>
+          <article class="peer-gap-card expectation-gap-card" aria-labelledby="expectation-gap-title">
+            <div class="expectation-gap-head">
+              <div>
+                <span class="kpi-card-kicker">Expectation gap · peer median = 1.0×</span>
+                <h3 id="expectation-gap-title">The market pays more than Datadog outperforms</h3>
+              </div>
+              <div class="peer-gap-toggle" role="group" aria-label="Peer cohort for expectation gap">
+                <button type="button" data-peer-gap-cohort="broad" aria-pressed="true">Broad peers</button>
+                <button type="button" data-peer-gap-cohort="direct" aria-pressed="false">Direct peers</button>
+              </div>
             </div>
-            <article class="peer-gap-card">
-              <div class="kpi-card-head"><div><span class="kpi-card-kicker">Expectation gap</span><h3>Advantage versus premium</h3></div></div>
-              <p class="kpi-chart-note">Datadog relative to the broad-peer median. Percentage-point differences show fundamentals; percentage premiums show valuation.</p>
-              <div class="peer-gap-group"><h4>Fundamental advantage</h4><div id="peer-fundamental-gap"></div></div>
-              <div class="peer-gap-group valuation"><h4>Valuation premium</h4><div id="peer-valuation-gap"></div></div>
+            <p class="kpi-chart-note expectation-gap-intro">Every metric is indexed to the selected peer median. This puts operating quality and valuation on one comparable scale without inventing a composite score.</p>
+            <div class="expectation-axis" aria-hidden="true">
+              <span>Indexed to peers</span>
+              <div><i style="left:0%">1.0×</i><i style="left:20%">1.5×</i><i style="left:40%">2.0×</i><i style="left:60%">2.5×</i><i style="left:80%">3.0×</i><i style="left:100%">3.5×</i></div>
+              <span></span>
+            </div>
+            <div class="expectation-group is-quality">
+              <div class="expectation-group-head"><b>Measured operating advantage</b><span>What the business earns</span></div>
+              <div id="peer-quality-index"></div>
+            </div>
+            <div class="expectation-group is-premium">
+              <div class="expectation-group-head"><b>Valuation premium</b><span>What investors pay</span></div>
+              <div id="peer-premium-index"></div>
+            </div>
+            <div class="expectation-verdict">
+              <b id="peer-expectation-gap-value"></b>
+              <span id="peer-expectation-gap-copy"></span>
+            </div>
+          </article>
+          <div class="peer-scatter-grid">
+            <article class="kpi-chart-card peer-scatter-card">
+              <div class="kpi-card-head">
+                <div><span class="kpi-card-kicker">Forward valuation map</span><h3>NTM growth vs EV / NTM revenue</h3></div>
+                <span class="kpi-source">6 Aug 2026</span>
+              </div>
+              <p class="kpi-chart-note">Forward growth and forward revenue use the same calendarized horizon.</p>
+              <canvas id="peer-valuation-chart" class="financial-chart peer-scatter" role="img" aria-label="Peer NTM revenue growth versus enterprise value to NTM revenue"></canvas>
+              <div class="chart-legend" id="peer-valuation-legend"></div>
+            </article>
+            <article class="kpi-chart-card peer-scatter-card">
+              <div class="kpi-card-head">
+                <div><span class="kpi-card-kicker">Reported valuation map</span><h3>LTM growth vs EV / LTM revenue</h3></div>
+                <span class="kpi-source">6 Aug 2026</span>
+              </div>
+              <p class="kpi-chart-note">Trailing growth and trailing revenue provide an estimate-free sanity check.</p>
+              <canvas id="peer-reported-valuation-chart" class="financial-chart peer-scatter" role="img" aria-label="Peer LTM revenue growth versus enterprise value to LTM revenue"></canvas>
+              <div class="chart-legend" id="peer-reported-valuation-legend"></div>
             </article>
           </div>
         </section>
