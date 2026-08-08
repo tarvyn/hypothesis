@@ -11,7 +11,6 @@ const server = path.join(dist, "server");
 
 fs.rmSync(dist, {recursive:true, force:true});
 fs.mkdirSync(path.join(client, "data"), {recursive:true});
-fs.mkdirSync(path.join(client, "schema"), {recursive:true});
 fs.mkdirSync(server, {recursive:true});
 
 const copies = [
@@ -19,18 +18,14 @@ const copies = [
   ["styles.css", path.join(client, "styles.css")],
   ["app.js", path.join(client, "app.js")],
   ["og.png", path.join(client, "og.png")],
-  ["og-peers.png", path.join(client, "og-peers.png")],
-  [path.join("data", "product-map-data.js"), path.join(client, "data", "product-map-data.js")],
-  [path.join("data", "kpi-data.js"), path.join(client, "data", "kpi-data.js")],
-  [path.join("data", "peer-comps-data.js"), path.join(client, "data", "peer-comps-data.js")],
-  [path.join("data", "valuation-context-data.js"), path.join(client, "data", "valuation-context-data.js")],
-  [path.join("data", "intrinsic-valuation-data.js"), path.join(client, "data", "intrinsic-valuation-data.js")],
-  [path.join("schema", "product-map.schema.json"), path.join(client, "schema", "product-map.schema.json")],
+  [path.join("data", "companies.js"), path.join(client, "data", "companies.js")],
   [path.join("worker", "index.js"), path.join(server, "index.js")],
 ];
 
 for(const [from, to] of copies){
   fs.copyFileSync(path.join(root, from), to);
 }
+
+fs.cpSync(path.join(root, "companies"), path.join(client, "companies"), {recursive:true});
 
 console.log(`Built static site to ${dist}`);
