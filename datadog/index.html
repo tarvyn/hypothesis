@@ -249,53 +249,12 @@
           <span class="intrinsic-screening-label">Screening-grade · common lens across all three anchors</span>
         </div>
 
-        <div class="intrinsic-snapshot" id="intrinsic-snapshot" aria-label="Reverse DCF valuation snapshot"></div>
-
         <section class="kpi-section" aria-labelledby="intrinsic-targets-title">
           <div class="section-head compact">
             <div><span class="section-kicker">Valuation comparison</span><h2 id="intrinsic-targets-title">Market, Morningstar, and our estimate</h2></div>
             <p>FY2026 starts at 30.1% growth using the $4.46B company-guide midpoint. The model then solves one constant 2027–2035 growth rate while holding every other input fixed.</p>
           </div>
           <div class="intrinsic-target-grid" id="intrinsic-target-grid"></div>
-        </section>
-
-        <section class="kpi-section intrinsic-path-section" aria-labelledby="intrinsic-path-title">
-          <div class="section-head compact">
-            <div><span class="section-kicker">Revenue path · USD billions</span><h2 id="intrinsic-path-title">The distance compounds quickly</h2></div>
-            <p>The gap between the three anchors is modest near-term, then widens as nine years of implied growth compound.</p>
-          </div>
-          <div class="intrinsic-visual-grid">
-            <article class="kpi-chart-card intrinsic-chart-card">
-              <div class="kpi-card-head">
-                <div><span class="kpi-card-kicker">Common-lens reverse DCF</span><h3>Implied revenue trajectory</h3></div>
-                <span class="kpi-source">FY2025 actual → FY2035 implied</span>
-              </div>
-              <p class="kpi-chart-note">All three paths assume a 35% FY2035 GAAP EBIT margin and 3.25% perpetual growth.</p>
-              <canvas id="intrinsic-revenue-chart" class="financial-chart intrinsic-revenue-chart" role="img" aria-label="Revenue paths implied by Datadog current market price, Morningstar fair value, and our DCF calculator estimate"></canvas>
-              <div class="chart-legend" id="intrinsic-revenue-legend"></div>
-            </article>
-            <article class="intrinsic-gap-card" id="intrinsic-gap-card"></article>
-          </div>
-        </section>
-
-        <section class="kpi-section morningstar-model-section" aria-labelledby="morningstar-model-title">
-          <div class="section-head compact">
-            <div><span class="section-kicker">Morningstar’s disclosed model · 7 May 2026</span><h2 id="morningstar-model-title">What sits behind the $200 fair value</h2></div>
-            <p>Morningstar uses a three-stage, 20-year DCF. These disclosed inputs provide a cross-check, not a like-for-like replication of our 10-year backsolve.</p>
-          </div>
-          <div class="morningstar-model-grid" id="morningstar-model-grid"></div>
-        </section>
-
-        <section class="kpi-section intrinsic-assumptions-section" aria-labelledby="intrinsic-assumptions-title">
-          <div class="section-head compact">
-            <div><span class="section-kicker">Common model frame</span><h2 id="intrinsic-assumptions-title">Assumptions held constant</h2></div>
-            <p>Reverse DCF is only useful when the fixed assumptions are visible. A generous mature margin makes this primarily a growth stress test.</p>
-          </div>
-          <div class="intrinsic-assumption-grid" id="intrinsic-assumption-grid"></div>
-          <details class="kpi-source-trail intrinsic-source-trail" id="intrinsic-sources">
-            <summary>Methodology, limitations, and source trail</summary>
-            <div id="intrinsic-source-content"></div>
-          </details>
         </section>
       </section>
     </section>
@@ -517,19 +476,12 @@
           <a href="https://www.sec.gov/Archives/edgar/data/1561550/000162828026053829/ex-991x20260630x8k.htm" target="_blank" rel="noopener noreferrer">Q2 2026 earnings release ↗</a>
         </div>
 
-        <div class="kpi-snapshot financial-snapshot" id="financial-snapshot" aria-label="Latest financial snapshot"></div>
-
         <section class="kpi-section" aria-labelledby="quarter-evidence-title">
           <div class="section-head compact">
             <div><span class="section-kicker">What changed · Q2 2026</span><h2 id="quarter-evidence-title">A stronger print with a new concentration test</h2></div>
             <p>Reported facts, management claims, and filed risk language are kept separate.</p>
           </div>
           <div class="kpi-snapshot" id="quarter-evidence" aria-label="Q2 2026 earnings evidence"></div>
-          <div class="subsection-head">
-            <div><span class="kpi-card-kicker">EPS quality screen</span><h3>Headline profit versus recurring economics</h3></div>
-            <p>GAAP and non-GAAP outputs are reconciled before treating the EPS beat as recurring operating performance.</p>
-          </div>
-          <div class="methodology-note-grid" id="eps-quality-bridge" aria-label="Q2 earnings quality bridge"></div>
         </section>
 
         <div class="kpi-chart-grid">
@@ -857,7 +809,6 @@
           <button type="button" data-peer-target="peer-overview">Overview</button>
           <button type="button" data-peer-target="peer-valuation-context">Valuation context</button>
           <button type="button" data-peer-target="peer-valuation-map">Valuation map</button>
-          <button type="button" data-peer-target="peer-sensitivity">Sensitivity</button>
           <button type="button" data-peer-target="peer-table-section">Peer table</button>
           <button type="button" data-peer-target="peer-methodology">Methodology</button>
         </nav>
@@ -868,14 +819,11 @@
           <span class="peer-screening-label">Screening-grade · calendarized forward estimates</span>
         </div>
 
-        <div class="peer-snapshot" id="peer-snapshot" aria-label="Datadog versus peer medians"></div>
-
         <section class="kpi-section valuation-context-section" id="peer-valuation-context" aria-labelledby="valuation-context-title">
           <div class="section-head compact">
             <div><span class="section-kicker">EV / LTM revenue · one definition, three lenses</span><h2 id="valuation-context-title">Valuation in context</h2></div>
               <p>Datadog’s 6 August post-earnings multiple is compared with its own reconstructed history and the eight-company peer set; the broader BVP software screen remains frozen at 31 July.</p>
           </div>
-          <div class="valuation-context-summary" id="valuation-context-summary" aria-label="Valuation context summary"></div>
           <div class="valuation-context-grid">
             <article class="kpi-chart-card valuation-history-card">
               <div class="kpi-card-head">
@@ -967,31 +915,6 @@
           </div>
         </section>
 
-        <section class="kpi-section peer-sensitivity-section" id="peer-sensitivity" aria-labelledby="peer-sensitivity-title">
-          <div class="section-head compact">
-            <div><span class="section-kicker">Valuation sensitivity</span><h2 id="peer-sensitivity-title">What different revenue multiples imply</h2></div>
-            <p>Uses Datadog’s NTM revenue proxy, current net cash and current share count. This is a mechanical scenario, not a price target.</p>
-          </div>
-          <div class="peer-sensitivity-card">
-            <div class="peer-slider-head">
-              <div><span>Selected EV / NTM revenue</span><b id="peer-selected-multiple">15.6×</b></div>
-              <div class="peer-presets" aria-label="Valuation multiple presets">
-                <button type="button" data-peer-multiple="12">12×</button>
-                <button type="button" data-peer-multiple="16">16×</button>
-                <button type="button" data-peer-multiple="20">20×</button>
-                <button type="button" data-peer-multiple="24">24×</button>
-              </div>
-            </div>
-            <input id="peer-multiple-slider" type="range" min="4" max="28" step="0.1" value="15.6" aria-label="EV to NTM revenue multiple">
-            <div class="peer-sensitivity-output">
-              <div><span>Implied share price</span><b id="peer-implied-price">—</b></div>
-              <div><span>Upside / downside</span><b id="peer-implied-return">—</b></div>
-              <div><span>Implied enterprise value</span><b id="peer-implied-ev">—</b></div>
-              <div><span>Current reference</span><b id="peer-current-reference">—</b></div>
-            </div>
-          </div>
-        </section>
-
         <section class="kpi-section" id="peer-table-section" aria-labelledby="peer-table-title">
           <div class="section-head compact">
             <div><span class="section-kicker">Audit surface</span><h2 id="peer-table-title">Full peer comparison</h2></div>
@@ -1032,7 +955,7 @@
           <div class="peer-table-block peer-valuation-table-block">
             <div class="peer-table-heading">
               <span>02</span>
-              <div><h3>Valuation</h3><p>Reported and forward revenue multiples, gross-profit normalization and equity cash yields.</p></div>
+              <div><h3>Valuation</h3><p>Reported and forward revenue multiples, gross-profit normalization and equity FCF multiples.</p></div>
               <div class="peer-heat-legend valuation" aria-label="Heatmap legend: more expensive in red, cheaper in green"><small>Expensive</small><i></i><small>Cheaper</small></div>
             </div>
             <div class="kpi-table-wrap peer-table-wrap">
@@ -1042,13 +965,13 @@
                   <th><button type="button" data-peer-table="valuation" data-peer-sort="evLtmRevenue">EV / LTM revenue</button></th>
                   <th><button type="button" data-peer-table="valuation" data-peer-sort="evNtmRevenue">EV / NTM revenue</button></th>
                   <th><button type="button" data-peer-table="valuation" data-peer-sort="evNtmGrossProfit">EV / NTM gross profit*</button></th>
-                  <th><button type="button" data-peer-table="valuation" data-peer-sort="ntmFcfYield">NTM FCF yield</button></th>
-                  <th><button type="button" data-peer-table="valuation" data-peer-sort="ownerFcfYield">Owner FCF yield†</button></th>
+                  <th><button type="button" data-peer-table="valuation" data-peer-sort="equityNtmFcf">P / NTM FCF</button></th>
+                  <th><button type="button" data-peer-table="valuation" data-peer-sort="equityNtmOwnerFcf">P / Owner FCF†</button></th>
                 </tr></thead>
                 <tbody id="peer-valuation-body"></tbody>
               </table>
             </div>
-            <p class="peer-table-note">Colors use a continuous minimum-to-maximum scale across all nine companies: lower multiples and higher yields are greener; exact rank appears on hover. Color indicates standalone valuation attractiveness, not business quality or an investment recommendation. * NTM gross profit uses the NTM revenue proxy and latest LTM gross margin. † Owner FCF yield subtracts SBC and is an analyst-adjusted sensitivity, not reported cash flow.</p>
+            <p class="peer-table-note">Colors use a continuous minimum-to-maximum scale across all nine companies: lower positive multiples are greener; exact rank appears on hover. NM means the multiple is not meaningful because NTM owner FCF is zero or negative. Color indicates standalone valuation attractiveness, not business quality or an investment recommendation. * NTM gross profit uses the NTM revenue proxy and latest LTM gross margin. † P / Owner FCF subtracts SBC and is an analyst-adjusted sensitivity, not a multiple of reported cash flow.</p>
           </div>
         </section>
 

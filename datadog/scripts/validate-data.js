@@ -124,6 +124,7 @@ if(peerModel){
     const enterpriseValue = row.marketCap + row.debt - row.cash;
     const ntmRevenue = row.ltmRevenue * (1+ntmGrowth);
     const grossMargin = row.ltmGrossProfit / row.ltmRevenue;
+    const ownerFcf = ntmRevenue * (fcfMargin-sbcMargin);
     return {
       ltmGrowth, ntmGrowth, fcfMargin, sbcMargin,
       grossMargin,
@@ -135,6 +136,7 @@ if(peerModel){
       evNtmRevenue: enterpriseValue / ntmRevenue,
       evNtmGrossProfit: enterpriseValue / (ntmRevenue * grossMargin),
       equityNtmFcf: row.marketCap / (ntmRevenue * fcfMargin),
+      equityNtmOwnerFcf: ownerFcf > 0 ? row.marketCap / ownerFcf : Number.POSITIVE_INFINITY,
       ntmFcfYield: ntmRevenue * fcfMargin / row.marketCap,
       ownerFcfYield: ntmRevenue * (fcfMargin-sbcMargin) / row.marketCap,
     };
@@ -162,6 +164,8 @@ if(peerModel){
   assert(Math.abs(ddog.evNtmGrossProfit*ddog.grossMargin-ddog.evNtmRevenue) < .00001, "DDOG gross-profit multiple must reconcile to revenue multiple and gross margin");
   assert(Math.abs(ddog.ntmFcfYield*ddog.equityNtmFcf-1) < .00001, "DDOG NTM FCF yield must reconcile to Equity / NTM FCF");
   assert(ddog.ownerFcfYield > 0 && ddog.ownerFcfYield < ddog.ntmFcfYield, "DDOG owner FCF yield must remain positive and below standardized FCF yield");
+  assert(Math.abs(ddog.ownerFcfYield*ddog.equityNtmOwnerFcf-1) < .00001, "DDOG owner FCF yield must reconcile to P / Owner FCF");
+  assert(enriched.filter(row => row.ownerFcfYield <= 0).every(row => !Number.isFinite(row.equityNtmOwnerFcf)), "Non-positive owner FCF must produce an NM owner multiple");
   assert(Math.abs(median(broad.map(row => row.evNtmRevenue)) - 7.2751) < .001, "Broad-peer EV / NTM revenue median tie-out failed");
   assert(Math.abs(median(direct.map(row => row.evNtmRevenue)) - 4.5389) < .001, "Direct-peer EV / NTM revenue median tie-out failed");
   assert(ddog.evNtmRevenue / median(broad.map(row => row.evNtmRevenue)) - 1 > 1, "DDOG broad-peer valuation premium must exceed 100%");

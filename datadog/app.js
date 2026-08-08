@@ -137,7 +137,6 @@
       valuation:{key:"evNtmRevenue",direction:"desc"},
     },
     peerGapCohort:"broad",
-    peerMultiple:20.8,
   };
   const refs = {};
   const allItems = [];
@@ -171,7 +170,6 @@
   const productScoresToggle = document.getElementById("product-scores-toggle");
   const mapHint = document.getElementById("map-hint");
   const kpiSnapshot = document.getElementById("kpi-snapshot");
-  const financialSnapshot = document.getElementById("financial-snapshot");
   const coreEngineScale = document.getElementById("core-engine-scale");
   const sectorScaleLanes = document.getElementById("sector-scale-lanes");
   const aiActivity = document.getElementById("ai-activity");
@@ -181,10 +179,8 @@
   const quarterlyFcfSummary = document.getElementById("quarterly-fcf-summary");
   const quarterlyFcfTable = document.getElementById("quarterly-fcf-table");
   const quarterEvidence = document.getElementById("quarter-evidence");
-  const epsQualityBridge = document.getElementById("eps-quality-bridge");
   const financialSectionNav = document.querySelector(".financial-section-nav");
   const peerSectionNav = document.querySelector(".peer-section-nav");
-  const peerSnapshot = document.getElementById("peer-snapshot");
   const peerFundamentalsBody = document.getElementById("peer-fundamentals-body");
   const peerValuationBody = document.getElementById("peer-valuation-body");
   const chartTooltip = document.getElementById("chart-tooltip");
@@ -289,6 +285,7 @@
     const enterpriseValue = row.marketCap+row.debt-row.cash;
     const grossMargin = row.ltmGrossProfit/row.ltmRevenue;
     const fcfLessSbcMargin = fcfMargin-sbcMargin;
+    const ntmOwnerFcf = ntmRevenue*fcfLessSbcMargin;
     return {
       ...row,ltmGrowth,ntmGrowth,standardizedFcf,fcfMargin,sbcMargin,ntmRevenue,enterpriseValue,
       grossMargin,
@@ -302,6 +299,7 @@
       evNtmRevenue:enterpriseValue/ntmRevenue,
       evNtmGrossProfit:enterpriseValue/(ntmRevenue*grossMargin),
       equityNtmFcf:row.marketCap/(ntmRevenue*fcfMargin),
+      equityNtmOwnerFcf:ntmOwnerFcf>0?row.marketCap/ntmOwnerFcf:Number.POSITIVE_INFINITY,
       ntmFcfYield:ntmRevenue*fcfMargin/row.marketCap,
       ownerFcfYield:ntmRevenue*fcfLessSbcMargin/row.marketCap,
     };
@@ -323,7 +321,6 @@
   const highGrowthMarket = broadSoftwareMarket.filter(row=>row.ltmGrowth>=.15);
   const infrastructureSecurityDataTickers = new Set(valuationModel.segments.infrastructureSecurityData);
   const infrastructureSecurityDataMarket = broadSoftwareMarket.filter(row=>infrastructureSecurityDataTickers.has(row.ticker));
-  state.peerMultiple=Number(ddogPeer.evNtmRevenue.toFixed(1));
   let kpiChartConfigs = [];
   let financialChartConfigs = [];
   let kpisInitialized = false;
@@ -390,10 +387,6 @@
     return `<a href="${esc(url)}" target="_blank" rel="noopener noreferrer">${esc(label)} ↗</a>`;
   }
 
-  function methodTip(text){
-    return `<button class="info-tip" type="button" aria-label="Methodology: ${esc(text)}" data-tooltip="${esc(text)}">i</button>`;
-  }
-
   function renderKpiSnapshot(){
     const latest = financials.at(-1);
     const latestAdoption = adoption.at(-1);
@@ -417,30 +410,6 @@
       <span class="kpi-stat-change ${stat.change.startsWith("0.0") ? "is-flat" : ""}">${esc(stat.change)}</span>
       <p>${esc(stat.note)}</p>
       ${sourceAnchor(stat.url,"Primary source")}
-    </article>`).join("");
-  }
-
-  function renderFinancialSnapshot(){
-    const latest = financials.at(-1);
-    const priorYear = financials.at(-5);
-    const latestQuarterlyFcf = quarterlyFcfEconomics.at(-1);
-    const q2=kpiModel.q2Evidence.reported;
-    const latestAnnualCapital = annualCapital.find(row => row.period === "2025");
-    const stats = [
-      {label:"Quarterly revenue",period:`${formatPeriod(latest.period)} · Reported`,value:money(latest.revenue),change:`+${pct(latest.revenueGrowth)} YoY`,note:"Growth accelerated from 32% in Q1",color:"var(--dev)",url:latest.sourceUrl},
-      {label:"GAAP gross margin",period:`${formatPeriod(latest.period)} · Derived`,value:pct(latest.grossMargin),change:`${((latest.grossMargin-priorYear.grossMargin)*100).toFixed(1)} ppt YoY`,note:"Cloud costs grew faster than revenue",color:"var(--m-core)",url:latest.sourceUrl,tooltip:"Gross margin equals reported GAAP gross profit divided by reported revenue. It excludes operating expenses such as R&D, sales and marketing, and G&A."},
-      {label:"GAAP / adjusted op. margin",period:`${formatPeriod(latest.period)} · Reported / non-GAAP`,value:`${pct(q2.gaapOperatingIncome/latest.revenue)} / ${pct(q2.nonGaapOperatingIncome/latest.revenue)}`,change:"22.4 ppt adjustment gap",note:"SBC remains the largest reconciliation item",color:"var(--m-contested)",url:kpiModel.anchors.latestRelease,tooltip:"GAAP operating margin includes stock-based compensation. Datadog's non-GAAP operating margin excludes SBC, related payroll taxes, acquisition costs, and amortization."},
-      {label:"Reported FCF margin",period:`${formatPeriod(latest.period)} · Company-defined`,value:pct(latestQuarterlyFcf.reportedMargin),change:`+${((latestQuarterlyFcf.reportedMargin-quarterlyFcfEconomics[0].reportedMargin)*100).toFixed(1)} ppt YoY`,note:"OCF less PP&E and capitalized software",color:"var(--obs)",url:latestQuarterlyFcf.sourceUrl,tooltip:"Datadog defines free cash flow as net cash from operating activities less capital expenditures and capitalized software development costs. It is non-GAAP."},
-      {label:"Owner FCF margin",period:`${formatPeriod(latest.period)} · Analyst-adjusted`,value:pct(latestQuarterlyFcf.ownerMargin),change:"Improved from −2.5% YoY",note:"Reported FCF less expensed and capitalized SBC",color:"var(--ai)",url:latestQuarterlyFcf.sourceUrl,tooltip:"Owner FCF subtracts total expensed and capitalized stock-based compensation from company-defined FCF. It is an economic sensitivity, not a reported liquidity measure."},
-      {label:"R&D-adjusted ROIC",period:"FY2025 · Analyst-adjusted",value:pct(latestAnnualCapital.rdAdjustedRoic),change:`${((latestAnnualCapital.rdAdjustedRoic-annualCapital.find(row=>row.period==="2024").rdAdjustedRoic)*100).toFixed(1)} ppt YoY`,note:"Return on capital after capitalizing R&D",color:"var(--m-option)",url:latestAnnualCapital.sourceUrl,tooltip:"Three-year straight-line R&D life. Research asset equals current R&D plus two-thirds of prior-year R&D plus one-third of R&D from two years ago. Adjusted EBIT equals reported EBIT plus current R&D less amortization. ROIC applies a 21% normalized tax rate and uses average adjusted invested capital."},
-    ];
-    financialSnapshot.innerHTML = stats.map(stat => `<article class="kpi-stat" style="--stat-color:${stat.color}">
-      <div class="kpi-stat-top"><span class="kpi-stat-label">${esc(stat.label)}</span>${stat.tooltip?methodTip(stat.tooltip):""}</div>
-      <span class="kpi-stat-period">${esc(stat.period)}</span>
-      <strong>${esc(stat.value)}</strong>
-      <span class="kpi-stat-change ${stat.change.startsWith("0.0") ? "is-flat" : ""}">${esc(stat.change)}</span>
-      <p>${esc(stat.note)}</p>
-      ${sourceAnchor(stat.url,stat.period.includes("Analyst-adjusted")?"Inputs & source":"Primary source")}
     </article>`).join("");
   }
 
@@ -471,7 +440,7 @@
   }
 
   function renderQuarterEvidence(){
-    if(!quarterEvidence || !epsQualityBridge) return;
+    if(!quarterEvidence) return;
     const evidence=kpiModel.q2Evidence;
     const reported=evidence.reported;
     const claims=evidence.managementClaims;
@@ -481,13 +450,6 @@
       {label:"RPO",value:money(reported.rpo),note:`+${pct(reported.rpoGrowth,0)} YoY; current RPO +${pct(reported.currentRpoGrowth,0)}`,url:evidence.supplementalUrl,source:"Reported"},
       {label:"Largest-customer risk",value:"Q3 usage down",note:evidence.filingRisk,url:evidence.filingUrl,source:"Filed risk"},
     ].map(item=>`<article class="kpi-stat" style="--stat-color:var(--m-contested)"><span class="kpi-stat-label">${esc(item.label)}</span><strong>${esc(item.value)}</strong><span class="kpi-stat-change">${esc(item.source)}</span><p>${esc(item.note)}</p>${sourceAnchor(item.url,"Evidence")}</article>`).join("");
-    const totalSbcMargin=reported.totalSbc/financials.at(-1).revenue;
-    epsQualityBridge.innerHTML=[
-      ["Operating profit",`${money(reported.gaapOperatingIncome)} GAAP`,`${money(reported.nonGaapOperatingIncome)} adjusted`,"SBC and related exclusions create a 22-point margin gap."],
-      ["Diluted EPS",`$${reported.gaapEps.toFixed(2)} GAAP`,`$${reported.nonGaapEps.toFixed(2)} adjusted`,`${money(reported.netOtherIncome)} of net other income supported GAAP pretax profit.`],
-      ["Cash conversion",`${money(reported.reportedFcf)} reported FCF`,`${money(reported.ownerFcf)} owner FCF`,`Owner FCF is ${pct(reported.ownerFcf/financials.at(-1).revenue)} of revenue after total SBC.`],
-      ["Shareholder cost",money(reported.totalSbc),pct(totalSbcMargin),"Expensed plus capitalized SBC; analyst-adjusted economic sensitivity."],
-    ].map(([label,value,comparison,note])=>`<article><span>${esc(label)}</span><strong>${esc(value)}</strong><b>${esc(comparison)}</b><p>${esc(note)}</p></article>`).join("");
   }
 
   function niceMax(value){
@@ -950,7 +912,6 @@
   }
 
   function renderFinancials(){
-    renderFinancialSnapshot();
     renderQuarterlyFcfUpdate();
     renderQuarterEvidence();
     renderSourceTrails();
@@ -1028,93 +989,13 @@
     return `$${(value/1000).toFixed(digits)}B`;
   }
 
-  function drawIntrinsicRevenueChart(cases){
-    if(!Array.isArray(cases)) cases=intrinsicCases();
-    const canvas=document.getElementById("intrinsic-revenue-chart");
-    if(!canvas) return;
-    const actual={year:intrinsicModel.model.historicalYear,revenue:intrinsicModel.model.baseRevenue};
-    const width=Math.max(320,Math.floor(canvas.clientWidth));
-    const height=Math.max(300,Math.floor(canvas.clientHeight));
-    const dpr=Math.min(window.devicePixelRatio||1,2);
-    canvas.width=Math.floor(width*dpr);canvas.height=Math.floor(height*dpr);
-    const ctx=canvas.getContext("2d");ctx.scale(dpr,dpr);ctx.clearRect(0,0,width,height);
-    const margin={top:24,right:26,bottom:48,left:56};
-    const plotWidth=width-margin.left-margin.right,plotHeight=height-margin.top-margin.bottom;
-    const intrinsicColors={market:"#ff5c8a",morningstar:"#2ed6a0",our:"#7c6bf5"};
-    const series=cases.map(item=>({
-      ...item,
-      color:intrinsicColors[item.tone]||"#7c6bf5",
-      values:[actual,...item.rows.map(row=>({year:row.year,revenue:row.revenue}))],
-    }));
-    const yMax=Math.ceil(Math.max(...series.flatMap(item=>item.values.map(row=>row.revenue)))/10000)*10000;
-    const years=series[0].values.map(row=>row.year);
-    const x=index=>margin.left+index/(years.length-1)*plotWidth;
-    const y=value=>margin.top+(yMax-value)/yMax*plotHeight;
-    ctx.font='9px "JetBrains Mono", monospace';ctx.textBaseline="middle";
-    for(let index=0;index<=5;index++){
-      const py=margin.top+plotHeight*index/5;
-      const value=yMax-yMax*index/5;
-      ctx.beginPath();ctx.moveTo(margin.left,py);ctx.lineTo(width-margin.right,py);ctx.strokeStyle="rgba(112,121,156,.22)";ctx.stroke();
-      ctx.fillStyle="#70799c";ctx.textAlign="right";ctx.fillText(`$${(value/1000).toFixed(0)}B`,margin.left-9,py);
-    }
-    const labelYears=new Set([2025,2027,2029,2031,2033,2035]);
-    years.forEach((year,index)=>{
-      if(!labelYears.has(year)) return;
-      ctx.fillStyle="#70799c";ctx.textAlign="center";ctx.fillText(String(year),x(index),height-22);
-    });
-    const points=[];
-    series.forEach(item=>{
-      const gradient=ctx.createLinearGradient(0,margin.top,0,height-margin.bottom);
-      gradient.addColorStop(0,`${item.color}20`);gradient.addColorStop(1,`${item.color}00`);
-      ctx.beginPath();item.values.forEach((row,index)=>index?ctx.lineTo(x(index),y(row.revenue)):ctx.moveTo(x(index),y(row.revenue)));
-      ctx.lineTo(x(item.values.length-1),height-margin.bottom);ctx.lineTo(x(0),height-margin.bottom);ctx.closePath();ctx.fillStyle=gradient;ctx.fill();
-      ctx.beginPath();item.values.forEach((row,index)=>index?ctx.lineTo(x(index),y(row.revenue)):ctx.moveTo(x(index),y(row.revenue)));
-      ctx.strokeStyle=item.color;ctx.lineWidth=2.3;ctx.stroke();
-      item.values.forEach((row,index)=>{
-        if(index!==0 && index!==5 && index!==item.values.length-1) return;
-        const px=x(index),py=y(row.revenue);
-        ctx.beginPath();ctx.arc(px,py,index===item.values.length-1?4.8:3.2,0,Math.PI*2);ctx.fillStyle=item.color;ctx.fill();ctx.strokeStyle="#0e1220";ctx.lineWidth=1.2;ctx.stroke();
-        points.push({case:item,row,x:px,y:py,radius:7});
-      });
-      const last=item.values.at(-1);
-      ctx.fillStyle=item.color;ctx.textAlign="right";ctx.font='700 10px "JetBrains Mono", monospace';
-      ctx.fillText(intrinsicBillions(last.revenue),width-margin.right,y(last.revenue)-12);
-    });
-    canvas._intrinsicPoints=points;
-    renderChartLegend("intrinsic-revenue-legend",series.map(item=>({label:`${item.label} · ${pct(item.revenueGrowth)} CAGR`,color:item.color})));
-  }
-
-  function showIntrinsicTooltip(event){
-    const canvas=event.currentTarget;
-    const rect=canvas.getBoundingClientRect();
-    const localX=event.clientX-rect.left,localY=event.clientY-rect.top;
-    const point=(canvas._intrinsicPoints||[]).map(item=>({...item,distance:Math.hypot(item.x-localX,item.y-localY)})).sort((a,b)=>a.distance-b.distance)[0];
-    if(!point||point.distance>28){hideChartTooltip();return;}
-    chartTooltip.innerHTML=`<b>${esc(point.case.label)} · FY${esc(point.row.year)}</b><span><i style="--tip-color:${point.case.color}"></i>Revenue: ${esc(intrinsicBillions(point.row.revenue))}</span><span>Implied 2027–35 CAGR: ${esc(pct(point.case.revenueGrowth))}</span>`;
-    chartTooltip.hidden=false;
-    chartTooltip.style.left=`${Math.min(window.innerWidth-242,event.clientX+14)}px`;
-    chartTooltip.style.top=`${Math.min(window.innerHeight-120,event.clientY+14)}px`;
-  }
-
   function renderIntrinsicValuation(){
     const cases=intrinsicCases();
     const market=cases.find(item=>item.id==="market");
     const morningstar=cases.find(item=>item.id==="morningstar");
     const calculator=intrinsicModel.calculator;
-    const {wacc,netCash}=intrinsicModelConstants();
-    const growthGap=market.revenueGrowth-morningstar.revenueGrowth;
     const terminalRevenueGap=market.terminalRevenue/morningstar.terminalRevenue-1;
-    const pricePremium=market.price/morningstar.price-1;
-    const market2030=market.rows.find(row=>row.year===2030).revenue;
-    const morningstar2030=intrinsicModel.morningstar.forecastRevenue[2030];
     document.getElementById("intrinsic-verdict").innerHTML=`<b>The post-earnings selloff narrowed the valuation gap, but the stock still requires exceptional growth durability.</b> At $${market.price.toFixed(2)}, the common lens requires ${esc(pct(market.revenueGrowth))} annual revenue growth from 2027–2035 and ${esc(intrinsicBillions(market.terminalRevenue))} of FY2035 revenue—${esc(pct(terminalRevenueGap))} above the path that supports Morningstar’s $200 fair value.`;
-    const snapshot=[
-      {label:"Price premium",value:signedPct(pricePremium,1),note:`$${market.price.toFixed(2)} versus $${morningstar.price.toFixed(2)}`,tone:"price"},
-      {label:"Growth hurdle gap",value:signedPctPoints(growthGap),note:"Annual revenue growth · 2027–35",tone:"growth"},
-      {label:"FY2035 revenue gap",value:intrinsicBillions(market.terminalRevenue-morningstar.terminalRevenue),note:`${pct(terminalRevenueGap)} above the $200 path`,tone:"revenue"},
-      {label:"Shared WACC",value:pct(wacc,1),note:`${pct(intrinsicModel.model.terminalGrowth,2)} perpetual growth`,tone:"wacc"},
-    ];
-    document.getElementById("intrinsic-snapshot").innerHTML=snapshot.map(item=>`<article class="intrinsic-stat tone-${esc(item.tone)}"><span>${esc(item.label)}</span><strong>${esc(item.value)}</strong><p>${esc(item.note)}</p></article>`).join("");
     document.getElementById("intrinsic-target-grid").innerHTML=cases.map(item=>{
       const source=intrinsicModel.sources[item.sourceId];
       const current=item.id==="market";
@@ -1142,41 +1023,6 @@
         ${sourceAnchor(source.url,current?"Market-price source":"Morningstar access route")}
       </article>`;
     }).join("");
-    document.getElementById("intrinsic-gap-card").innerHTML=`
-      <div class="kpi-card-head"><div><span class="kpi-card-kicker">Expectation gap</span><h3>Where the paths diverge</h3></div></div>
-      <div class="intrinsic-gap-number"><span>FY2030 market-implied revenue</span><strong>${esc(intrinsicBillions(market2030))}</strong><small>${esc(signedPct(market2030/morningstar2030-1,1))} versus Morningstar’s disclosed ${esc(intrinsicBillions(morningstar2030))}</small></div>
-      <div class="intrinsic-gap-list">
-        <article><b>What is priced in</b><p>High-20s growth persists well beyond today’s estimate window; margin reaches 35% without a separate future-dilution forecast.</p></article>
-        <article><b>What breaks first</b><p>The largest-customer usage decline spreads into weaker NRR before operating leverage catches up, or SBC-driven share issuance absorbs part of the enterprise-value gain.</p></article>
-        <article><b>Action</b><p><span>Wait for proof</span> until Q3–Q4 show that ex-largest acceleration can absorb the disclosed optimization without another guide reset.</p></article>
-      </div>`;
-    const ms=intrinsicModel.morningstar;
-    const morningstarStats=[
-      ["Fair value",`$${ms.fairValue.toFixed(0)}`,"Per share"],
-      ["FY2026 revenue",intrinsicBillions(ms.forecastRevenue[2026]),"+30.0% growth"],
-      ["FY2030 revenue",intrinsicBillions(ms.forecastRevenue[2030]),`${pct(ms.fiveYearRevenueCagr)} 5-year CAGR`],
-      ["FY2030 operating margin",pct(ms.operatingMargin2030),"GAAP forecast"],
-      ["FY2030 FCFF margin",pct(ms.fcffMargin2030),"Morningstar forecast"],
-      ["WACC",pct(ms.wacc),`${pct(ms.costOfEquity)} cost of equity`],
-      ["Stage II EBI growth",pct(ms.stageTwoEbiGrowth),`${ms.perpetuityYear}-year DCF`],
-      ["Firm value",intrinsicBillions(ms.firmValue),`${intrinsicBillions(ms.equityValue)} equity value`],
-    ];
-    document.getElementById("morningstar-model-grid").innerHTML=morningstarStats.map(([label,value,note])=>`<article><span>${esc(label)}</span><strong>${esc(value)}</strong><p>${esc(note)}</p></article>`).join("");
-    const assumptions=[
-      ["WACC",pct(wacc,1),"Derived from 4.63% risk-free rate, 1.25 beta, and 4.18% ERP"],
-      ["Perpetual growth",pct(intrinsicModel.model.terminalGrowth,2),"Applied to FY2035 FCFF"],
-      ["FY2035 GAAP EBIT margin",pct(intrinsicModel.model.ebitMargin.at(-1)),"Same generous margin in both backsolves"],
-      ["Net cash bridge",intrinsicBillions(netCash),"Cash less converts and operating leases"],
-      ["Diluted shares",`${intrinsicModel.model.dilutedShares.toFixed(1)}M`,"Future issuance not separately forecast"],
-      ["FY2026 growth",pct(intrinsicModel.model.firstForecastGrowth),"Fixed to the $4.46B company-guide midpoint"],
-    ];
-    document.getElementById("intrinsic-assumption-grid").innerHTML=assumptions.map(([label,value,note])=>`<article><span>${esc(label)}</span><strong>${esc(value)}</strong><p>${esc(note)}</p></article>`).join("");
-    const methodCards=Object.entries(intrinsicModel.methodology).map(([label,copy])=>`<article><b>${esc(pretty(label))}</b><p>${esc(copy)}</p></article>`).join("");
-    const sourceRows=Object.values(intrinsicModel.sources).map(source=>`<article class="intrinsic-source-row"><b>${esc(source.label)}</b><span>${esc(source.publisher)} · ${esc(source.date)}</span><p>${esc(source.note)}</p>${sourceAnchor(source.url,"Open source")}</article>`).join("");
-    document.getElementById("intrinsic-source-content").innerHTML=`<div class="intrinsic-method-grid">${methodCards}</div><div class="intrinsic-source-list">${sourceRows}</div>`;
-    drawIntrinsicRevenueChart(cases);
-    const chart=document.getElementById("intrinsic-revenue-chart");
-    chart?.addEventListener("pointermove",showIntrinsicTooltip);chart?.addEventListener("pointerleave",hideChartTooltip);
   }
 
   function peerMoney(value){
@@ -1201,11 +1047,6 @@
     return {count:values.length,min:Math.min(...values),p25:quantile(values,.25),median:median(values),p75:quantile(values,.75),max:Math.max(...values)};
   }
 
-  function valuationPercentile(value,rows){
-    const values=rows.map(row=>row.evLtmRevenue).filter(Number.isFinite);
-    return values.length ? values.filter(item=>item<value).length/values.length : 0;
-  }
-
   function valuationDistribution(label,rows,note){
     const stats=valuationStats(rows);
     const scaleMax=50;
@@ -1224,19 +1065,6 @@
   }
 
   function renderValuationContext(){
-    const historicalObservations=valuationHistory.slice(0,-1);
-    const historicalStats=valuationStats(historicalObservations);
-    const broadStats=valuationStats(broadPeers);
-    const marketStats=valuationStats(highGrowthMarket);
-    const historicalPercentile=valuationPercentile(ddogPeer.evLtmRevenue,historicalObservations);
-    const marketRank=1+highGrowthMarket.filter(row=>row.evLtmRevenue>ddogPeer.evLtmRevenue).length;
-    const summary=[
-      {label:"Current DDOG",value:multiple(ddogPeer.evLtmRevenue),note:`EV / LTM revenue · ${peerModel.meta.valuationDate}`},
-      {label:"Own history",value:multiple(historicalStats.median),note:`Median · current at ${Math.round(historicalPercentile*100)}th percentile`},
-      {label:"Eight competitors",value:multiple(broadStats.median),note:`Median · DDOG ${signedPct(ddogPeer.evLtmRevenue/broadStats.median-1)} premium`},
-      {label:"High-growth software",value:multiple(marketStats.median),note:`Median · DDOG ranks ${marketRank} of ${highGrowthMarket.length+1}`},
-    ];
-    document.getElementById("valuation-context-summary").innerHTML=summary.map(item=>`<article><span>${esc(item.label)}</span><strong>${esc(item.value)}</strong><p>${esc(item.note)}</p></article>`).join("");
     document.getElementById("valuation-peer-distributions").innerHTML=
       valuationDistribution("Broad peer set",broadPeers,`${broadPeers.length} companies · all comparison roles`)+
       valuationDistribution("Direct observability",directPeers,"Dynatrace + Elastic");
@@ -1300,26 +1128,6 @@
     chartTooltip.hidden=false;chartTooltip.style.left=`${Math.min(window.innerWidth-242,event.clientX+14)}px`;chartTooltip.style.top=`${Math.min(window.innerHeight-130,event.clientY+14)}px`;
   }
 
-  function renderPeerSnapshot(){
-    const metrics = [
-      {label:"GAAP Rule of 40",key:"gaapRule40",format:value=>pct(value),note:"LTM growth + GAAP operating margin"},
-      {label:"FCF Rule of 40",key:"rule40",format:value=>pct(value),note:"LTM growth + standardized FCF margin"},
-      {label:"SBC-adjusted Rule of 40",key:"economicSensitivity",format:value=>pct(value),note:"FCF Rule of 40 less SBC / revenue",adjusted:true},
-      {label:"NTM revenue growth",key:"ntmGrowth",format:value=>pct(value),note:"Calendarized proxy"},
-      {label:"EV / NTM revenue",key:"evNtmRevenue",format:value=>multiple(value),note:"Enterprise-value multiple"},
-      {label:"Equity / NTM FCF",key:"equityNtmFcf",format:value=>multiple(value),note:"Holds LTM FCF margin constant"},
-    ];
-    peerSnapshot.innerHTML = metrics.map(metric => {
-      const broad = peerMedian(broadPeers,metric.key);
-      const direct = peerMedian(directPeers,metric.key);
-      return `<article class="peer-stat${metric.adjusted?" is-analyst-adjusted":""}">
-        <span>${esc(metric.label)}</span><strong>${esc(metric.format(ddogPeer[metric.key]))}</strong>
-        <div><span>Broad median <b>${esc(metric.format(broad))}</b></span><span>Direct median <b>${esc(metric.format(direct))}</b></span></div>
-        <p>${metric.adjusted?'<i>Analyst-adjusted</i> ':''}${esc(metric.note)}</p>
-      </article>`;
-    }).join("");
-  }
-
   function renderPeerGaps(){
     const cohort=state.peerGapCohort==="direct"?directPeers:broadPeers;
     const indexed=(key)=>ddogPeer[key]/peerMedian(cohort,key);
@@ -1330,7 +1138,7 @@
     ];
     const valuations=[
       ["EV / NTM revenue",indexed("evNtmRevenue")],
-      ["Equity / NTM FCF",indexed("equityNtmFcf")],
+      ["P / NTM FCF",indexed("equityNtmFcf")],
     ];
     const width=value=>Math.max(0,Math.min(100,(value-1)/2.5*100));
     const rows=(items,group)=>items.map(([label,value])=>`<div class="expectation-row">
@@ -1414,23 +1222,6 @@
     chartTooltip.style.top=`${Math.min(window.innerHeight-130,event.clientY+14)}px`;
   }
 
-  function renderPeerSensitivity(){
-    const slider=document.getElementById("peer-multiple-slider");
-    if(slider) slider.value=state.peerMultiple;
-    const shares=ddogPeer.marketCap/ddogPeer.price;
-    const impliedEv=state.peerMultiple*ddogPeer.ntmRevenue;
-    const impliedEquity=impliedEv+ddogPeer.cash-ddogPeer.debt;
-    const impliedPrice=impliedEquity/shares;
-    const impliedReturn=impliedPrice/ddogPeer.price-1;
-    document.getElementById("peer-selected-multiple").textContent=multiple(state.peerMultiple);
-    document.getElementById("peer-implied-price").textContent=`$${impliedPrice.toFixed(2)}`;
-    const returnElement=document.getElementById("peer-implied-return");
-    returnElement.textContent=signedPct(impliedReturn,1);returnElement.classList.toggle("is-negative",impliedReturn<0);
-    document.getElementById("peer-implied-ev").textContent=peerMoney(impliedEv);
-    document.getElementById("peer-current-reference").textContent=`$${ddogPeer.price.toFixed(2)} · ${multiple(ddogPeer.evNtmRevenue)}`;
-    document.querySelectorAll("[data-peer-multiple]").forEach(button=>button.classList.toggle("is-active",Math.abs(Number(button.dataset.peerMultiple)-state.peerMultiple)<.05));
-  }
-
   function renderPeerTable(){
     const filteredRows=peerRows.filter(row=>state.peerFilter==="all" || row.bucket==="target" || row.bucket===state.peerFilter);
     const sortedRows=table=>[...filteredRows].sort((a,b)=>{
@@ -1453,13 +1244,16 @@
       const directionLabel=direction==="higher"?"higher is stronger":"lower is more attractive";
       return `<td class="peer-heat" style="--heat-hue:${hue};--heat-strength:${strength}" title="Rank ${rank} of ${values.length}; ${directionLabel}" aria-label="${esc(format(value))}; rank ${rank} of ${values.length}; ${directionLabel}">${esc(format(value))}</td>`;
     };
+    const ownerMultipleCell=row=>Number.isFinite(row.equityNtmOwnerFcf)
+      ? heatCell(row,"equityNtmOwnerFcf",multiple,"lower")
+      : `<td class="peer-heat" style="--heat-hue:4;--heat-strength:.25" title="Not meaningful: NTM owner FCF is zero or negative" aria-label="Not meaningful; NTM owner FCF is zero or negative">NM</td>`;
     peerFundamentalsBody.innerHTML=sortedRows("fundamentals").map(row=>`<tr class="${row.ticker==="DDOG"?"is-target":""}">
       <td>${companyCell(row)}</td>
       ${heatCell(row,"ltmGrowth",pct)}${heatCell(row,"ntmGrowth",pct)}${heatCell(row,"grossMargin",pct)}${heatCell(row,"operatingMargin",pct)}${heatCell(row,"fcfMargin",pct)}${heatCell(row,"gaapRule40",pct)}${heatCell(row,"rule40",pct)}${heatCell(row,"economicSensitivity",pct)}${heatCell(row,"sbcMargin",pct,"lower")}${heatCell(row,"dilution",pct,"lower")}
     </tr>`).join("");
     peerValuationBody.innerHTML=sortedRows("valuation").map(row=>`<tr class="${row.ticker==="DDOG"?"is-target":""}">
       <td>${companyCell(row)}</td>
-      ${heatCell(row,"evLtmRevenue",multiple,"lower")}${heatCell(row,"evNtmRevenue",multiple,"lower")}${heatCell(row,"evNtmGrossProfit",multiple,"lower")}${heatCell(row,"ntmFcfYield",value=>pct(value,2))}${heatCell(row,"ownerFcfYield",value=>pct(value,2))}
+      ${heatCell(row,"evLtmRevenue",multiple,"lower")}${heatCell(row,"evNtmRevenue",multiple,"lower")}${heatCell(row,"evNtmGrossProfit",multiple,"lower")}${heatCell(row,"equityNtmFcf",multiple,"lower")}${ownerMultipleCell(row)}
     </tr>`).join("");
     document.querySelectorAll("[data-peer-sort]").forEach(button=>{
       const sort=state.peerSort[button.dataset.peerTable];
@@ -1476,7 +1270,7 @@
   }
 
   function renderPeers(){
-    renderPeerSnapshot();renderValuationContext();renderPeerGaps();drawPeerScatters();renderPeerSensitivity();renderPeerTable();renderPeerMethodology();
+    renderValuationContext();renderPeerGaps();drawPeerScatters();renderPeerTable();renderPeerMethodology();
     document.querySelectorAll("#peer-comps-panel .peer-scatter").forEach(scatter=>{
       scatter.addEventListener("pointermove",showPeerTooltip);scatter.addEventListener("pointerleave",hideChartTooltip);
     });
@@ -1689,8 +1483,6 @@
         if(!intrinsicInitialized){
           renderIntrinsicValuation();
           intrinsicInitialized = true;
-        } else {
-          drawIntrinsicRevenueChart();
         }
       });
     }
@@ -1977,16 +1769,6 @@
     renderPeerTable();
   });
 
-  document.getElementById("peer-multiple-slider")?.addEventListener("input",event => {
-    state.peerMultiple=Number(event.target.value);renderPeerSensitivity();
-  });
-
-  document.querySelector(".peer-presets")?.addEventListener("click",event => {
-    const button=event.target.closest("[data-peer-multiple]");
-    if(!button) return;
-    state.peerMultiple=Number(button.dataset.peerMultiple);renderPeerSensitivity();
-  });
-
   tabList.addEventListener("keydown",event => {
     if(!["ArrowLeft","ArrowRight","Home","End"].includes(event.key)) return;
     event.preventDefault();
@@ -2015,18 +1797,15 @@
   window.addEventListener("resize",() => {
     if(state.activeTab === "kpis" && !kpisInitialized) return;
     if(state.activeTab === "financials" && !financialsInitialized) return;
-    if(state.activeTab === "intrinsic-valuation" && !intrinsicInitialized) return;
     if(state.activeTab === "peer-comps" && !peersInitialized) return;
-    if(!["kpis","financials","intrinsic-valuation","peer-comps"].includes(state.activeTab)) return;
+    if(!["kpis","financials","peer-comps"].includes(state.activeTab)) return;
     cancelAnimationFrame(resizeFrame);
     resizeFrame = requestAnimationFrame(
       state.activeTab === "kpis"
         ? renderKpiCharts
         : state.activeTab === "financials"
           ? renderFinancialCharts
-          : state.activeTab === "intrinsic-valuation"
-            ? drawIntrinsicRevenueChart
-            : () => {drawPeerScatters();drawValuationHistory();}
+          : () => {drawPeerScatters();drawValuationHistory();}
     );
   });
 
