@@ -6,9 +6,12 @@ import vm from "node:vm";
 import {fileURLToPath} from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const source = fs.readFileSync(path.join(root, "data", "product-map-data.js"), "utf8");
+const companyRoot = path.join(root, "companies", "datadog");
+const companyIndexSource = fs.readFileSync(path.join(root, "data", "companies.js"), "utf8");
+const source = fs.readFileSync(path.join(companyRoot, "data", "product-map-data.js"), "utf8");
 const sandbox = {window:{}};
 vm.createContext(sandbox);
+vm.runInContext(companyIndexSource, sandbox, {filename:"companies.js"});
 vm.runInContext(source, sandbox, {filename:"product-map-data.js"});
 
 const model = sandbox.window.PRODUCT_MAP;
@@ -19,13 +22,18 @@ const assert = (condition, message) => {
 const isOfficialDatadogSource = url => /^https:\/\/(www\.)?(sec\.gov|investors\.datadoghq\.com)\//.test(url || "");
 const isChronological = rows => rows.every((row,index) => index === 0 || rows[index-1][0] < row[0]);
 
+const companyIndex = sandbox.window.COMPANY_INDEX;
+assert(companyIndex?.companies?.length > 0, "Company index must contain at least one company");
+assert(companyIndex?.companies?.some(company => company.slug === "datadog" && company.href === "./companies/datadog/"), "Company index must link to the Datadog hypothesis route");
+assert(new Set(companyIndex?.companies?.map(company => company.slug)).size === companyIndex?.companies?.length, "Company slugs must be unique");
+
 assert(model, "window.PRODUCT_MAP must be exported");
 if(!model){
   console.error("Validation failed:\n- " + failures.join("\n- "));
   process.exit(1);
 }
 
-const kpiSource = fs.readFileSync(path.join(root, "data", "kpi-data.js"), "utf8");
+const kpiSource = fs.readFileSync(path.join(companyRoot, "data", "kpi-data.js"), "utf8");
 vm.runInContext(kpiSource, sandbox, {filename:"kpi-data.js"});
 const kpis = sandbox.window.KPI_DATA;
 assert(kpis, "window.KPI_DATA must be exported");
@@ -104,7 +112,7 @@ if(kpis){
   assert(latestCapital[4] == null && latestCapital[5] == null && latestCapital[6] == null, "Q2 interim capital row must not fabricate analyst-adjusted ROIC inputs");
 }
 
-const peerSource = fs.readFileSync(path.join(root, "data", "peer-comps-data.js"), "utf8");
+const peerSource = fs.readFileSync(path.join(companyRoot, "data", "peer-comps-data.js"), "utf8");
 vm.runInContext(peerSource, sandbox, {filename:"peer-comps-data.js"});
 const peerModel = sandbox.window.PEER_COMPS;
 assert(peerModel, "window.PEER_COMPS must be exported");
@@ -124,6 +132,7 @@ if(peerModel){
     const enterpriseValue = row.marketCap + row.debt - row.cash;
     const ntmRevenue = row.ltmRevenue * (1+ntmGrowth);
     const grossMargin = row.ltmGrossProfit / row.ltmRevenue;
+    const ownerFcf = ntmRevenue * (fcfMargin-sbcMargin);
     return {
       ltmGrowth, ntmGrowth, fcfMargin, sbcMargin,
       grossMargin,
@@ -135,6 +144,7 @@ if(peerModel){
       evNtmRevenue: enterpriseValue / ntmRevenue,
       evNtmGrossProfit: enterpriseValue / (ntmRevenue * grossMargin),
       equityNtmFcf: row.marketCap / (ntmRevenue * fcfMargin),
+      equityNtmOwnerFcf: ownerFcf > 0 ? row.marketCap / ownerFcf : Number.POSITIVE_INFINITY,
       ntmFcfYield: ntmRevenue * fcfMargin / row.marketCap,
       ownerFcfYield: ntmRevenue * (fcfMargin-sbcMargin) / row.marketCap,
     };
@@ -162,12 +172,14 @@ if(peerModel){
   assert(Math.abs(ddog.evNtmGrossProfit*ddog.grossMargin-ddog.evNtmRevenue) < .00001, "DDOG gross-profit multiple must reconcile to revenue multiple and gross margin");
   assert(Math.abs(ddog.ntmFcfYield*ddog.equityNtmFcf-1) < .00001, "DDOG NTM FCF yield must reconcile to Equity / NTM FCF");
   assert(ddog.ownerFcfYield > 0 && ddog.ownerFcfYield < ddog.ntmFcfYield, "DDOG owner FCF yield must remain positive and below standardized FCF yield");
+  assert(Math.abs(ddog.ownerFcfYield*ddog.equityNtmOwnerFcf-1) < .00001, "DDOG owner FCF yield must reconcile to P / Owner FCF");
+  assert(enriched.filter(row => row.ownerFcfYield <= 0).every(row => !Number.isFinite(row.equityNtmOwnerFcf)), "Non-positive owner FCF must produce an NM owner multiple");
   assert(Math.abs(median(broad.map(row => row.evNtmRevenue)) - 7.2751) < .001, "Broad-peer EV / NTM revenue median tie-out failed");
   assert(Math.abs(median(direct.map(row => row.evNtmRevenue)) - 4.5389) < .001, "Direct-peer EV / NTM revenue median tie-out failed");
   assert(ddog.evNtmRevenue / median(broad.map(row => row.evNtmRevenue)) - 1 > 1, "DDOG broad-peer valuation premium must exceed 100%");
 }
 
-const valuationSource = fs.readFileSync(path.join(root, "data", "valuation-context-data.js"), "utf8");
+const valuationSource = fs.readFileSync(path.join(companyRoot, "data", "valuation-context-data.js"), "utf8");
 vm.runInContext(valuationSource, sandbox, {filename:"valuation-context-data.js"});
 const valuationModel = sandbox.window.VALUATION_CONTEXT;
 assert(valuationModel, "window.VALUATION_CONTEXT must be exported");
@@ -196,7 +208,7 @@ if(valuationModel){
   assert(Object.values(valuationModel.sources).every(url => url.startsWith("https://")), "Valuation-context source registry must contain valid URLs");
 }
 
-const intrinsicSource = fs.readFileSync(path.join(root, "data", "intrinsic-valuation-data.js"), "utf8");
+const intrinsicSource = fs.readFileSync(path.join(companyRoot, "data", "intrinsic-valuation-data.js"), "utf8");
 vm.runInContext(intrinsicSource, sandbox, {filename:"intrinsic-valuation-data.js"});
 const intrinsicModel = sandbox.window.INTRINSIC_VALUATION;
 assert(intrinsicModel, "window.INTRINSIC_VALUATION must be exported");
