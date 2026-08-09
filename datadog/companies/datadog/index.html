@@ -70,7 +70,19 @@
         data-tab="business-model"
         tabindex="-1"
       >
-        Business model & moat
+        Business model
+      </button>
+      <button
+        class="top-tab"
+        id="economic-moat-tab"
+        type="button"
+        role="tab"
+        aria-selected="false"
+        aria-controls="economic-moat-panel"
+        data-tab="economic-moat"
+        tabindex="-1"
+      >
+        Economic moat
       </button>
       <button
         class="top-tab"
@@ -244,7 +256,7 @@
             <span class="section-kicker">Reverse DCF · market snapshot 6 August 2026</span>
             <h2 id="intrinsic-dashboard-title">What must Datadog become?</h2>
           </div>
-          <p>Three valuation anchors, one comparable FCFF lens: the $229.29 post-earnings close, Morningstar’s $200 fair value, and our refreshed dilution-adjusted $151 calculator estimate.</p>
+          <p>Three valuation anchors, one comparable FCFF lens: the $229.29 post-earnings close, Morningstar’s $200 fair value, and our $151.18 calculator base case.</p>
         </div>
 
         <div class="kpi-net-read intrinsic-net-read">
@@ -260,6 +272,114 @@
           </div>
           <div class="intrinsic-target-grid" id="intrinsic-target-grid"></div>
         </section>
+
+        <section class="kpi-section intrinsic-dcf-input-section" aria-labelledby="intrinsic-dcf-inputs-title">
+          <div class="section-head compact">
+            <div><span class="section-kicker">5-year exit-multiple DCF · input rationale</span><h2 id="intrinsic-dcf-inputs-title">How the 20% FCF growth input is built</h2></div>
+            <p>The calculator snapshot starts from $959M of Q1-26 LTM free cash flow, so Year 1 is the next twelve months—not FY2026 guidance. Revenue fades from 25% to 16%; the resulting 20.2% revenue CAGR supports a 20% company-level FCF growth assumption with an approximately stable FCF margin.</p>
+          </div>
+          <div class="intrinsic-dcf-input-layout">
+            <article class="kpi-chart-card intrinsic-dcf-growth-card">
+              <div class="kpi-card-head">
+                <div><span class="kpi-card-kicker">Operating path</span><h3>Revenue growth fade</h3></div>
+              </div>
+              <div class="kpi-table-wrap">
+                <table class="kpi-table intrinsic-dcf-growth-table">
+                  <thead><tr><th>Forecast period</th><th>Revenue growth</th></tr></thead>
+                  <tbody id="intrinsic-dcf-growth-body"></tbody>
+                </table>
+              </div>
+              <p class="kpi-chart-note">The 20% DCF input applies to total company FCF. The calculator holds the current 355.96M share count flat; future dilution is not modeled.</p>
+            </article>
+            <article class="kpi-chart-card intrinsic-dcf-final-card">
+              <div class="kpi-card-head">
+                <div><span class="kpi-card-kicker">Final calculator setup</span><h3>Base-case inputs</h3></div>
+              </div>
+              <div class="intrinsic-dcf-input-grid" id="intrinsic-dcf-input-grid"></div>
+            </article>
+          </div>
+        </section>
+
+        <section class="kpi-section intrinsic-driver-section" aria-labelledby="intrinsic-driver-title">
+          <div class="section-head compact">
+            <div><span class="section-kicker">$151 → $200 bridge</span><h2 id="intrinsic-driver-title">Two assumptions explain almost the entire gap</h2></div>
+            <p>This bridge translates Morningstar’s $200 fair value into our five-year calculator. The major differences are faster growth and a lower equity discount rate; the exit multiple is nearly unchanged.</p>
+          </div>
+          <div class="intrinsic-driver-grid" id="intrinsic-driver-grid"></div>
+          <article class="kpi-chart-card intrinsic-value-bridge-card">
+            <div class="kpi-card-head">
+              <div><span class="kpi-card-kicker">Sequential sensitivity</span><h3>How the two assumptions move fair value</h3></div>
+            </div>
+            <div class="intrinsic-value-bridge" id="intrinsic-value-bridge"></div>
+            <p class="kpi-chart-note">The bridge is sequential, so contribution percentages depend on order. It is a sensitivity decomposition—not Morningstar’s actual proprietary calculation.</p>
+          </article>
+        </section>
+
+        <section class="kpi-section intrinsic-morningstar-section" aria-labelledby="intrinsic-morningstar-title">
+          <div class="section-head compact">
+            <div><span class="section-kicker">Morningstar methodology</span><h2 id="intrinsic-morningstar-title">How the full 20-year FCFF model works</h2></div>
+            <p>Morningstar values cash flow available to all capital providers, discounts it at WACC, then adds net cash and divides by projected diluted shares. Yellow notes mark assumptions we do not accept without a wider sensitivity range.</p>
+          </div>
+
+          <div class="intrinsic-morningstar-stages">
+            <article class="kpi-chart-card intrinsic-morningstar-stage">
+              <div class="intrinsic-stage-head">
+                <span class="intrinsic-stage-number">01</span>
+                <div><span class="kpi-card-kicker">Stage I · explicit forecast</span><h3>Build FCFF from detailed operating forecasts</h3></div>
+                <strong id="intrinsic-stage-one-pv"></strong>
+              </div>
+              <p class="intrinsic-stage-copy">Morningstar forecasts revenue, margins, taxes, working capital and investment, then converts operating earnings after tax into free cash flow to the firm.</p>
+              <div class="intrinsic-formula">FCFFₜ = EBIₜ − Net new investmentₜ</div>
+              <div class="kpi-table-wrap">
+                <table class="kpi-table intrinsic-morningstar-forecast-table">
+                  <thead><tr><th>Year</th><th>Revenue</th><th>Growth</th><th>FCFF</th><th>FCFF margin</th></tr></thead>
+                  <tbody id="intrinsic-morningstar-forecast-body"></tbody>
+                </table>
+              </div>
+              <div class="intrinsic-assumption-warning"><b>Our view</b><span>A 24.5% five-year revenue CAGR requires unusually durable AI-native usage and enterprise consolidation. Our calculator underwrites 20% FCF growth; the metrics differ, but Morningstar clearly assumes the stronger operating path.</span></div>
+            </article>
+
+            <article class="kpi-chart-card intrinsic-morningstar-stage">
+              <div class="intrinsic-stage-head">
+                <span class="intrinsic-stage-number">02</span>
+                <div><span class="kpi-card-kicker">Stage II · fade</span><h3>Fade excess returns toward the cost of capital</h3></div>
+                <strong id="intrinsic-stage-two-pv"></strong>
+              </div>
+              <p class="intrinsic-stage-copy">After the detailed forecast, EBI continues to grow while the return on new invested capital gradually fades toward WACC. Wide-moat status extends this value-creation period to year 20.</p>
+              <div class="intrinsic-stage-metrics" id="intrinsic-stage-two-metrics"></div>
+              <div class="intrinsic-formula">EBIₜ = EBIₜ₋₁ × (1 + gₜ) · FCFFₜ = EBIₜ − NNIₜ</div>
+              <div class="intrinsic-assumption-warning"><b>Our view</b><span>13% Stage II EBI growth and excess returns lasting until year 20 are optimistic duration assumptions. The report does not disclose the annual RONIC fade, so this stage cannot be independently rebuilt.</span></div>
+            </article>
+
+            <article class="kpi-chart-card intrinsic-morningstar-stage">
+              <div class="intrinsic-stage-head">
+                <span class="intrinsic-stage-number">03</span>
+                <div><span class="kpi-card-kicker">Stage III · perpetuity</span><h3>Cap the model when marginal ROIC reaches WACC</h3></div>
+                <strong id="intrinsic-stage-three-pv"></strong>
+              </div>
+              <p class="intrinsic-stage-copy">At perpetuity, new investment earns only the cost of capital. Growth may continue, but it no longer creates incremental economic value.</p>
+              <div class="intrinsic-formula">TV₂₀ = FCFF₂₁ ÷ (WACC − g∞)</div>
+              <div class="intrinsic-stage-metrics" id="intrinsic-stage-three-metrics"></div>
+              <div class="intrinsic-assumption-warning"><b>Our view</b><span>Stage III supplies 52.3% of firm value. That concentration makes the result highly sensitive to WACC and perpetuity assumptions, neither of which should be treated as a single-point truth.</span></div>
+            </article>
+          </div>
+
+          <article class="kpi-chart-card intrinsic-morningstar-bridge-card">
+            <div class="kpi-card-head">
+              <div><span class="kpi-card-kicker">Firm value → equity value</span><h3>Morningstar’s disclosed valuation bridge</h3></div>
+            </div>
+            <div class="intrinsic-morningstar-bridge-layout">
+              <div class="kpi-table-wrap">
+                <table class="kpi-table intrinsic-morningstar-bridge-table">
+                  <thead><tr><th>Step</th><th>USD millions</th></tr></thead>
+                  <tbody id="intrinsic-morningstar-bridge-body"></tbody>
+                </table>
+              </div>
+              <div class="intrinsic-morningstar-summary" id="intrinsic-morningstar-summary"></div>
+            </div>
+            <div class="intrinsic-assumption-warning"><b>Our view</b><span>Projected diluted shares stay at 363M despite material SBC, and the disclosed arithmetic gives about $193.84 per share—not exactly $200. The proprietary annual schedule or analyst overlay is not visible, so $200 is not fully auditable from the report alone.</span></div>
+          </article>
+        </section>
       </section>
     </section>
 
@@ -274,23 +394,72 @@
       <section class="company-lens" aria-labelledby="company-lens-title">
         <div class="section-head">
           <div>
-            <span class="section-kicker">Company-level underwriting</span>
-            <h2 id="company-lens-title">Business model & economic moat</h2>
+            <span class="section-kicker">How Datadog makes money and scales</span>
+            <h2 id="company-lens-title">Business model</h2>
           </div>
-          <p>Product tiles show how each product contributes to the deployment. The economic moat is assessed at company and customer-platform level.</p>
+          <p>A self-contained view of the revenue engine: contracted subscriptions, usage expansion, platform cross-sell, and the costs that determine per-share conversion.</p>
         </div>
-        <div class="company-verdicts" id="company-verdicts"></div>
-        <div class="company-facts" id="company-facts"></div>
+        <div class="business-thesis" id="business-model-thesis"></div>
+        <div class="company-verdicts business-verdicts" id="business-model-verdicts"></div>
+        <div class="company-facts" id="business-model-facts"></div>
+        <div class="business-driver-grid" id="business-model-drivers"></div>
         <details class="watchlist">
           <summary>
             <span>
-              <b>Investor watchlist</b>
-              Confirmation and warning thresholds from the July 2026 underwriting
+              <b>Business-model watchlist</b>
+              What would confirm or weaken revenue quality and owner conversion
             </span>
             <span aria-hidden="true">+</span>
           </summary>
-          <div class="company-watchlist" id="company-watchlist"></div>
+          <div class="company-watchlist" id="business-model-watchlist"></div>
         </details>
+      </section>
+    </section>
+
+    <section
+      class="tab-panel"
+      id="economic-moat-panel"
+      role="tabpanel"
+      aria-labelledby="economic-moat-tab"
+      data-panel="economic-moat"
+      hidden
+    >
+      <section class="company-lens moat-lens" aria-labelledby="economic-moat-title">
+        <div class="section-head">
+          <div>
+            <span class="section-kicker">Durability of excess returns</span>
+            <h2 id="economic-moat-title">Economic moat</h2>
+          </div>
+          <p>Morningstar's claims are kept separate from our interpretation. Our rating is deliberately more conservative where the Wide case relies on indirect network effects.</p>
+        </div>
+
+        <div class="moat-rating-grid" id="moat-rating-grid"></div>
+
+        <div class="moat-table-intro">
+          <div>
+            <span class="section-kicker">Central comparison</span>
+            <h3>Where the two moat cases agree—and where they do not</h3>
+          </div>
+          <div class="moat-tone-legend" aria-label="Comparison stance">
+            <span class="tone-agree">Agree</span>
+            <span class="tone-partial">Partial</span>
+            <span class="tone-disagree">Disagree</span>
+          </div>
+        </div>
+        <div class="moat-table-wrap">
+          <table class="moat-comparison-table">
+            <thead>
+              <tr>
+                <th>Moat factor</th>
+                <th>Our analysis</th>
+                <th>Morningstar</th>
+                <th>Difference / conclusion</th>
+              </tr>
+            </thead>
+            <tbody id="moat-comparison-body"></tbody>
+          </table>
+        </div>
+        <div class="moat-source-note" id="moat-source-note"></div>
       </section>
     </section>
 

@@ -15,7 +15,8 @@
     "entityTypes",
     "relatedEntities",
     "platformEnablers",
-    "companyAssessment",
+    "businessModelAnalysis",
+    "economicMoatAnalysis",
     "boundaryConventions",
     "sources",
     "productSources",
@@ -77,7 +78,8 @@
         "required": ["label", "description"]
       }
     },
-    "companyAssessment": {"$ref": "#/$defs/companyAssessment"},
+    "businessModelAnalysis": {"$ref": "#/$defs/businessModelAnalysis"},
+    "economicMoatAnalysis": {"$ref": "#/$defs/economicMoatAnalysis"},
     "meta": {
       "type": "object",
       "required": ["asOf", "companyReportedProductCount", "auditedSource", "directionalSource"]
@@ -228,13 +230,14 @@
       "type": "object",
       "required": ["id", "name", "entityType", "tags", "description", "dcf"]
     },
-    "companyAssessment": {
+    "businessModelAnalysis": {
       "type": "object",
-      "required": ["asOf", "verdicts", "facts", "watchlist"],
+      "required": ["asOf", "thesis", "verdicts", "facts", "drivers", "watchlist"],
       "properties": {
         "verdicts": {
           "type": "array",
-          "minItems": 5,
+          "minItems": 3,
+          "maxItems": 3,
           "items": {
             "type": "object",
             "required": ["id", "label", "value", "tone", "note", "sourceId"],
@@ -257,6 +260,40 @@
           "items": {
             "type": "object",
             "required": ["label", "confirmation", "warning"]
+          }
+        },
+        "drivers": {
+          "type": "array",
+          "minItems": 4,
+          "items": {
+            "type": "object",
+            "required": ["id", "label", "title", "mechanism", "investorRead", "sourceIds"]
+          }
+        }
+      }
+    },
+    "economicMoatAnalysis": {
+      "type": "object",
+      "required": ["asOf", "ourRating", "morningstarRating", "comparisonRows", "sourceNote"],
+      "properties": {
+        "ourRating": {
+          "type": "object",
+          "required": ["value", "dynamics", "confidence", "rationale", "sourceIds"],
+          "properties": {"value": {"const": "Narrow"}}
+        },
+        "morningstarRating": {
+          "type": "object",
+          "required": ["value", "rationale", "sourceIds"],
+          "properties": {"value": {"const": "Wide"}}
+        },
+        "comparisonRows": {
+          "type": "array",
+          "minItems": 9,
+          "maxItems": 9,
+          "items": {
+            "type": "object",
+            "required": ["id", "factor", "ourView", "morningstarView", "conclusion", "tone", "sourceIds"],
+            "properties": {"tone": {"enum": ["agree", "partial", "disagree"]}}
           }
         }
       }

@@ -262,6 +262,34 @@ if(intrinsicModel){
   assert(Math.abs(market.enterpriseValue-market.targetEv)<.01 && Math.abs(morningstar.enterpriseValue-morningstar.targetEv)<.01, "Reverse DCF enterprise values must tie to both target prices");
   assert(intrinsicModel.morningstar.fairValue===morningstarTarget.price, "Morningstar disclosed fair value must tie to the reverse-DCF target");
   assert(intrinsicModel.morningstar.forecastRevenue[2030]===10256 && intrinsicModel.morningstar.wacc===.086, "Morningstar disclosed model cross-check failed");
+  const calculator = intrinsicModel.calculator;
+  const calculatorValue = growth => {
+    const terminalFcf = calculator.currentFcf*Math.pow(1+growth,calculator.forecastYears);
+    const futurePrice = terminalFcf*calculator.terminalPriceToFcf/calculator.shares;
+    return futurePrice/Math.pow(1+calculator.discountRate,calculator.forecastYears);
+  };
+  const scenarioValues = calculator.scenarios.map(scenario => ({
+    ...scenario,
+    fairValue: calculatorValue(calculator.annualGrowth*calculator.caseVariance[scenario.id]),
+  }));
+  const weightedValue = scenarioValues.reduce((sum,scenario) => sum+scenario.fairValue*scenario.probability,0);
+  const baseValue = scenarioValues.find(scenario => scenario.id === "base")?.fairValue;
+  const equivalent = calculator.morningstarEquivalent;
+  const equivalentTerminalFcf = calculator.currentFcf*Math.pow(1+equivalent.annualGrowth,calculator.forecastYears);
+  const equivalentFairValue = equivalentTerminalFcf*equivalent.terminalPriceToFcf/calculator.shares/Math.pow(1+equivalent.discountRate,calculator.forecastYears);
+  const growthBridgeValue = equivalentTerminalFcf*calculator.terminalPriceToFcf/calculator.shares/Math.pow(1+calculator.discountRate,calculator.forecastYears);
+  const discountBridgeValue = equivalentTerminalFcf*calculator.terminalPriceToFcf/calculator.shares/Math.pow(1+equivalent.discountRate,calculator.forecastYears);
+  const morningstarTerminalShare = intrinsicModel.morningstar.presentValueStageThree/intrinsicModel.morningstar.firmValue;
+  assert(Math.abs(calculator.currentFcf-959) < 0.001, "Calculator current FCF must match the $959M screenshot input");
+  assert(Math.abs(calculator.shares-355.96018500008676) < 0.000001, "Calculator shares must match the current 355.96M screenshot input");
+  assert(Math.abs(baseValue-151.1792255649367) < 0.001, "Calculator base fair value must tie to $151.18");
+  assert(Math.abs(weightedValue-157.83348132342923) < 0.001, "Calculator probability-weighted fair value must tie to $157.83");
+  assert(Math.abs(growthBridgeValue-181.73251766282678) < 0.001, "Growth sensitivity bridge must tie to $181.73");
+  assert(Math.abs(discountBridgeValue-197.21245765571052) < 0.001, "Discount-rate sensitivity bridge must tie to $197.21");
+  assert(Math.abs(equivalentFairValue-equivalent.fairValue) < 0.001, "Morningstar-equivalent inputs must tie to $200.00");
+  assert(Math.abs(morningstarTerminalShare-0.5227221748687811) < 0.000001, "Morningstar Stage III share must tie to 52.3% of firm value");
+  const disclosedYears = Object.keys(intrinsicModel.morningstar.forecastRevenue);
+  assert(disclosedYears.length === 5 && disclosedYears.every(year => intrinsicModel.morningstar.forecastRevenueGrowth[year] != null && intrinsicModel.morningstar.forecastFcff[year] != null && intrinsicModel.morningstar.forecastFcffMargin[year] != null), "Morningstar Stage I table must have complete 2026-2030 growth, FCFF, and margin inputs");
   assert(Object.values(intrinsicModel.sources).every(source=>source.url?.startsWith("https://") && source.date), "Every intrinsic-valuation source needs a dated HTTPS route");
 }
 
@@ -294,7 +322,8 @@ let references = 0;
 
 assert(model.sources && Object.keys(model.sources).length > 0, "Source registry is required");
 assert(model.productSources && Object.keys(model.productSources).length > 0, "Product source registry is required");
-assert(model.companyAssessment, "Company-level investor assessment is required");
+assert(model.businessModelAnalysis, "Standalone business-model analysis is required");
+assert(model.economicMoatAnalysis, "Standalone economic-moat analysis is required");
 assert(underwritingIds.size > 0, "Underwriting sensitivity registry is required");
 assert(
   ["high","medium","low"].every(id => evidenceConfidenceIds.has(id)) && evidenceConfidenceIds.size === 3,
@@ -500,12 +529,36 @@ for(const enabler of model.platformEnablers){
   assert(Array.isArray(enabler.dcf) && enabler.dcf.length > 0, `${enabler.name}: DCF linkage is required`);
 }
 
-assert(model.companyAssessment.asOf === model.meta.asOf, "Company assessment and dataset as-of must match");
-assert(model.companyAssessment.verdicts.length >= 5, "Company assessment must include all five agreed verdicts");
-for(const verdict of model.companyAssessment.verdicts){
-  assert(Boolean(model.sources[verdict.sourceId]), `${verdict.label}: company verdict source is unknown`);
+assert(model.businessModelAnalysis.asOf === model.meta.asOf, "Business-model analysis and dataset as-of must match");
+assert(model.businessModelAnalysis.verdicts.length === 3, "Business model must keep its three operating verdicts separate from moat judgment");
+assert(model.businessModelAnalysis.drivers.length >= 4, "Business model must explain the complete revenue and scaling engine");
+for(const verdict of model.businessModelAnalysis.verdicts){
+  assert(Boolean(model.sources[verdict.sourceId]), `${verdict.label}: business-model verdict source is unknown`);
+  assert(!/moat/i.test(`${verdict.label} ${verdict.value} ${verdict.note}`), `${verdict.label}: business-model verdict must not contain a moat assessment`);
 }
-assert(model.companyAssessment.watchlist.length >= 4, "Investor watchlist must include all four monitoring dimensions");
+for(const driver of model.businessModelAnalysis.drivers){
+  assert(driver.sourceIds.length > 0, `${driver.label}: business-model driver sources are required`);
+  driver.sourceIds.forEach(sourceId => assert(Boolean(model.sources[sourceId]), `${driver.label}: unknown source ${sourceId}`));
+}
+assert(model.businessModelAnalysis.watchlist.length >= 4, "Business-model watchlist must include all monitoring dimensions");
+
+assert(model.economicMoatAnalysis.asOf === model.meta.asOf, "Economic-moat analysis and dataset as-of must match");
+const requiredMoatRows = new Set([
+  "overall-moat-rating","switching-costs","network-effects","product-feedback-loop","toto-data-flywheel",
+  "opentelemetry","multi-product-adoption","cloud-neutrality","cost-advantage",
+]);
+const actualMoatRows = new Set(model.economicMoatAnalysis.comparisonRows.map(row => row.id));
+assert(requiredMoatRows.size === actualMoatRows.size && [...requiredMoatRows].every(id => actualMoatRows.has(id)), "Economic-moat comparison must contain all nine required factors exactly once");
+assert(model.economicMoatAnalysis.ourRating.value === "Narrow", "Our moat rating must remain conservative");
+assert(model.economicMoatAnalysis.morningstarRating.value === "Wide", "Morningstar's moat rating must be represented as Wide");
+for(const row of model.economicMoatAnalysis.comparisonRows){
+  assert(["agree","partial","disagree"].includes(row.tone), `${row.factor}: invalid comparison tone`);
+  assert(row.sourceIds.length > 0, `${row.factor}: moat comparison sources are required`);
+  row.sourceIds.forEach(sourceId => assert(Boolean(model.sources[sourceId]), `${row.factor}: unknown source ${sourceId}`));
+}
+const totoRow = model.economicMoatAnalysis.comparisonRows.find(row => row.id === "toto-data-flywheel");
+assert(/open/i.test(totoRow.ourView) && /Apache 2\.0/i.test(totoRow.ourView), "Toto must be identified as open-weights under Apache 2.0");
+assert(!/proprietary moat/i.test(totoRow.ourView.replace(/not proprietary moat/i,"")), "Toto model must not be represented as proprietary moat");
 
 assert(model.meta.asOf === "2026-Q2", "Dataset as-of must be 2026-Q2");
 assert(model.meta.companyReportedProductCount === 26, "Company-reported product count must stay a separately labeled fact");

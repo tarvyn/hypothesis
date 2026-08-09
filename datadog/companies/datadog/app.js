@@ -127,7 +127,7 @@
   const state = {
     filters:new Set(),
     selected:null,
-    activeTab:["product-map","business-model","kpis","financials","intrinsic-valuation","peer-comps"].includes(window.location.hash.slice(1))
+    activeTab:["product-map","business-model","economic-moat","kpis","financials","intrinsic-valuation","peer-comps"].includes(window.location.hash.slice(1))
       ? window.location.hash.slice(1)
       : "product-map",
     showProductScores:false,
@@ -161,9 +161,14 @@
   const readerName = document.getElementById("r-name");
   const readerTags = document.getElementById("r-tags");
   const readerBody = document.getElementById("r-body");
-  const companyVerdicts = document.getElementById("company-verdicts");
-  const companyFacts = document.getElementById("company-facts");
-  const companyWatchlist = document.getElementById("company-watchlist");
+  const businessModelThesis = document.getElementById("business-model-thesis");
+  const businessModelVerdicts = document.getElementById("business-model-verdicts");
+  const businessModelFacts = document.getElementById("business-model-facts");
+  const businessModelDrivers = document.getElementById("business-model-drivers");
+  const businessModelWatchlist = document.getElementById("business-model-watchlist");
+  const moatRatingGrid = document.getElementById("moat-rating-grid");
+  const moatComparisonBody = document.getElementById("moat-comparison-body");
+  const moatSourceNote = document.getElementById("moat-source-note");
   const tabList = document.querySelector(".top-tabs");
   const tabButtons = [...document.querySelectorAll("[data-tab]")];
   const tabPanels = [...document.querySelectorAll("[data-panel]")];
@@ -343,9 +348,21 @@
     `<span class="chip">NRR <b>${esc(nrr.at(-1).label)}</b> · TTM</span>`,
   ].join("");
 
-  function renderCompanyLens(){
-    const assessment = model.companyAssessment;
-    companyVerdicts.innerHTML = assessment.verdicts.map(verdict => {
+  function sourceLinks(sourceIds){
+    return sourceIds.map(sourceId => {
+      const source=model.sources[sourceId];
+      if(!source) return "";
+      const label=source.publisher === "Morningstar via IBKR" ? "Morningstar report" : source.label;
+      return source.url
+        ? `<a href="${esc(source.url)}" target="_blank" rel="noopener noreferrer">${esc(label)} ↗</a>`
+        : `<span>${esc(label)}</span>`;
+    }).filter(Boolean).join("");
+  }
+
+  function renderBusinessModel(){
+    const assessment = model.businessModelAnalysis;
+    businessModelThesis.innerHTML = `<b>Revenue logic</b><p>${esc(assessment.thesis)}</p>`;
+    businessModelVerdicts.innerHTML = assessment.verdicts.map(verdict => {
       const source = model.sources[verdict.sourceId];
       return `<article class="verdict-card tone-${esc(verdict.tone)}">
         <span class="verdict-label">${esc(verdict.label)}</span>
@@ -355,16 +372,49 @@
         ${source?.url ? `<a href="${esc(source.url)}" target="_blank" rel="noopener noreferrer">${esc(source.label)} ↗</a>` : ""}
       </article>`;
     }).join("");
-    companyFacts.innerHTML = assessment.facts.map(fact =>
+    businessModelFacts.innerHTML = assessment.facts.map(fact =>
       `<div class="company-fact"><strong>${esc(fact.value)}</strong><span>${esc(fact.label)}</span></div>`
     ).join("");
-    companyWatchlist.innerHTML = assessment.watchlist.map(item =>
+    businessModelDrivers.innerHTML = assessment.drivers.map(driver =>
+      `<article class="business-driver-card">
+        <span>${esc(driver.label)}</span>
+        <h3>${esc(driver.title)}</h3>
+        <p>${esc(driver.mechanism)}</p>
+        <div><b>Investor read</b>${esc(driver.investorRead)}</div>
+        <footer>${sourceLinks(driver.sourceIds)}</footer>
+      </article>`
+    ).join("");
+    businessModelWatchlist.innerHTML = assessment.watchlist.map(item =>
       `<article class="watch-item">
         <h3>${esc(item.label)}</h3>
         <p class="confirm"><b>Confirm</b>${esc(item.confirmation)}</p>
         <p class="warning"><b>Warn</b>${esc(item.warning)}</p>
       </article>`
     ).join("");
+  }
+
+  function renderEconomicMoat(){
+    const moat=model.economicMoatAnalysis;
+    const ratingCard=(label,rating,tone) => `<article class="moat-rating-card ${esc(tone)}">
+      <span>${esc(label)}</span>
+      <div class="moat-rating-value">${esc(rating.value)}</div>
+      ${rating.dynamics ? `<p class="moat-rating-meta">${esc(rating.dynamics)} · ${esc(rating.confidence)} confidence</p>` : ""}
+      <p>${esc(rating.rationale)}</p>
+      <footer>${sourceLinks(rating.sourceIds)}</footer>
+    </article>`;
+    moatRatingGrid.innerHTML = [
+      ratingCard("Our analysis",moat.ourRating,"our-rating"),
+      ratingCard("Morningstar",moat.morningstarRating,"morningstar-rating"),
+    ].join("");
+    moatComparisonBody.innerHTML = moat.comparisonRows.map(row =>
+      `<tr class="moat-row tone-${esc(row.tone)}">
+        <th scope="row"><span>${esc(row.factor)}</span><small class="moat-row-tone">${esc(row.tone === "partial" ? "Partial agreement" : row.tone)}</small><footer>${sourceLinks(row.sourceIds)}</footer></th>
+        <td>${esc(row.ourView)}</td>
+        <td>${esc(row.morningstarView)}</td>
+        <td><b>${esc(row.conclusion)}</b></td>
+      </tr>`
+    ).join("");
+    moatSourceNote.innerHTML = `<b>Source boundary</b><p>${esc(moat.sourceNote)}</p>`;
   }
 
   function money(value){
@@ -989,11 +1039,32 @@
     return `$${(value/1000).toFixed(digits)}B`;
   }
 
+  function runCalculatorCase(calculator,growth){
+    return runCalculatorSensitivity(calculator,growth,calculator.terminalPriceToFcf,calculator.discountRate);
+  }
+
+  function runCalculatorSensitivity(calculator,growth,terminalPriceToFcf,discountRate){
+    const terminalFcf=calculator.currentFcf*Math.pow(1+growth,calculator.forecastYears);
+    const futurePrice=terminalFcf*terminalPriceToFcf/calculator.shares;
+    const fairValue=futurePrice/Math.pow(1+discountRate,calculator.forecastYears);
+    return {growth,terminalFcf,futurePrice,fairValue};
+  }
+
+  function calculatorScenarioCases(calculator){
+    return calculator.scenarios.map(scenario=>({
+      ...scenario,
+      ...runCalculatorCase(calculator,calculator.annualGrowth*calculator.caseVariance[scenario.id]),
+    }));
+  }
+
   function renderIntrinsicValuation(){
     const cases=intrinsicCases();
     const market=cases.find(item=>item.id==="market");
     const morningstar=cases.find(item=>item.id==="morningstar");
     const calculator=intrinsicModel.calculator;
+    const calculatorScenarios=calculatorScenarioCases(calculator);
+    const calculatorBase=calculatorScenarios.find(item=>item.id==="base");
+    const calculatorWeightedValue=calculatorScenarios.reduce((sum,scenario)=>sum+scenario.fairValue*scenario.probability,0);
     const terminalRevenueGap=market.terminalRevenue/morningstar.terminalRevenue-1;
     document.getElementById("intrinsic-verdict").innerHTML=`<b>The post-earnings selloff narrowed the valuation gap, but the stock still requires exceptional growth durability.</b> At $${market.price.toFixed(2)}, the common lens requires ${esc(pct(market.revenueGrowth))} annual revenue growth from 2027–2035 and ${esc(intrinsicBillions(market.terminalRevenue))} of FY2035 revenue—${esc(pct(terminalRevenueGap))} above the path that supports Morningstar’s $200 fair value.`;
     document.getElementById("intrinsic-target-grid").innerHTML=cases.map(item=>{
@@ -1001,11 +1072,11 @@
       const current=item.id==="market";
       const our=item.id==="our-calculator";
       if(our){
-        const scenarios=calculator.scenarios.map(scenario=>`<span>${esc(scenario.label)} · ${esc(pct(scenario.probability,0))}<b>$${scenario.fairValue.toFixed(0)}</b></span>`).join("");
+        const scenarios=calculatorScenarios.map(scenario=>`<span>${esc(scenario.label)} · ${esc(pct(scenario.growth,0))} growth<b>$${scenario.fairValue.toFixed(2)}</b></span>`).join("");
         return `<article class="intrinsic-target-card tone-${esc(item.tone)}">
-          <div class="intrinsic-target-head"><div><span>${esc(item.label)}</span><strong>~$${calculator.weightedFairValue.toFixed(0)}</strong></div><i>Our estimate</i></div>
+          <div class="intrinsic-target-head"><div><span>${esc(item.label)}</span><strong>$${calculatorBase.fairValue.toFixed(2)}</strong></div><i>Base case</i></div>
           <div class="intrinsic-hurdle"><span>Required 2027–35 revenue growth</span><b>${esc(pct(item.revenueGrowth))}</b><small>10-year FCFF cross-check at the $${item.price.toFixed(0)} price anchor</small></div>
-          <div class="intrinsic-target-metrics intrinsic-calculator-scenarios">${scenarios}<span>Terminal shares<b>${calculator.terminalShares.toFixed(0)}M</b></span></div>
+          <div class="intrinsic-target-metrics intrinsic-calculator-scenarios">${scenarios}<span>Current shares · held flat<b>${calculator.shares.toFixed(2)}M</b></span><span>Probability-weighted value<b>$${calculatorWeightedValue.toFixed(2)}</b></span></div>
           <p><b>${esc(calculator.metric)} · ${calculator.forecastYears}Y · ${esc(pct(calculator.annualGrowth,0))} growth · ${calculator.terminalPriceToFcf.toFixed(0)}× P/FCF · ${esc(pct(calculator.discountRate,0))} discount.</b></p>
           <span class="intrinsic-internal-source">Internal calculator cross-check · ${esc(calculator.modelDate)}</span>
         </article>`;
@@ -1023,6 +1094,95 @@
         ${sourceAnchor(source.url,current?"Market-price source":"Morningstar access route")}
       </article>`;
     }).join("");
+    const revenueGrowthCagr=calculator.revenueGrowthPath.reduce((compound,row)=>compound*(1+row.growth),1)**(1/calculator.revenueGrowthPath.length)-1;
+    document.getElementById("intrinsic-dcf-growth-body").innerHTML=calculator.revenueGrowthPath.map(row=>`<tr><td>${esc(row.period)}</td><td><b>${esc(pct(row.growth,0))}</b></td></tr>`).join("");
+    const variance=calculator.caseVariance;
+    const probabilities=Object.fromEntries(calculator.scenarios.map(scenario=>[scenario.id,scenario.probability]));
+    const finalInputs=[
+      ["Metric",calculator.metric],
+      ["Current FCF",intrinsicBillions(calculator.currentFcf,3)],
+      ["Horizon",`${calculator.forecastYears}Y`],
+      ["FCF growth",pct(calculator.annualGrowth,0)],
+      ["Revenue-path CAGR",pct(revenueGrowthCagr,1)],
+      ["Exit P/FCF",`${calculator.terminalPriceToFcf.toFixed(0)}×`],
+      ["Discount rate",pct(calculator.discountRate,0)],
+      ["Current shares",`${calculator.shares.toFixed(2)}M`],
+      ["Bear / Base / Bull",`${pct(variance.bear,0)} / ${pct(variance.base,0)} / ${pct(variance.bull,0)}`],
+      ["Probabilities",`${pct(probabilities.bear,0)} / ${pct(probabilities.base,0)} / ${pct(probabilities.bull,0)}`],
+    ];
+    document.getElementById("intrinsic-dcf-input-grid").innerHTML=finalInputs.map(([label,value])=>`<span><small>${esc(label)}</small><b>${esc(value)}</b></span>`).join("");
+
+    const equivalent=calculator.morningstarEquivalent;
+    const growthBridge=runCalculatorSensitivity(calculator,equivalent.annualGrowth,calculator.terminalPriceToFcf,calculator.discountRate);
+    const discountBridge=runCalculatorSensitivity(calculator,equivalent.annualGrowth,calculator.terminalPriceToFcf,equivalent.discountRate);
+    const fullBridge=runCalculatorSensitivity(calculator,equivalent.annualGrowth,equivalent.terminalPriceToFcf,equivalent.discountRate);
+    const fairValueGap=fullBridge.fairValue-calculatorBase.fairValue;
+    const growthImpact=growthBridge.fairValue-calculatorBase.fairValue;
+    const discountImpact=discountBridge.fairValue-growthBridge.fairValue;
+    const multipleImpact=fullBridge.fairValue-discountBridge.fairValue;
+    const drivers=[
+      {label:"Five-year growth",ours:pct(calculator.annualGrowth,0),morningstar:pct(equivalent.annualGrowth,1),delta:"+4.5 ppt",impact:growthImpact,share:growthImpact/fairValueGap,tone:"growth",note:"Faster compounding lifts Year 5 FCF before any change to the discount rate."},
+      {label:"Equity discount rate",ours:pct(calculator.discountRate,0),morningstar:pct(equivalent.discountRate,1),delta:"−1.8 ppt",impact:discountImpact,share:discountImpact/fairValueGap,tone:"discount",note:"A lower required return raises the present value of the same future price."},
+      {label:"Exit P/FCF",ours:`${calculator.terminalPriceToFcf.toFixed(0)}×`,morningstar:`${equivalent.terminalPriceToFcf.toFixed(1)}×`,delta:"+0.5×",impact:multipleImpact,share:multipleImpact/fairValueGap,tone:"multiple",note:"The terminal multiple is almost neutral; it is not the reason for the valuation gap."},
+    ];
+    document.getElementById("intrinsic-driver-grid").innerHTML=drivers.map(driver=>`<article class="intrinsic-driver-card tone-${esc(driver.tone)}">
+      <span>${esc(driver.label)}</span>
+      <div><small>Our base</small><b>${esc(driver.ours)}</b></div>
+      <i>→</i>
+      <div><small>Morningstar-equivalent</small><b>${esc(driver.morningstar)}</b></div>
+      <strong>${esc(driver.delta)}</strong>
+      <p>${esc(driver.note)}</p>
+      <em>+$${driver.impact.toFixed(2)} / share · ${esc(pct(driver.share,1))} of the sequential gap</em>
+    </article>`).join("");
+    const bridgeSteps=[
+      {label:"Our Base Case",detail:`${pct(calculator.annualGrowth,0)} growth · ${pct(calculator.discountRate,0)} discount`,value:calculatorBase.fairValue,delta:null,tone:"ours"},
+      {label:"Apply faster growth",detail:`Growth → ${pct(equivalent.annualGrowth,1)}`,value:growthBridge.fairValue,delta:growthImpact,tone:"growth"},
+      {label:"Apply lower discount",detail:`Discount → ${pct(equivalent.discountRate,1)}`,value:discountBridge.fairValue,delta:discountImpact,tone:"discount"},
+      {label:"Normalize exit multiple",detail:`P/FCF → ${equivalent.terminalPriceToFcf.toFixed(1)}×`,value:fullBridge.fairValue,delta:multipleImpact,tone:"morningstar"},
+    ];
+    document.getElementById("intrinsic-value-bridge").innerHTML=bridgeSteps.map(step=>`<div class="intrinsic-bridge-step tone-${esc(step.tone)}"><span>${esc(step.label)}<small>${esc(step.detail)}</small></span>${step.delta==null?'':'<i>+'+step.delta.toFixed(2)+'</i>'}<b>$${step.value.toFixed(2)}</b></div>`).join("");
+
+    const disclosed=intrinsicModel.morningstar;
+    const morningstarStageOneShare=disclosed.presentValueStageOne/disclosed.firmValue;
+    const morningstarStageTwoShare=disclosed.presentValueStageTwo/disclosed.firmValue;
+    const morningstarTerminalShare=disclosed.presentValueStageThree/disclosed.firmValue;
+    const disclosedPerShare=disclosed.equityValue/disclosed.projectedDilutedShares;
+    const stageYears=Object.keys(disclosed.forecastRevenue).map(Number).sort((a,b)=>a-b);
+    document.getElementById("intrinsic-morningstar-forecast-body").innerHTML=stageYears.map(year=>`<tr><td>${year}</td><td><b>${esc(intrinsicBillions(disclosed.forecastRevenue[year],3))}</b></td><td>${esc(pct(disclosed.forecastRevenueGrowth[year],1))}</td><td><b>${esc(intrinsicBillions(disclosed.forecastFcff[year],3))}</b></td><td>${esc(pct(disclosed.forecastFcffMargin[year],1))}</td></tr>`).join("");
+    document.getElementById("intrinsic-stage-one-pv").innerHTML=`${esc(intrinsicBillions(disclosed.presentValueStageOne,3))}<small>present value · ${esc(pct(morningstarStageOneShare,1))} of firm value</small>`;
+    document.getElementById("intrinsic-stage-two-pv").innerHTML=`${esc(intrinsicBillions(disclosed.presentValueStageTwo,3))}<small>present value · ${esc(pct(morningstarStageTwoShare,1))} of firm value</small>`;
+    document.getElementById("intrinsic-stage-three-pv").innerHTML=`${esc(intrinsicBillions(disclosed.presentValueStageThree,3))}<small>present value · ${esc(pct(morningstarTerminalShare,1))} of firm value</small>`;
+    const stageTwoMetrics=[
+      ["Average EBI growth",pct(disclosed.stageTwoEbiGrowth,0)],
+      ["Investment rate",pct(disclosed.stageTwoInvestmentRate,0)],
+      ["Perpetuity year",`Year ${disclosed.perpetuityYear}`],
+      ["Discount rate",`${pct(disclosed.wacc,1)} WACC`],
+    ];
+    document.getElementById("intrinsic-stage-two-metrics").innerHTML=stageTwoMetrics.map(([label,value])=>`<span><small>${esc(label)}</small><b>${esc(value)}</b></span>`).join("");
+    const stageThreeMetrics=[
+      ["Marginal RONIC",`Fades to ${pct(disclosed.wacc,1)}`],
+      ["Stage III / firm value",pct(morningstarTerminalShare,1)],
+      ["Cost of equity",pct(disclosed.costOfEquity,1)],
+      ["WACC",pct(disclosed.wacc,1)],
+    ];
+    document.getElementById("intrinsic-stage-three-metrics").innerHTML=stageThreeMetrics.map(([label,value])=>`<span><small>${esc(label)}</small><b>${esc(value)}</b></span>`).join("");
+    const valuationBridge=[
+      ["Present value · Stage I",disclosed.presentValueStageOne],
+      ["Present value · Stage II",disclosed.presentValueStageTwo],
+      ["Present value · Stage III",disclosed.presentValueStageThree],
+      ["Total firm value",disclosed.firmValue],
+      ["Cash and equivalents",4475],
+      ["Debt",-983],
+      ["Other adjustments",0],
+      ["Equity value",disclosed.equityValue],
+    ];
+    document.getElementById("intrinsic-morningstar-bridge-body").innerHTML=valuationBridge.map(([label,value],index)=>`<tr${index===3||index===valuationBridge.length-1?' class="intrinsic-comparison-total"':''}><td>${esc(label)}</td><td><b>${value<0?'−':''}${Math.abs(value).toLocaleString("en-US")}</b></td></tr>`).join("");
+    const source=intrinsicModel.sources["morningstar-report"];
+    document.getElementById("intrinsic-morningstar-summary").innerHTML=`
+      <span><small>Projected diluted shares</small><b>${disclosed.projectedDilutedShares.toFixed(0)}M</b></span>
+      <span><small>Disclosed arithmetic</small><b>$${disclosedPerShare.toFixed(2)}</b></span>
+      <span class="is-published"><small>Published fair value</small><b>$${disclosed.fairValue.toFixed(2)}</b></span>
+      ${sourceAnchor(source.url,"Morningstar report access")}`;
   }
 
   function peerMoney(value){
@@ -1427,7 +1587,8 @@
   }
 
   function render(){
-    renderCompanyLens();
+    renderBusinessModel();
+    renderEconomicMoat();
     renderLegend();
     renderEnablers();
     renderLanes();
