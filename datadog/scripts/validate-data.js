@@ -551,6 +551,11 @@ const actualMoatRows = new Set(model.economicMoatAnalysis.comparisonRows.map(row
 assert(requiredMoatRows.size === actualMoatRows.size && [...requiredMoatRows].every(id => actualMoatRows.has(id)), "Economic-moat comparison must contain all nine required factors exactly once");
 assert(model.economicMoatAnalysis.ourRating.value === "Narrow", "Our moat rating must remain conservative");
 assert(model.economicMoatAnalysis.morningstarRating.value === "Wide", "Morningstar's moat rating must be represented as Wide");
+const indirectLoop = model.economicMoatAnalysis.indirectFeedbackLoop;
+assert(indirectLoop.steps.length === 4, "Indirect feedback loop must explain all four mechanism steps");
+assert(/does not directly/i.test(indirectLoop.definition), "Indirect feedback loop must distinguish direct customer-to-customer value creation");
+assert(/R&D|product/i.test(indirectLoop.whyIndirect), "Indirect feedback loop must identify Datadog's execution layer");
+indirectLoop.sourceIds.forEach(sourceId => assert(Boolean(model.sources[sourceId]), `Indirect feedback loop: unknown source ${sourceId}`));
 for(const row of model.economicMoatAnalysis.comparisonRows){
   assert(["agree","partial","disagree"].includes(row.tone), `${row.factor}: invalid comparison tone`);
   assert(row.sourceIds.length > 0, `${row.factor}: moat comparison sources are required`);

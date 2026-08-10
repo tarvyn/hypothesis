@@ -167,6 +167,7 @@
   const businessModelDrivers = document.getElementById("business-model-drivers");
   const businessModelWatchlist = document.getElementById("business-model-watchlist");
   const moatRatingGrid = document.getElementById("moat-rating-grid");
+  const moatFeedbackLoop = document.getElementById("moat-feedback-loop");
   const moatComparisonBody = document.getElementById("moat-comparison-body");
   const moatSourceNote = document.getElementById("moat-source-note");
   const tabList = document.querySelector(".top-tabs");
@@ -406,6 +407,18 @@
       ratingCard("Our analysis",moat.ourRating,"our-rating"),
       ratingCard("Morningstar",moat.morningstarRating,"morningstar-rating"),
     ].join("");
+    const loop=moat.indirectFeedbackLoop;
+    moatFeedbackLoop.innerHTML = `
+      <header>
+        <div><span>${esc(loop.label)}</span><h3>${esc(loop.title)}</h3></div>
+        <p>${esc(loop.definition)}</p>
+      </header>
+      <ol>${loop.steps.map(step=>`<li><span>${esc(step.label)}</span><b>${esc(step.title)}</b><p>${esc(step.detail)}</p></li>`).join("")}</ol>
+      <div class="moat-loop-interpretation">
+        <p><b>Why “indirect”?</b>${esc(loop.whyIndirect)}</p>
+        <p><b>Investment read</b>${esc(loop.investmentRead)}</p>
+      </div>
+      <footer>${sourceLinks(loop.sourceIds)}</footer>`;
     moatComparisonBody.innerHTML = moat.comparisonRows.map(row =>
       `<tr class="moat-row tone-${esc(row.tone)}">
         <th scope="row"><span>${esc(row.factor)}</span><small class="moat-row-tone">${esc(row.tone === "partial" ? "Partial agreement" : row.tone)}</small><footer>${sourceLinks(row.sourceIds)}</footer></th>

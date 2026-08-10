@@ -1088,6 +1088,36 @@ const ECONOMIC_MOAT_ANALYSIS = {
     rationale:"Morningstar's May 2026 report assigns a Wide moat primarily to switching costs and network effects, supported by retention, product-led adoption, customer feedback, and a cloud-neutral platform.",
     sourceIds:["morningstar-ddog-2026"],
   },
+  indirectFeedbackLoop:{
+    label:"Mechanism explained",
+    title:"What an indirect feedback loop actually means",
+    definition:"Customer A does not directly make Datadog more useful for Customer B. Instead, a larger and more diverse customer base gives Datadog more signals; Datadog must turn those signals into product improvements before other customers receive any benefit.",
+    steps:[
+      {
+        label:"Step 1",
+        title:"More customers and workloads",
+        detail:"Datadog observes a wider range of cloud stacks, failures, queries, requested integrations, and operating patterns.",
+      },
+      {
+        label:"Step 2",
+        title:"More learning signals",
+        detail:"Anonymized telemetry, support requests, feature demand, and real investigation outcomes reveal recurring problems and useful patterns.",
+      },
+      {
+        label:"Step 3",
+        title:"Datadog converts the signals",
+        detail:"Its product and R&D teams must improve detections, integrations, workflows, recommendations, and models such as Toto and Bits AI.",
+      },
+      {
+        label:"Step 4",
+        title:"A better product attracts usage",
+        detail:"If the improvements are valuable, customers adopt more products and workloads, producing another round of signals for Datadog.",
+      },
+    ],
+    whyIndirect:"The value passes through Datadog's data, product decisions, and R&D execution. Users do not interact with, transact with, or automatically create value for one another as they would in a marketplace or social network.",
+    investmentRead:"This can be a real scale advantage, but it is weaker evidence than a classic network effect. Datadog must keep access to useful data, convert it into superior outcomes, and stay ahead of competitors that have their own telemetry, customer feedback, and increasingly portable open standards and models.",
+    sourceIds:["internal-moat-analysis","morningstar-ddog-2026","sec-10k-2025","datadog-toto-github"],
+  },
   comparisonRows:[
     {
       id:"overall-moat-rating",

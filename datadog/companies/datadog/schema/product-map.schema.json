@@ -274,7 +274,7 @@
     },
     "economicMoatAnalysis": {
       "type": "object",
-      "required": ["asOf", "ourRating", "morningstarRating", "comparisonRows", "sourceNote"],
+      "required": ["asOf", "ourRating", "morningstarRating", "indirectFeedbackLoop", "comparisonRows", "sourceNote"],
       "properties": {
         "ourRating": {
           "type": "object",
@@ -285,6 +285,21 @@
           "type": "object",
           "required": ["value", "rationale", "sourceIds"],
           "properties": {"value": {"const": "Wide"}}
+        },
+        "indirectFeedbackLoop": {
+          "type": "object",
+          "required": ["label", "title", "definition", "steps", "whyIndirect", "investmentRead", "sourceIds"],
+          "properties": {
+            "steps": {
+              "type": "array",
+              "minItems": 4,
+              "maxItems": 4,
+              "items": {
+                "type": "object",
+                "required": ["label", "title", "detail"]
+              }
+            }
+          }
         },
         "comparisonRows": {
           "type": "array",
