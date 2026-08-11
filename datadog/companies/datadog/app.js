@@ -124,12 +124,15 @@
     },
   ];
 
+  const TAB_IDS = ["product-map","business-model","economic-moat","kpis","financials","intrinsic-valuation","peer-comps"];
+  const DEEP_LINK_TABS = {
+    "product-adoption":"kpis",
+  };
+  const initialHash = window.location.hash.slice(1);
   const state = {
     filters:new Set(),
     selected:null,
-    activeTab:["product-map","business-model","economic-moat","kpis","financials","intrinsic-valuation","peer-comps"].includes(window.location.hash.slice(1))
-      ? window.location.hash.slice(1)
-      : "product-map",
+    activeTab:DEEP_LINK_TABS[initialHash] || (TAB_IDS.includes(initialHash) ? initialHash : "product-map"),
     showProductScores:false,
     peerFilter:"all",
     peerSort:{
@@ -1675,6 +1678,14 @@
     }
   }
 
+  function revealDeepLink(targetId,{behavior="auto"}={}){
+    if(!DEEP_LINK_TABS[targetId]) return;
+    activateTab(DEEP_LINK_TABS[targetId],{updateUrl:false});
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      document.getElementById(targetId)?.scrollIntoView({behavior,block:"start"});
+    }));
+  }
+
   function tag(label,primary=false,color="var(--txt-dim)"){
     return `<span class="r-tag ${primary ? "primary" : ""}" style="--tag:${color}">${esc(label)}</span>`;
   }
@@ -1985,4 +1996,5 @@
 
   activateTab(state.activeTab,{updateUrl:false});
   render();
+  revealDeepLink(initialHash);
 })();
