@@ -17,7 +17,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./styles.css?v=20260813-1">
+  <link rel="stylesheet" href="./styles.css?v=20260813-8">
 </head>
 <body>
   <main class="wrap">
@@ -25,38 +25,27 @@
       <a href="../../"><span aria-hidden="true">←</span> All companies</a>
       <span>NASDAQ · DDOG</span>
     </nav>
-    <header class="hero">
-      <div class="eyebrow"><span>Portfolio guide · <b>DDOG</b> · current as of Q2-2026</span></div>
-      <div class="hero-grid">
-        <div>
-          <h1>The Datadog stack, <em>mapped for investors</em></h1>
-          <p class="lede">
-            A stable Gartner market <b>backbone</b>, Datadog's changing suite
-            <b>skin</b>, and canonical product <b>leaves</b>. Assessments live
-            together on each product scorecard; suite bars show their maturity
-            distribution. Every point estimate is separated from confidence in
-            its supporting evidence. Cross-cutting overlays
-            never create a second TAM.
-          </p>
-        </div>
-        <div class="principle-card">
-          <span class="principle-label">Taxonomy rule</span>
-          <strong>Stable spine.<br>Flexible skin.</strong>
-          <p>Market anchors stay comparable. Suite mappings can drift without breaking the history.</p>
-        </div>
-      </div>
-      <div class="thesis" id="headline-stats"></div>
-    </header>
-
     <nav class="top-tabs" role="tablist" aria-label="Investor map views">
       <button
         class="top-tab is-active"
-        id="product-map-tab"
+        id="investment-hypothesis-tab"
         type="button"
         role="tab"
         aria-selected="true"
+        aria-controls="investment-hypothesis-panel"
+        data-tab="investment-hypothesis"
+      >
+        Investment hypothesis
+      </button>
+      <button
+        class="top-tab"
+        id="product-map-tab"
+        type="button"
+        role="tab"
+        aria-selected="false"
         aria-controls="product-map-panel"
         data-tab="product-map"
+        tabindex="-1"
       >
         Product map
       </button>
@@ -140,6 +129,7 @@
       role="tabpanel"
       aria-labelledby="product-map-tab"
       data-panel="product-map"
+      hidden
     >
       <section class="controls" aria-label="Map controls">
         <div class="control-row display-row">
@@ -240,6 +230,393 @@
         call, company presentations, and product materials for directional
         product evidence. Market anchors are never mixed with company ARR.
       </p>
+    </section>
+
+    <section
+      class="tab-panel hypothesis-panel"
+      id="investment-hypothesis-panel"
+      role="tabpanel"
+      aria-labelledby="investment-hypothesis-tab"
+      data-panel="investment-hypothesis"
+    >
+      <article class="hypothesis-verbatim" aria-labelledby="verbatim-hypothesis-title">
+        <header class="verbatim-title-block">
+          <div>
+            <h2 id="verbatim-hypothesis-title">DDOG — Investment Hypothesis</h2>
+            <p>Datadog, Inc.</p>
+          </div>
+          <div>
+            <span>GENERATED</span>
+            <strong>13/08/2026, 18:23:12</strong>
+          </div>
+        </header>
+
+        <section class="verbatim-section" id="verbatim-profile">
+          <h3>PROFILE</h3>
+          <dl class="verbatim-field-grid">
+            <div><dt>STOCK</dt><dd>Datadog, Inc.</dd></div>
+            <div><dt>TICKER</dt><dd>DDOG</dd></div>
+            <div><dt>SECTOR</dt><dd>Technology</dd></div>
+            <div><dt>MARKET CAP</dt><dd>$92.83B</dd></div>
+            <div><dt>LIFECYCLE STAGE</dt><dd>High Growth</dd></div>
+            <div><dt>STATUS</dt><dd>Draft</dd></div>
+            <div><dt>CURRENT PRICE</dt><dd>$260.78</dd></div>
+            <div><dt>ENTRY PRICE</dt><dd>$260.78</dd></div>
+          </dl>
+        </section>
+
+        <section class="verbatim-section" id="verbatim-business-understanding">
+          <h3>BUSINESS UNDERSTANDING</h3>
+          <dl class="verbatim-copy-list">
+            <div><dt>BUSINESS DESCRIPTION</dt><dd>Компанія заробляє гроші, коли клієнти запускають більше cloud та AI workloads, генерують більше telemetry і підключають додаткові продукти, тому що допомагає клієнтам швидше виявляти й усувати інциденти, зменшувати їхній вплив на бізнес та підвищувати надійність систем і продуктивність engineering-команд.</dd></div>
+            <div><dt>PRIMARY CUSTOMER</dt><dd>Великі cloud-native та enterprise-компанії. На кінець Q2 2026 було приблизно 4,720 клієнтів із ARR понад $100 тис., +23% р/р, які генерували близько 91% ARR.</dd><div class="verbatim-links"><a href="#customers-chart">Customers above $100K ARR <span>→</span></a></div></div>
+            <div><dt>BUSINESS MODEL</dt><dd>B. Usage-based / consumption</dd></div>
+            <div><dt>MODEL ADVANTAGES</dt><dd>Головна перевага — той самий agent, telemetry layer, data model та engineering buyer можуть підтримувати кілька продуктів. Тому marginal cost підключення наступного модуля для клієнта нижчий, ніж впровадження окремої спеціалізованої платформи.</dd><div class="verbatim-links"><a href="#product-maturity-distribution">26-product maturity distribution <span>→</span></a></div></div>
+            <div><dt>REVENUE RECURRING</dt><dd>Виручка повторювана, але не повністю захищена від циклічності через usage-based pricing.</dd><div class="verbatim-links"><a href="#cloud-efficiency-chart">Revenue vs COGS <span>→</span></a></div></div>
+            <div><dt>SWITCHING COSTS</dt><dd>Switching costs стають високими після того, як Datadog вбудований у dashboards, alerts, incident response, security workflows та production operations. На рівні збору telemetry вони нижчі через OpenTelemetry.</dd></div>
+          </dl>
+          <dl class="verbatim-field-grid verbatim-field-grid-small">
+            <div><dt>INDUSTRY GROWING</dt><dd>Yes</dd></div>
+            <div><dt>INDUSTRY CYCLICAL</dt><dd>No</dd></div>
+            <div><dt>SECULAR TRENDS</dt><dd>Yes</dd></div>
+            <div><dt>DISRUPTION RISK</dt><dd>Yes</dd></div>
+          </dl>
+          <dl class="verbatim-copy-list">
+            <div><dt>SECULAR TRENDS EXPLANATION</dt><dd>cloud migration, зростання складності software, AI workloads, DevSecOps і консолідація monitoring tools</dd></div>
+            <div><dt>DISRUPTION RISK EXPLANATION</dt><dd>OpenTelemetry, hyperscalers, open-source рішення, AI-native observability та спеціалізовані конкуренти можуть знизити switching costs і pricing power.</dd></div>
+          </dl>
+        </section>
+
+        <section class="verbatim-section" id="verbatim-moat-analysis">
+          <h3>MOAT ANALYSIS</h3>
+          <dl class="verbatim-field-grid verbatim-field-grid-small">
+            <div><dt>MOAT TYPES</dt><dd>Switching costs</dd></div>
+            <div><dt>STRENGTH</dt><dd>NARROW MOAT</dd></div>
+            <div><dt>DYNAMICS</dt><dd>Expanding</dd></div>
+            <div><dt>COMPETITOR REPLICABLE</dt><dd>No</dd></div>
+          </dl>
+          <dl class="verbatim-copy-list">
+            <div>
+              <dt>DYNAMICS EXPLANATION</dt>
+              <dd>
+                <ul class="verbatim-point-list">
+                  <li><span>Multi-product adoption зростає</span><div class="verbatim-links"><a href="#adoption-chart">Product adoption <span>→</span></a><a href="#product-maturity-distribution">26-product maturity distribution <span>→</span></a></div></li>
+                  <li><span>NRR залишається у low-120%, gross retention — у mid-to-high 90%</span><div class="verbatim-links"><a href="#retention-chart">NRR &amp; GRR <span>→</span></a></div></li>
+                  <li><span>Кількість клієнтів із ARR понад $100 тис. зростає на 23%, тоді як загальна customer base — приблизно на 6%.</span><div class="verbatim-links"><a href="#customers-chart">$100K+ customers <span>→</span></a><a href="#total-customers-chart">Total customers <span>→</span></a></div></li>
+                  <li><span>Клієнти консолідують більше telemetry, dashboards, alerts і workflows в одній системі — це підвищує switching costs.</span><div class="verbatim-links"><a href="#adoption-chart">Product adoption <span>→</span></a></div></li>
+                </ul>
+              </dd>
+            </div>
+          </dl>
+        </section>
+
+        <section class="verbatim-section" id="verbatim-financial-reality">
+          <h3>FINANCIAL REALITY</h3>
+          <div class="verbatim-table-wrap">
+            <table class="verbatim-table">
+              <thead><tr><th>METRIC</th><th>VALUE</th><th>TREND</th><th>CONCLUSION</th></tr></thead>
+              <tbody>
+                <tr><th>EPS Growth</th><td>GAAP diluted EPS: $0.14 → $0.52 → $0.31 → ≈$0.50 TTM</td><td>Зростання / шум</td><td>Прибутковість формується, але значна частина прибутку — interest income; SBC залишається високим</td></tr>
+                <tr><th>Gross Margin<a class="verbatim-chart-link" href="#margin-chart">Gross margin <span>→</span></a></th><td>80.0% FY2025; ≈79.5% TTM; 78.6% Q2 2026</td><td>Помірне зниження</td><td>Сильна SaaS-економіка; водночас є тиск cloud hosting та AI workloads</td></tr>
+                <tr><th>Revenue CAGR<a class="verbatim-chart-link" href="#revenue-chart">Quarterly revenue <span>→</span></a></th><td>≈27% ($1.68 → $3.43 млрд, FY2022–25); Q2 2026: +36% р/р</td><td>Повторне прискорення; FY2026 guidance ≈+30%</td><td>Стадія High Growth і сильний попит</td></tr>
+                <tr><th>ROIC/ROCE/ROE<a class="verbatim-chart-link" href="#returns-dilution-chart">ROIC &amp; dilution <span>→</span></a></th><td>≈20% R&amp;D-capitalized у FY2025 проти WACC ≈9.5–10%</td><td>Зниження: ≈40% у FY2021 → ≈20% у FY2025</td><td>Moat існує, але його розширення ще не підтверджене через падіння incremental returns</td></tr>
+                <tr><th>Operating Margin<a class="verbatim-chart-link" href="#profit-conversion-chart">Profit conversion <span>→</span></a></th><td>≈0.5% GAAP; 23% adjusted у Q2 2026</td><td>GAAP покращується, але розрив з adjusted великий</td><td>Operating leverage існує, але GAAP profitability ще не доведена через SBC</td></tr>
+                <tr><th>Net Debt / EBITDA</th><td>N/M — приблизно $4.0 млрд net cash ($4.99 млрд ліквідності проти $0.99 млрд боргу)</td><td>Дуже низький фінансовий ризик</td><td>Сильний баланс і відсутність leverage risk</td></tr>
+                <tr><th>FCF per Share Growth<a class="verbatim-chart-link" href="#fcf-economics-chart">FCF economics <span>→</span></a></th><td>$1.12 → $2.52 за FY2022–25; ≈$2.89 TTM</td><td>Стійке зростання; ≈31% CAGR за FY2022–25</td><td>Висока cash generation, але якість для акціонера знижує dilution</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="verbatim-section" id="verbatim-growth-drivers">
+          <h3>GROWTH DRIVERS</h3>
+          <dl class="verbatim-copy-list">
+            <div><dt>GROWTH DRIVERS</dt><dd><ul class="verbatim-point-list verbatim-growth-list">
+              <li><span>Збільшення обсягів моніторингу в наявних клієнтів</span><div class="verbatim-links"><a href="#revenue-chart">Revenue growth <span>→</span></a></div></li>
+              <li><span>Підключення клієнтами більшої кількості продуктів Datadog</span><div class="verbatim-links"><a href="#adoption-chart">Product adoption <span>→</span></a><a href="#product-maturity-distribution">26-product maturity distribution <span>→</span></a></div></li>
+              <li><span>Зростання кількості великих клієнтів</span><div class="verbatim-links"><a href="#customers-chart">$100K+ customers <span>→</span></a></div></li>
+              <li><span>клієнти розвиваються і збільшують workloads</span><div class="verbatim-links"><a href="#revenue-chart">Revenue growth <span>→</span></a></div></li>
+              <li><span>Перетворення нових продуктів на значні джерела виручки</span><div class="verbatim-links"><a href="#product-maturity-distribution">26-product maturity distribution <span>→</span></a></div></li>
+            </ul></dd></div>
+            <div><dt>CATALYSTS</dt><dd><ul class="verbatim-point-list verbatim-catalyst-list">
+              <li><span>Де-ризикінг концентрації AI-клієнта: Q3 beat-and-raise, Q4 growth ≥26%, non-AI growth ≥25%, стабільний low-120s NRR і початковий FY2027 revenue guidance ≥$5.5 млрд підтвердять, що скорочення usage найбільшого клієнта компенсується ширшим зростанням бази.</span></li>
+              <li><span>Комерціалізація FedRAMP і GovRAMP High: перший матеріальний контракт із державною або регульованою організацією підтвердить, що сертифікації відкривають нове джерело виручки. FedRAMP High дозволяє обслуговувати чутливі системи федеральних відомств США, а GovRAMP High — державних і місцевих органів влади та освітніх установ.</span></li>
+              <li><span>Монетизація нових продуктів: поява додаткових продуктів із понад $100 млн ARR або суттєвої диверсифікованої AI/security revenue підтвердить конверсію R&amp;D та продуктової експансії у нові значні джерела виручки.</span><div class="verbatim-links"><a href="#product-maturity-distribution">26-product maturity distribution <span>→</span></a></div></li>
+            </ul></dd></div>
+          </dl>
+        </section>
+
+        <section class="verbatim-section" id="verbatim-risks-exit-conditions">
+          <h3>RISKS &amp; EXIT CONDITIONS</h3>
+          <dl class="verbatim-copy-list">
+            <div><dt>RISK DESCRIPTION</dt><dd class="verbatim-pre-line">Головний ризик Datadog — концентрація зростання в AI-native клієнтах і волатильність usage-based моделі. У Q2 2026 AI-native когорта забезпечила високий однозначний внесок у загальне зростання виручки, а найбільший клієнт уже почав скорочувати використання у Q3. Клієнти можуть оптимізувати обсяг телеметрії без повної відмови від платформи, тому gross retention може залишатися високим, тоді як NRR і темпи зростання різко сповільнюються.
+
+Конкурентний ризик походить від Dynatrace, Elastic, Splunk/Cisco, New Relic, open-source рішень і нативних продуктів AWS, Azure та GCP. OpenTelemetry знижує залежність клієнта від Datadog на рівні збору даних, а хмарні провайдери одночасно є постачальниками інфраструктури, каналами продажів і конкурентами. Datadog має 26 продуктів, з яких 18 перебувають на ранніх стадіях, але не розкриває виручку чи маржу за продуктами. Тому неможливо визначити, чи нові напрями створюють прибуткове зростання, чи лише збільшують R&amp;D-навантаження.
+
+Маржинальність залежить від сторонньої хмарної інфраструктури та ефективності обробки даних. У Q2 2026 собівартість зросла на 45% проти 36% зростання виручки, витрати на cloud hosting і software збільшилися на $64,1 млн, а GAAP gross margin знизилася приблизно з 80% до 79%. Volume discounts, продажі через cloud marketplaces, локалізація даних і BYOC можуть додатково тиснути на маржу.
+
+Якість прибутку та FCF залишається слабшою за headline-показники: GAAP operating margin у Q2 була близькою до нуля проти 23% non-GAAP. Аналітичний FCF після SBC становив лише близько 4,6% від виручки. Тому значна частина cash generation компенсується розмиванням акціонерів.
+
+Операційні ризики включають масштабний збій платформи, кібератаку або витік даних: після несанкціонованого доступу до source-code repositories у квітні 2025 року викрадена інформація потенційно може полегшити майбутні атаки. Для observability/security-провайдера наслідки для довіри можуть бути непропорційно великими. DORA, GDPR, data-residency та інші вимоги також підвищують юридичні й інфраструктурні витрати. Dual-class структура та значний контроль засновників обмежують вплив міноритарних акціонерів.</dd><div class="verbatim-links"><a href="#ai-customers-chart">AI workload exposure <span>→</span></a><a href="#product-maturity-distribution">26-product maturity distribution <span>→</span></a><a href="#cloud-efficiency-chart">Revenue vs COGS <span>→</span></a><a href="#margin-chart">Gross margin <span>→</span></a><a href="#quarterly-fcf-chart">Q2 owner FCF <span>→</span></a></div></div>
+            <div><dt>EXIT CONDITIONS</dt><dd><ul class="verbatim-point-list verbatim-exit-list">
+              <li><span>Злам продуктової експансії. Щонайменше два з трьох показників 6+/8+/10+ product adoption знижуються р/р у двох послідовних квартальних розкриттях.</span><div class="verbatim-links"><a href="#adoption-chart">Product adoption <span>→</span></a><a href="#product-maturity-distribution">26-product maturity distribution <span>→</span></a></div></li>
+              <li><span>Злам enterprise expansion. Кількість клієнтів із понад $100K ARR знижується р/р у двох послідовних кварталах.</span><div class="verbatim-links"><a href="#customers-chart">$100K+ customers <span>→</span></a></div></li>
+              <li><span>Погіршення retention. NRR нижче 110% у двох послідовних квартальних розкриттях або GRR нижче 95%.</span><div class="verbatim-links"><a href="#retention-chart">NRR &amp; GRR <span>→</span></a></div></li>
+              <li><span>Погіршення unit economics. GAAP gross margin нижче 78% протягом чотирьох послідовних кварталів.</span><div class="verbatim-links"><a href="#margin-chart">Gross margin <span>→</span></a></div></li>
+              <li><span>Матеріальний security/trust failure. Підтверджений суттєвий кіберінцидент із компрометацією клієнтської телеметрії, облікових даних або production-систем, або втрата критичної security-сертифікації більш ніж на 90 днів.</span></li>
+            </ul></dd></div>
+          </dl>
+        </section>
+
+        <section class="verbatim-section" id="verbatim-valuation">
+          <h3>VALUATION</h3>
+          <dl class="verbatim-field-grid verbatim-field-grid-small">
+            <div><dt>METHOD</dt><dd>DCF</dd></div>
+            <div><dt>FAIR VALUE</dt><dd>$157.83</dd></div>
+            <div><dt>MARGIN OF SAFETY</dt><dd>-39.48%</dd></div>
+            <div><dt>EXPECTED CAGR</dt><dd>-1.59%</dd></div>
+          </dl>
+          <div class="verbatim-scenarios">
+            <article class="verbatim-scenario-bear"><h4>BEAR</h4><span>FAIR VALUE</span><strong>$111.94</strong><span>UPSIDE</span><b>-53.5%</b></article>
+            <article class="verbatim-scenario-base"><h4>BASE</h4><span>FAIR VALUE</span><strong>$157.83</strong><span>UPSIDE</span><b>-34.5%</b></article>
+            <article class="verbatim-scenario-bull"><h4>BULL</h4><span>FAIR VALUE</span><strong>$217.04</strong><span>UPSIDE</span><b>-9.9%</b></article>
+          </div>
+        </section>
+
+        <section class="verbatim-section" id="verbatim-control-circle">
+          <h3>CONTROL CIRCLE</h3>
+          <dl class="verbatim-field-grid verbatim-field-grid-small">
+            <div><dt>10-K REVIEWED</dt><dd>Yes</dd></div>
+            <div><dt>10-Q #1</dt><dd>Yes</dd></div>
+            <div><dt>10-Q #2</dt><dd>Yes</dd></div>
+            <div><dt>10-Q #3</dt><dd>Yes</dd></div>
+            <div><dt>EARNINGS CALLS LISTENED</dt><dd>Yes</dd></div>
+            <div><dt>TONE ANALYZED</dt><dd>Yes</dd></div>
+            <div><dt>MANAGEMENT SCORE</dt><dd>8/10</dd></div>
+            <div><dt>HAS VALUATION</dt><dd>Yes</dd></div>
+          </dl>
+          <dl class="verbatim-copy-list">
+            <div><dt>MOAT ADVANTAGE #1</dt><dd>Switching costs: Datadog глибоко вбудовується в ІТ-інфраструктуру компанії через інтеграції, дашборди, алерти й робочі процеси. Перехід до конкурента потребує перенесення даних і правил моніторингу, перенавчання команд та створює ризик втрати видимості систем — тому клієнти рідко змінюють платформу.</dd></div>
+            <div><dt>MOAT ADVANTAGE #2</dt><dd>Непрямий network effect / Product feedback loop: більше клієнтів і навантажень дають Datadog ширший досвід різних технологій, збоїв та сценаріїв використання. Це допомагає покращувати інтеграції, автоматичне виявлення аномалій і продукт загалом, що залучає нових клієнтів та посилює цикл. Це радше data-driven feedback loop, а не класичний network effect, адже клієнти не взаємодіють напряму.</dd></div>
+            <div><dt>INVERSION / BANKRUPTCY CASES</dt><dd class="verbatim-cases"><span>Катастрофічна втрата довіри.
+Масштабний витік даних або тривалий збій платформи Datadog призводить до компрометації конфіденційної телеметрії клієнтів, масового відтоку, судових позовів, регуляторних штрафів і розірвання контрактів. У поєднанні зі значними юридичними зобов’язаннями та тривалим спалюванням коштів це найреалістичніший шлях до банкрутства.</span><span>Технологічне витіснення.
+AI-рішення для моніторингу, OpenTelemetry та вбудовані інструменти AWS, Microsoft і Google суттєво знижують цінність незалежних платформ спостережуваності. Клієнти консолідують постачальників або переходять на власні рішення, що спричиняє падіння доходів, цін і маржинальності. Якщо Datadog не скоротить витрати та продовжить невдалі інвестиції, тривале спалювання коштів може виснажити її ліквідність.</span><span>Скорочення хмарних витрат.
+Тривале уповільнення витрат на хмарні та AI-сервіси змушує клієнтів різко скорочувати обсяги телеметрії, логів і моніторингу. Великі клієнти переглядають контракти, а зростання доходів стає мінімальним або від’ємним. Водночас інфраструктурні витрати та значні інвестиції в розробку тиснуть на маржинальність і грошовий потік.</span><span>Втрата конкурентоспроможності.
+Нові продукти Datadog не забезпечують очікуваних перехресних продажів, тоді як конкуренти пропонують дешевші або технологічно кращі рішення. Зростання кількості великих клієнтів зупиняється, ефективність продажів падає, а компанія змушена знижувати ціни. Навіть без банкрутства це може спричинити суттєве падіння оцінки бізнесу та значне розмивання частки акціонерів.</span></dd></div>
+          </dl>
+        </section>
+      </article>
+
+      <section class="hypothesis-hero" aria-labelledby="hypothesis-title">
+        <div class="hypothesis-hero-copy">
+          <span class="section-kicker">PDF snapshot · 13 August 2026 · 18:23 EEST</span>
+          <h2 id="hypothesis-title">DDOG investment hypothesis</h2>
+          <p>Клієнти запускають більше cloud та AI workloads, генерують більше telemetry і підключають додаткові продукти. Datadog конвертує цю активність у usage-based виручку, але ціна snapshot значно перевищує DCF fair value.</p>
+          <div class="hypothesis-tags" aria-label="Hypothesis status">
+            <span><i></i>Draft</span>
+            <span>High Growth</span>
+            <span>Technology</span>
+          </div>
+        </div>
+        <aside class="hypothesis-verdict" aria-label="Valuation verdict">
+          <span>Valuation read</span>
+          <strong>Over fair value</strong>
+          <p>DCF base case дає <b>$157.83</b> проти current price <b>$260.78</b>.</p>
+          <div><span>Margin of safety</span><b>-39.48%</b></div>
+        </aside>
+      </section>
+
+      <section class="hypothesis-profile" aria-label="Company profile from the hypothesis PDF">
+        <div><span>Stock</span><strong>Datadog, Inc.</strong></div>
+        <div><span>Ticker</span><strong>DDOG</strong></div>
+        <div><span>Market cap</span><strong>$92.83B</strong></div>
+        <div><span>Current price</span><strong>$260.78</strong></div>
+        <div><span>Entry price</span><strong>$260.78</strong></div>
+        <div><span>Lifecycle</span><strong>High Growth</strong></div>
+      </section>
+
+      <nav class="hypothesis-jump-nav" aria-label="Investment hypothesis sections">
+        <a href="#hypothesis-business">Business</a>
+        <a href="#hypothesis-moat">Moat</a>
+        <a href="#hypothesis-financials">Financials</a>
+        <a href="#hypothesis-growth">Growth</a>
+        <a href="#hypothesis-risks">Risks &amp; exits</a>
+        <a href="#hypothesis-valuation">Valuation</a>
+        <a href="#hypothesis-control">Control circle</a>
+      </nav>
+
+      <section class="hypothesis-section" id="hypothesis-business" aria-labelledby="hypothesis-business-title">
+        <div class="hypothesis-section-head">
+          <div><span class="section-kicker">01 · Business understanding</span><h2 id="hypothesis-business-title">Що купує клієнт</h2></div>
+          <p>Observability-платформа для великих cloud-native та enterprise-компаній із usage-based / consumption моделлю.</p>
+        </div>
+        <div class="hypothesis-business-grid">
+          <article class="hypothesis-thesis-card hypothesis-card-wide">
+            <span>Business description</span>
+            <p>Клієнти запускають більше cloud та AI workloads, генерують більше telemetry і підключають додаткові продукти.</p>
+          </article>
+          <article class="hypothesis-copy-card">
+            <span>Customer problem</span>
+            <h3>Менше downtime, швидша engineering-команда</h3>
+            <p>Datadog допомагає клієнтам швидше виявляти й усувати інциденти, зменшувати їхній вплив на бізнес та підвищувати надійність систем і продуктивність engineering-команд.</p>
+          </article>
+          <article class="hypothesis-copy-card">
+            <span>Primary customer</span>
+            <h3>Large cloud-native &amp; enterprise</h3>
+            <p>На кінець Q2 2026 приблизно 4,720 клієнтів із ARR понад $100 тис. (+23% р/р) генерували близько 91% ARR.</p>
+          </article>
+          <article class="hypothesis-copy-card">
+            <span>Model advantage</span>
+            <h3>Один agent, спільний telemetry layer</h3>
+            <p>Agent, telemetry layer, data model та engineering buyer можуть підтримувати кілька продуктів. Marginal cost підключення наступного модуля нижча, ніж упровадження окремої спеціалізованої платформи.</p>
+          </article>
+          <article class="hypothesis-copy-card">
+            <span>Switching costs</span>
+            <h3>Високі після вбудовування</h3>
+            <p>Dashboards, alerts, incident response, security workflows та production operations формують lock-in. OpenTelemetry знижує lock-in на рівні збору telemetry.</p>
+          </article>
+        </div>
+        <div class="hypothesis-signal-row" aria-label="Business model signals">
+          <div><span>Recurring revenue</span><b>Так, але циклічність usage</b></div>
+          <div><span>Industry growing</span><b>Yes</b></div>
+          <div><span>Industry cyclical</span><b>No</b></div>
+          <div><span>Secular trends</span><b>Yes</b></div>
+          <div class="is-watch"><span>Disruption risk</span><b>Yes</b></div>
+        </div>
+        <p class="hypothesis-inline-note"><b>Secular trends:</b> cloud migration, зростання складності software, AI workloads, DevSecOps і консолідація monitoring tools. <b>Disruption:</b> OpenTelemetry, hyperscalers, open-source, AI-native observability і спеціалізовані конкуренти можуть знизити switching costs та pricing power.</p>
+      </section>
+
+      <section class="hypothesis-section" id="hypothesis-moat" aria-labelledby="hypothesis-moat-title">
+        <div class="hypothesis-section-head">
+          <div><span class="section-kicker">02 · Moat analysis</span><h2 id="hypothesis-moat-title">Narrow moat, expanding</h2></div>
+          <p>Основний тип moat у PDF — switching costs; перевага не вважається легко відтворюваною.</p>
+        </div>
+        <div class="hypothesis-moat-summary">
+          <div><span>Moat type</span><strong>Switching costs</strong></div>
+          <div><span>Strength</span><strong>Narrow moat</strong></div>
+          <div><span>Dynamics</span><strong>Expanding</strong></div>
+          <div><span>Replicable</span><strong>No</strong></div>
+        </div>
+        <article class="hypothesis-evidence-card">
+          <span>Dynamics evidence</span>
+          <ul>
+            <li>Multi-product adoption зростає.</li>
+            <li>NRR залишається у low-120s, gross retention — у mid-to-high 90%.</li>
+            <li>Кількість клієнтів із ARR понад $100 тис. зростає на 23%, тоді як загальна customer base — приблизно на 6%.</li>
+            <li>Клієнти консолідують telemetry, dashboards, alerts і workflows в одній системі, підвищуючи switching costs.</li>
+          </ul>
+        </article>
+      </section>
+
+      <section class="hypothesis-section" id="hypothesis-financials" aria-labelledby="hypothesis-financials-title">
+        <div class="hypothesis-section-head">
+          <div><span class="section-kicker">03 · Financial reality</span><h2 id="hypothesis-financials-title">Growth є, якість прибутку змішана</h2></div>
+          <p>Сильна SaaS-економіка та cash generation, але SBC, dilution і cloud-cost pressure залишаються ключовими застереженнями.</p>
+        </div>
+        <div class="hypothesis-table-wrap">
+          <table class="hypothesis-table">
+            <thead><tr><th>Metric</th><th>Value</th><th>Trend</th><th>Conclusion</th></tr></thead>
+            <tbody>
+              <tr><th>EPS growth</th><td><b>GAAP diluted EPS:</b> $0.14 → $0.52 → $0.31 → ≈$0.50 TTM</td><td>Зростання / шум</td><td>Прибутковість формується, але значна частина прибутку — interest income; SBC залишається високим.</td></tr>
+              <tr><th>Gross margin</th><td>80.0% FY2025; ≈79.5% TTM; 78.6% Q2 2026</td><td>Помірне зниження</td><td>Сильна SaaS-економіка; водночас є тиск cloud hosting та AI workloads.</td></tr>
+              <tr><th>Revenue CAGR</th><td>≈27% ($1.68 → $3.43 млрд, FY2022–25); Q2 2026: +36% р/р</td><td>Повторне прискорення; FY2026 guidance ≈+30%</td><td>Стадія High Growth і сильний попит.</td></tr>
+              <tr><th>ROIC / ROCE / ROE</th><td>≈20% R&amp;D-capitalized у FY2025 проти WACC ≈9.5–10%</td><td>Зниження: ≈40% у FY2021 → ≈20% у FY2025</td><td>Moat існує, але його розширення ще не підтверджене через падіння incremental returns.</td></tr>
+              <tr><th>Operating margin</th><td>≈0.5% GAAP; 23% adjusted у Q2 2026</td><td>GAAP покращується, але розрив з adjusted великий</td><td>Operating leverage існує, але GAAP profitability ще не доведена через SBC.</td></tr>
+              <tr><th>Net debt / EBITDA</th><td>N/M — приблизно $4.0 млрд net cash ($4.99 млрд ліквідності проти $0.99 млрд боргу)</td><td>Дуже низький фінансовий ризик</td><td>Сильний баланс і відсутність leverage risk.</td></tr>
+              <tr><th>FCF per share growth</th><td>$1.12 → $2.52 за FY2022–25; ≈$2.89 TTM</td><td>Стійке зростання; ≈31% CAGR за FY2022–25</td><td>Висока cash generation, але якість для акціонера знижує dilution.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="hypothesis-section" id="hypothesis-growth" aria-labelledby="hypothesis-growth-title">
+        <div class="hypothesis-section-head">
+          <div><span class="section-kicker">04 · Growth drivers</span><h2 id="hypothesis-growth-title">Більше workload, продуктів і великих клієнтів</h2></div>
+          <p>Основний механізм — land-and-expand: клієнти нарощують telemetry та модулі, а нові продукти стають додатковими джерелами виручки.</p>
+        </div>
+        <article class="hypothesis-driver-banner">
+          <span>Growth drivers</span>
+          <p>Збільшення обсягів моніторингу в наявних клієнтів, підключення більшої кількості продуктів Datadog, зростання кількості великих клієнтів, розширення workloads та перетворення нових продуктів на значні джерела виручки.</p>
+        </article>
+        <div class="hypothesis-catalyst-grid">
+          <article><span>01 · AI concentration</span><h3>De-risk найбільшого клієнта</h3><p>Q3 beat-and-raise, Q4 growth ≥26%, non-AI growth ≥25%, стабільний low-120s NRR і початковий FY2027 revenue guidance ≥$5.5 млрд мають підтвердити, що ширша база компенсує скорочення usage найбільшого AI-клієнта.</p></article>
+          <article><span>02 · Regulated market</span><h3>FedRAMP &amp; GovRAMP High</h3><p>Перший матеріальний контракт із державною або регульованою організацією підтвердить нове джерело виручки: FedRAMP High — для чутливих федеральних систем США, GovRAMP High — для державних і місцевих органів влади та освіти.</p></article>
+          <article><span>03 · Product monetization</span><h3>Новий ARR / AI-security revenue</h3><p>Додаткові продукти з понад $100 млн ARR або суттєвий диверсифікований AI/security revenue підтвердять конверсію R&amp;D і продуктової експансії у нові значні джерела виручки.</p></article>
+        </div>
+      </section>
+
+      <section class="hypothesis-section" id="hypothesis-risks" aria-labelledby="hypothesis-risks-title">
+        <div class="hypothesis-section-head">
+          <div><span class="section-kicker">05 · Risks &amp; exit conditions</span><h2 id="hypothesis-risks-title">Що може зламати тезу</h2></div>
+          <p>Найбільші ризики: концентрація AI-зростання, конкуренція, cloud-cost pressure, низька GAAP-якість прибутку та security/trust failures.</p>
+        </div>
+        <div class="hypothesis-risk-grid">
+          <article><span>Concentration &amp; retention</span><p>У Q2 2026 AI-native cohort дала високий однозначний внесок у загальне зростання виручки, а найбільший клієнт уже скорочував використання. Клієнти можуть оптимізувати telemetry без повної відмови від платформи, тому gross retention може лишатися високим, коли NRR і growth різко сповільнюються.</p></article>
+          <article><span>Competition &amp; platform power</span><p>Dynatrace, Elastic, Splunk/Cisco, New Relic, open-source і native AWS/Azure/GCP products тиснуть на Datadog. OpenTelemetry знижує залежність на рівні збору даних; hyperscalers водночас є постачальниками інфраструктури, каналами продажів і конкурентами.</p></article>
+          <article><span>Margin pressure</span><p>У Q2 2026 собівартість зросла на 45% проти 36% зростання виручки; cloud hosting і software expenses сягнули $64.1 млн, а GAAP gross margin знизилася приблизно з 80% до 79%. Volume discounts, cloud marketplaces, data localization і BYOC можуть тиснути далі.</p></article>
+          <article><span>Earnings quality &amp; dilution</span><p>GAAP operating margin у Q2 була близько нуля проти 23% non-GAAP. Аналітичний FCF після SBC становив лише близько 4.6% виручки, тож частина cash generation компенсується dilution.</p></article>
+          <article><span>Operations, security &amp; governance</span><p>Масштабний збій, кібератака або витік telemetry можуть мати непропорційний вплив. DORA, GDPR, data residency підвищують витрати, а dual-class структура й контроль засновників обмежують вплив міноритарних акціонерів.</p></article>
+        </div>
+        <div class="hypothesis-exit-block">
+          <div class="hypothesis-exit-head"><span>Exit conditions</span><strong>5 thesis breaks</strong></div>
+          <ol>
+            <li><b>Злам продуктової експансії.</b> Щонайменше два з трьох показників 6+/8+/10+ product adoption знижуються р/р у двох послідовних квартальних розкриттях.</li>
+            <li><b>Злам enterprise expansion.</b> Кількість клієнтів із понад $100K ARR знижується р/р у двох послідовних кварталах.</li>
+            <li><b>Погіршення retention.</b> NRR нижче 110% у двох послідовних квартальних розкриттях або GRR нижче 95%.</li>
+            <li><b>Погіршення unit economics.</b> GAAP gross margin нижче 78% протягом чотирьох послідовних кварталів.</li>
+            <li><b>Матеріальний security/trust failure.</b> Підтверджений суттєвий кіберінцидент із компрометацією клієнтської telemetry, облікових даних або production-систем, або втрата критичної security-сертифікації більш ніж на 90 днів.</li>
+          </ol>
+        </div>
+      </section>
+
+      <section class="hypothesis-section" id="hypothesis-valuation" aria-labelledby="hypothesis-valuation-title">
+        <div class="hypothesis-section-head">
+          <div><span class="section-kicker">06 · Valuation</span><h2 id="hypothesis-valuation-title">DCF: downside навіть у bull case</h2></div>
+          <p>Значення нижче відтворено з PDF без перерахунку; вони є окремим snapshot від інших valuation-блоків сайту.</p>
+        </div>
+        <div class="hypothesis-valuation-summary">
+          <div><span>Method</span><strong>DCF</strong></div>
+          <div><span>Fair value</span><strong>$157.83</strong></div>
+          <div><span>Margin of safety</span><strong>-39.48%</strong></div>
+          <div><span>Expected CAGR</span><strong>-1.59%</strong></div>
+        </div>
+        <div class="hypothesis-scenario-grid">
+          <article class="scenario-bear"><span>Bear</span><small>Fair value</small><strong>$111.94</strong><div><small>Upside</small><b>-53.5%</b></div></article>
+          <article class="scenario-base"><span>Base</span><small>Fair value</small><strong>$157.83</strong><div><small>Upside</small><b>-34.5%</b></div></article>
+          <article class="scenario-bull"><span>Bull</span><small>Fair value</small><strong>$217.04</strong><div><small>Upside</small><b>-9.9%</b></div></article>
+        </div>
+      </section>
+
+      <section class="hypothesis-section" id="hypothesis-control" aria-labelledby="hypothesis-control-title">
+        <div class="hypothesis-section-head">
+          <div><span class="section-kicker">07 · Control circle</span><h2 id="hypothesis-control-title">Перевірено до формування тези</h2></div>
+          <p>PDF фіксує reviewed filings, earnings calls, tone analysis, valuation і management score 8/10.</p>
+        </div>
+        <div class="hypothesis-control-grid">
+          <div><span>10-K reviewed</span><b>Yes</b></div>
+          <div><span>10-Q #1</span><b>Yes</b></div>
+          <div><span>10-Q #2</span><b>Yes</b></div>
+          <div><span>10-Q #3</span><b>Yes</b></div>
+          <div><span>Earnings calls</span><b>Yes</b></div>
+          <div><span>Tone analyzed</span><b>Yes</b></div>
+          <div><span>Management score</span><b>8/10</b></div>
+          <div><span>Has valuation</span><b>Yes</b></div>
+        </div>
+        <div class="hypothesis-advantage-grid">
+          <article><span>Moat advantage #1</span><h3>Deep workflow switching costs</h3><p>Datadog глибоко вбудовується в IT-інфраструктуру через інтеграції, dashboards, alerts і робочі процеси. Перехід потребує перенесення даних і правил моніторингу, перенавчання команд та створює ризик втрати видимості систем.</p></article>
+          <article><span>Moat advantage #2</span><h3>Indirect feedback loop</h3><p>Більше клієнтів і навантажень дають ширший досвід технологій, збоїв і сценаріїв використання. Це покращує інтеграції, automatic anomaly detection та алгоритми; це data-driven feedback loop, а не класичний прямий network effect.</p></article>
+        </div>
+        <details class="hypothesis-inversion">
+          <summary><span><b>Inversion / bankruptcy cases</b> Умови катастрофічного руйнування вартості</span><i aria-hidden="true">+</i></summary>
+          <div>
+            <article><b>Катастрофічна втрата довіри.</b><p>Масштабний витік даних або тривалий збій компрометує confidential telemetry, спричиняє відтік, позови, штрафи й розірвання контрактів.</p></article>
+            <article><b>Технологічне витіснення.</b><p>AI-рішення, OpenTelemetry та native AWS/Microsoft/Google tools знижують цінність незалежних observability platforms і змушують клієнтів консолідувати постачальників.</p></article>
+            <article><b>Скорочення хмарних витрат.</b><p>Тривале уповільнення cloud та AI-services різко зменшує telemetry, logs і monitoring usage, тоді як інфраструктурні та R&amp;D витрати тиснуть на cash flow.</p></article>
+            <article><b>Втрата конкурентоспроможності.</b><p>Нові продукти не забезпечують очікуваних cross-sells, enterprise wins сповільнюються, sales efficiency падає, а ціни доводиться знижувати.</p></article>
+          </div>
+        </details>
+        <p class="hypothesis-source-note">Source: “DDOG — Investment Hypothesis”, generated 13/08/2026 at 18:23:12 by StrategyLab / YU.invest. Snapshot values are presented as supplied in the document.</p>
+      </section>
     </section>
 
     <section
@@ -588,7 +965,7 @@
               <div class="sector-lanes" id="sector-scale-lanes"></div>
             </div>
 
-            <div class="sector-scale-block portfolio-block">
+            <div class="sector-scale-block portfolio-block" id="product-maturity-distribution">
               <div class="subsection-head">
                 <div><span class="kpi-card-kicker">Company-reported portfolio bands · Q1 2026</span><h3>26-product maturity distribution</h3></div>
                 <p>The company disclosed counts by ARR band but did not identify the products inside each band.</p>
@@ -1176,6 +1553,6 @@
   <script src="./data/peer-comps-data.js?v=20260813-1"></script>
   <script src="./data/valuation-context-data.js?v=20260813-1"></script>
   <script src="./data/intrinsic-valuation-data.js?v=20260813-1"></script>
-  <script src="./app.js?v=20260813-1"></script>
+  <script src="./app.js?v=20260813-4"></script>
 </body>
 </html>

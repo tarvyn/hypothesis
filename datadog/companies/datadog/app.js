@@ -124,7 +124,7 @@
     },
   ];
 
-  const TAB_IDS = ["product-map","business-model","economic-moat","kpis","financials","intrinsic-valuation","peer-comps"];
+  const TAB_IDS = ["investment-hypothesis","product-map","business-model","economic-moat","kpis","financials","intrinsic-valuation","peer-comps"];
   const chartSlug = value => String(value || "chart")
     .toLowerCase()
     .replace(/[^a-z0-9]+/g,"-")
@@ -151,7 +151,7 @@
   const state = {
     filters:new Set(),
     selected:null,
-    activeTab:initialTargetTab || (TAB_IDS.includes(initialHash) ? initialHash : "product-map"),
+    activeTab:initialTargetTab || (TAB_IDS.includes(initialHash) ? initialHash : "investment-hypothesis"),
     showProductScores:false,
     peerFilter:"all",
     peerSort:{
@@ -170,7 +170,6 @@
     return match ? `Q${match[2]} ${match[1]}` : `FY${period}`;
   };
 
-  const headlineStats = document.getElementById("headline-stats");
   const filters = document.getElementById("filters");
   const clearFilters = document.getElementById("clear-filters");
   const explainer = document.getElementById("active-explainer");
@@ -359,17 +358,6 @@
   model.categories.forEach(category => category.suites.forEach(suite => suite.products.forEach(product => {
     allItems.push({...product,categoryId:category.id,categoryName:category.catName,categoryColor:category.color,suiteName:suite.name});
   })));
-
-  const uniqueMappedEntities = new Set(allItems.map(item => item.id)).size;
-  const suiteCount = model.categories.reduce((sum,category) => sum + category.suites.length,0);
-  headlineStats.innerHTML = [
-    `<span class="chip"><b>${model.categories.length}</b> stable markets</span>`,
-    `<span class="chip"><b>${suiteCount}</b> current suites</span>`,
-    `<span class="chip"><b>${uniqueMappedEntities}</b> mapped entities</span>`,
-    `<span class="chip"><b>${model.meta.companyReportedProductCount}</b> company-reported products</span>`,
-    `<span class="chip">AI = <b>overlay</b>, not TAM</span>`,
-    `<span class="chip">NRR <b>${esc(nrr.at(-1).label)}</b> · TTM</span>`,
-  ].join("");
 
   function sourceLinks(sourceIds){
     return sourceIds.map(sourceId => {
@@ -1698,6 +1686,14 @@
   }
 
   function revealDeepLink(targetId,{behavior="auto"}={}){
+    if(TAB_IDS.includes(targetId)){
+      activateTab(targetId,{updateUrl:false});
+      chartCards.forEach(item => item.classList.remove("is-deep-linked"));
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        document.getElementById(`${targetId}-panel`)?.scrollIntoView({behavior,block:"start"});
+      }));
+      return;
+    }
     const target = document.getElementById(targetId);
     const panelId = target?.closest("[data-panel]")?.dataset.panel;
     if(!target || !panelId) return;
