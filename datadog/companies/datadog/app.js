@@ -125,14 +125,33 @@
   ];
 
   const TAB_IDS = ["product-map","business-model","economic-moat","kpis","financials","intrinsic-valuation","peer-comps"];
-  const DEEP_LINK_TABS = {
-    "product-adoption":"kpis",
-  };
+  const chartSlug = value => String(value || "chart")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g,"-")
+    .replace(/(^-|-$)/g,"");
+  const chartCards = [...document.querySelectorAll(".kpi-chart-card")];
+  const reservedChartIds = new Set([...document.querySelectorAll("[id]")].map(node => node.id));
+
+  chartCards.forEach((card,index) => {
+    const canvas = card.querySelector("canvas[id]");
+    let targetId = card.id || canvas?.id;
+    if(!targetId){
+      const baseId = `chart-${chartSlug(card.querySelector("h3")?.textContent) || index+1}`;
+      targetId = baseId;
+      let suffix = 2;
+      while(reservedChartIds.has(targetId)) targetId = `${baseId}-${suffix++}`;
+      card.id = targetId;
+      reservedChartIds.add(targetId);
+    }
+    card.dataset.shareTarget = targetId;
+  });
+
   const initialHash = window.location.hash.slice(1);
+  const initialTargetTab = document.getElementById(initialHash)?.closest("[data-panel]")?.dataset.panel;
   const state = {
     filters:new Set(),
     selected:null,
-    activeTab:DEEP_LINK_TABS[initialHash] || (TAB_IDS.includes(initialHash) ? initialHash : "product-map"),
+    activeTab:initialTargetTab || (TAB_IDS.includes(initialHash) ? initialHash : "product-map"),
     showProductScores:false,
     peerFilter:"all",
     peerSort:{
@@ -1679,11 +1698,53 @@
   }
 
   function revealDeepLink(targetId,{behavior="auto"}={}){
-    if(!DEEP_LINK_TABS[targetId]) return;
-    activateTab(DEEP_LINK_TABS[targetId],{updateUrl:false});
+    const target = document.getElementById(targetId);
+    const panelId = target?.closest("[data-panel]")?.dataset.panel;
+    if(!target || !panelId) return;
+    activateTab(panelId,{updateUrl:false});
     requestAnimationFrame(() => requestAnimationFrame(() => {
-      document.getElementById(targetId)?.scrollIntoView({behavior,block:"start"});
+      const card = target.closest(".kpi-chart-card") || target;
+      chartCards.forEach(item => item.classList.toggle("is-deep-linked",item === card));
+      card.scrollIntoView({behavior,block:"start"});
     }));
+  }
+
+  async function copyText(value){
+    if(navigator.clipboard?.writeText){
+      try{
+        await navigator.clipboard.writeText(value);
+        return;
+      }catch(error){
+        console.warn("Clipboard API unavailable; using copy fallback",error);
+      }
+    }
+    const input = document.createElement("textarea");
+    input.value = value;
+    input.setAttribute("readonly","");
+    input.style.position = "fixed";
+    input.style.opacity = "0";
+    document.body.append(input);
+    input.select();
+    const copied = document.execCommand("copy");
+    input.remove();
+    if(!copied) throw new Error("Browser rejected the copy command.");
+  }
+
+  function installChartShareControls(){
+    chartCards.forEach(card => {
+      const head = card.querySelector(".kpi-card-head, .intrinsic-stage-head");
+      const targetId = card.dataset.shareTarget;
+      if(!head || !targetId || head.querySelector(".chart-link-copy")) return;
+      head.classList.add("chart-share-head");
+      const button = document.createElement("button");
+      button.className = "chart-link-copy";
+      button.type = "button";
+      button.dataset.copyTarget = targetId;
+      button.setAttribute("aria-live","polite");
+      button.setAttribute("aria-label",`Copy direct link to ${card.querySelector("h3")?.textContent?.trim() || "this chart"}`);
+      button.innerHTML = '<span aria-hidden="true">↗</span><b>Copy link</b>';
+      head.append(button);
+    });
   }
 
   function tag(label,primary=false,color="var(--txt-dim)"){
@@ -1914,6 +1975,29 @@
     if(button) activateTab(button.dataset.tab);
   });
 
+  document.addEventListener("click",async event => {
+    const button = event.target.closest(".chart-link-copy");
+    if(!button) return;
+    const url = new URL(window.location.href);
+    url.hash = button.dataset.copyTarget;
+    try{
+      await copyText(url.href);
+      button.classList.add("is-copied");
+      button.querySelector("b").textContent = "Copied";
+      clearTimeout(button._copyReset);
+      button._copyReset = setTimeout(() => {
+        button.classList.remove("is-copied");
+        button.querySelector("b").textContent = "Copy link";
+      },1800);
+    }catch(error){
+      button.querySelector("b").textContent = "Copy failed";
+      setTimeout(() => button.querySelector("b").textContent = "Copy link",1800);
+      console.error("Could not copy chart link",error);
+    }
+  });
+
+  window.addEventListener("hashchange",() => revealDeepLink(window.location.hash.slice(1),{behavior:"smooth"}));
+
   financialSectionNav?.addEventListener("click",event => {
     const button = event.target.closest("[data-financial-target]");
     if(!button) return;
@@ -1994,6 +2078,7 @@
     );
   });
 
+  installChartShareControls();
   activateTab(state.activeTab,{updateUrl:false});
   render();
   revealDeepLink(initialHash);
