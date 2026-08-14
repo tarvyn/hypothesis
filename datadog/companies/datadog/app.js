@@ -478,8 +478,8 @@
     const stats = [
       {label:"TTM net retention",value:nrr.at(-1).label,change:"stable QoQ",note:"Expansion net of contraction and churn",color:"var(--m-core)",url:nrr.at(-1).sourceUrl},
       {label:"Gross retention",value:grr.at(-1).label,change:"stable",note:"Management disclosure band",color:"var(--dev)",url:grr.at(-1).sourceUrl},
-      {label:"Total customers",value:number(latestTotalCustomers),change:priorYearTotalCustomers?`+${number(latestTotalCustomers-priorYearTotalCustomers)} YoY`:"YoY comparison not disclosed",note:"Only +200 sequentially",color:"var(--obs)",url:latestTotalCustomerRow.sourceUrl},
-      {label:"Customers >$100K ARR",value:number(latest.largeCustomers),change:`+${pct(latest.customerGrowth)} YoY`,note:"91% of company ARR",color:"var(--ai)",url:latest.sourceUrl},
+      {label:"Total customers",value:`≈${number(latestTotalCustomers)}`,change:priorYearTotalCustomers?`+${number(latestTotalCustomers-priorYearTotalCustomers)} YoY`:"YoY comparison not disclosed",note:"Approximate company disclosure; only +200 sequentially",color:"var(--obs)",url:latestTotalCustomerRow.sourceUrl},
+      {label:"Customers >$100K ARR",value:`≈${number(latest.largeCustomers)}`,change:`+${pct(latest.customerGrowth)} YoY`,note:"Approximately 91% of company ARR",color:"var(--ai)",url:latest.sourceUrl},
       {label:"Customers on 4+ products",value:pct(latestAdoption.p4,0),change:priorYearAdoption?`+${((latestAdoption.p4-priorYearAdoption.p4)*100).toFixed(0)} ppt YoY`:"YoY not disclosed",note:"Primary cross-sell KPI",color:"var(--sec)",url:latestAdoption.sourceUrl},
       {label:"AI integration customers",value:number(latestAiCustomers),change:"Latest disclosure · Q1 2026",note:`${number(latestMillionCustomers)} customers >$1M ARR at FY2025`,color:"var(--m-option)",url:aiCustomers.at(-1).sourceUrl},
     ];
@@ -560,6 +560,7 @@
     }).join("");
     document.querySelector("#segmentation-ai [data-segmentation-body]").innerHTML = `
       <div class="seg-status-line"><span>Current AI revenue share <button class="info-tip" type="button" aria-label="Why the current AI revenue share is not stated" data-tooltip="${esc(ai.revenueShareTooltip)}">i</button></span><b>${esc(ai.revenueShareStatus)}</b></div>
+      <p class="seg-cohort-summary"><b>Summary:</b> The AI-native cohort is one of Datadog’s key and disproportionately strong growth drivers, while the underlying growth engine remains workload expansion and cross-sell across the broad non-AI customer base.</p>
       <div class="seg-cohort-chart" aria-label="AI-native and non-AI revenue share over time">
         <div class="seg-cohort-chart-head"><div><b>Revenue mix over time</b><span>Each available bar sums to 100% · click a quarter for source</span></div><div class="seg-cohort-head-actions"><div class="seg-cohort-legend"><span><i class="is-ai"></i>AI-native</span><span><i class="is-non-ai"></i>Non-AI</span><span><i class="is-assumption"></i>Scenario</span></div><button class="chart-link-copy" type="button" data-copy-target="ai-revenue-mix" aria-live="polite" aria-label="Copy direct link to AI versus non-AI revenue mix"><span aria-hidden="true">↗</span><b>Copy link</b></button></div></div>
         <div class="seg-cohort-plot"><div class="seg-cohort-gridline is-100"><span>100%</span></div><div class="seg-cohort-gridline is-50"><span>50%</span></div><div class="seg-cohort-gridline is-0"><span>0%</span></div><div class="seg-cohort-bars">${aiShareBars}</div></div>
@@ -663,7 +664,7 @@
     const claims=evidence.managementClaims;
     quarterEvidence.innerHTML=[
       {label:"Growth breadth",value:claims.nonAiRevenueGrowth,note:`Non-AI customer revenue growth, up from ${claims.priorQuarterNonAiRevenueGrowth} in Q1`,url:evidence.sourceUrl,source:"Management claim"},
-      {label:"New-logo contribution",value:pct(claims.newCustomerGrowthContribution,0),note:"Share of Q2 growth from customers not present one year earlier",url:evidence.sourceUrl,source:"Management claim"},
+      {label:"New-logo contribution",value:`≈${pct(claims.newCustomerGrowthContribution,0)}`,note:"Approximate share of the Q2 year-over-year revenue increase from customers not present one year earlier",url:evidence.sourceUrl,source:"Management claim"},
       {label:"RPO",value:money(reported.rpo),note:`+${pct(reported.rpoGrowth,0)} YoY; current RPO +${pct(reported.currentRpoGrowth,0)}`,url:evidence.supplementalUrl,source:"Reported"},
       {label:"Largest-customer risk",value:"Q3 usage down",note:evidence.filingRisk,url:evidence.filingUrl,source:"Filed risk"},
     ].map(item=>`<article class="kpi-stat" style="--stat-color:var(--m-contested)"><span class="kpi-stat-label">${esc(item.label)}</span><strong>${esc(item.value)}</strong><span class="kpi-stat-change">${esc(item.source)}</span><p>${esc(item.note)}</p>${sourceAnchor(item.url,"Evidence")}</article>`).join("");
