@@ -132,6 +132,29 @@ window.INTRINSIC_VALUATION = {
       fairValue: 200,
     },
   },
+  positionRules: {
+    asOf: "2026-08-12",
+    close: 240.91,
+    modelSnapshot: "2026-08-05",
+    sourceId: "nasdaq-history",
+    trim: {
+      lower: 217.04,
+      upper: 240.91,
+      discountRate: 0.11,
+      formula: "Bull case × (1 + equity discount rate)",
+      action: "Finish the planned trim",
+      note: "Reduce only the portion above the intended core weight. Do not add above the upper boundary unless a refreshed DCF raises fair value.",
+    },
+    risk: {
+      bearValue: 111.94,
+      supportZone: [95,105],
+      reviewTrigger: 100,
+      hardStop: 95,
+      hardStopConfirmation: "Weekly close below",
+      confidence: "Medium",
+      note: "$100 is a recurring multi-year pivot, not a precise floor. Intraday breaks have reversed before, so a daily close below $100 triggers review while only a weekly close below $95 triggers the hard risk exit.",
+    },
+  },
   methodology: {
     question: "Solve for the constant 2027-2035 revenue growth rate that makes enterprise value equal each target equity price after the same net-cash bridge.",
     commonLens: "All three valuation anchors use identical margins, reinvestment, WACC, terminal growth, net cash, shares, and mid-year convention. Only the solved revenue growth rate changes.",
@@ -147,6 +170,13 @@ window.INTRINSIC_VALUATION = {
       date: "2026-08-06",
       url: "https://stockanalysis.com/stocks/ddog/history/",
       note: "$229.29 closing-price snapshot at 4:00 PM EDT.",
+    },
+    "nasdaq-history": {
+      label: "DDOG historical prices",
+      publisher: "Nasdaq",
+      date: "2026-08-12",
+      url: "https://www.nasdaq.com/market-activity/stocks/ddog/historical",
+      note: "$240.91 close and daily price history used to assess the $95-$105 support zone.",
     },
     "morningstar-report": {
       label: "Morningstar Equity Analyst Report: Datadog",

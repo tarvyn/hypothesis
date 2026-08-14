@@ -312,6 +312,12 @@ if(intrinsicModel){
   assert(Math.abs(discountBridgeValue-197.21245765571052) < 0.001, "Discount-rate sensitivity bridge must tie to $197.21");
   assert(Math.abs(equivalentFairValue-equivalent.fairValue) < 0.001, "Morningstar-equivalent inputs must tie to $200.00");
   assert(Math.abs(morningstarTerminalShare-0.5227221748687811) < 0.000001, "Morningstar Stage III share must tie to 52.3% of firm value");
+  const positionRules = intrinsicModel.positionRules;
+  assert(positionRules?.asOf === "2026-08-12" && positionRules.close === 240.91, "Position rules must use the 12 August 2026 $240.91 close");
+  assert(Math.abs(positionRules.trim.lower*(1+positionRules.trim.discountRate)-positionRules.trim.upper) < 0.01, "Upper trim boundary must equal bull value plus the equity discount rate");
+  assert(Math.abs(positionRules.close-positionRules.trim.upper) < 0.01, "Decision price must tie to the upper trim boundary");
+  assert(positionRules.risk.supportZone[0] === 95 && positionRules.risk.supportZone[1] === 105, "Technical support must remain a $95-$105 zone");
+  assert(positionRules.risk.hardStop < positionRules.risk.bearValue && positionRules.risk.reviewTrigger >= positionRules.risk.supportZone[0] && positionRules.risk.reviewTrigger <= positionRules.risk.supportZone[1], "Risk triggers must sit below bear value and within the documented support framework");
   const disclosedYears = Object.keys(intrinsicModel.morningstar.forecastRevenue);
   assert(disclosedYears.length === 5 && disclosedYears.every(year => intrinsicModel.morningstar.forecastRevenueGrowth[year] != null && intrinsicModel.morningstar.forecastFcff[year] != null && intrinsicModel.morningstar.forecastFcffMargin[year] != null), "Morningstar Stage I table must have complete 2026-2030 growth, FCFF, and margin inputs");
   assert(Object.values(intrinsicModel.sources).every(source=>source.url?.startsWith("https://") && source.date), "Every intrinsic-valuation source needs a dated HTTPS route");

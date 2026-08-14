@@ -1262,6 +1262,47 @@
         ${sourceAnchor(source.url,current?"Market-price source":"Morningstar access route")}
       </article>`;
     }).join("");
+    const positionRules=intrinsicModel.positionRules;
+    const trim=positionRules.trim;
+    const risk=positionRules.risk;
+    const positionSource=intrinsicModel.sources[positionRules.sourceId];
+    const decisionDate=new Date(`${positionRules.asOf}T00:00:00Z`).toLocaleDateString("en-US",{day:"numeric",month:"short",year:"numeric",timeZone:"UTC"});
+    const stopDrawdown=1-risk.hardStop/positionRules.close;
+    document.getElementById("intrinsic-action-summary").innerHTML=`
+      <div class="intrinsic-action-copy">
+        <span>Current action</span>
+        <strong>${esc(trim.action)}</strong>
+        <p>The ${esc(decisionDate)} close of <b>$${positionRules.close.toFixed(2)}</b> reached the upper trim boundary. Retain the intended core only if the thesis remains intact.</p>
+      </div>
+      <div class="intrinsic-action-price">
+        <span>Decision price</span>
+        <b>$${positionRules.close.toFixed(2)}</b>
+        <small>Upper trim boundary reached</small>
+      </div>`;
+    document.getElementById("intrinsic-action-grid").innerHTML=`
+      <article class="intrinsic-action-card tone-trim">
+        <div class="intrinsic-action-card-head"><div><span>Valuation discipline</span><h3>Trim range</h3></div><i>Active</i></div>
+        <div class="intrinsic-range-values"><b>$${trim.lower.toFixed(2)}</b><span>→</span><b>$${trim.upper.toFixed(2)}</b></div>
+        <div class="intrinsic-range-track" aria-label="Trim range from $${trim.lower.toFixed(2)} to $${trim.upper.toFixed(2)}"><i></i><i></i></div>
+        <p><b>${esc(trim.formula)}.</b> ${esc(trim.note)}</p>
+      </article>
+      <article class="intrinsic-action-card tone-risk">
+        <div class="intrinsic-action-card-head"><div><span>Market structure</span><h3>Risk exit</h3></div><i>${esc(risk.confidence)} confidence</i></div>
+        <div class="intrinsic-risk-levels">
+          <span><small>Bear value</small><b>$${risk.bearValue.toFixed(2)}</b></span>
+          <span><small>Review below</small><b>$${risk.reviewTrigger.toFixed(0)}</b></span>
+          <span><small>Weekly stop below</small><b>$${risk.hardStop.toFixed(0)}</b></span>
+        </div>
+        <p>${esc(risk.note)}</p>
+      </article>`;
+    const decisionRail=[
+      {label:"Hard risk exit",value:`Weekly close < $${risk.hardStop.toFixed(0)}`,tone:"stop",copy:"Exit at the next liquid opportunity; gap risk can produce a lower fill."},
+      {label:"Re-underwrite",value:`Daily close < $${risk.reviewTrigger.toFixed(0)}`,tone:"review",copy:"Test whether the bear case has become the base case."},
+      {label:"Bear valuation",value:`$${risk.bearValue.toFixed(2)}`,tone:"bear",copy:"Price alone below fair value is not a thesis break."},
+      {label:"Trim zone",value:`$${trim.lower.toFixed(2)}–$${trim.upper.toFixed(2)}`,tone:"trim",copy:"Reduce excess weight progressively; do not add above the range without a model refresh."},
+    ];
+    document.getElementById("intrinsic-decision-rail").innerHTML=decisionRail.map(step=>`<article class="tone-${esc(step.tone)}"><span>${esc(step.label)}</span><b>${esc(step.value)}</b><p>${esc(step.copy)}</p></article>`).join("");
+    document.getElementById("intrinsic-position-note").innerHTML=`The hard stop is about ${esc(pct(stopDrawdown,0))} below the decision price, so it is a thesis-and-market-structure invalidation level—not a short-term loss cap. Position size must make that path tolerable. ${sourceAnchor(positionSource.url,"Nasdaq price history")}`;
     const revenueGrowthCagr=calculator.revenueGrowthPath.reduce((compound,row)=>compound*(1+row.growth),1)**(1/calculator.revenueGrowthPath.length)-1;
     document.getElementById("intrinsic-dcf-growth-body").innerHTML=calculator.revenueGrowthPath.map(row=>`<tr><td>${esc(row.period)}</td><td><b>${esc(pct(row.growth,0))}</b></td></tr>`).join("");
     const variance=calculator.caseVariance;
