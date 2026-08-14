@@ -72,6 +72,30 @@ if(kpis){
     typeof engine.scopeComparable === "boolean" &&
     isOfficialDatadogSource(engine.fromSourceUrl) && isOfficialDatadogSource(engine.toSourceUrl)
   ), "Every core product-engine trajectory needs comparability status and official endpoint sources");
+  const segmentation = kpis.segmentation;
+  assert(segmentation?.period === "2026Q2", "Segmentation dashboard must identify Q2 2026");
+  assert(["reported","derived","proxy","scenario"].every(type => segmentation?.evidenceTypes?.[type]), "Segmentation dashboard must define every evidence class");
+  assert(segmentation?.product?.core?.length === 3 && segmentation.product.core.every(row => row.shareLabel === "Mix not disclosed" && isOfficialDatadogSource(row.sourceUrl)), "Product segmentation must preserve three reported ARR floors without presenting product shares");
+  assert(segmentation?.product?.productSignals?.every(row => isOfficialDatadogSource(row.sourceUrl)), "Every nested or adjacent product signal needs an official source");
+  const geographyCurrent = segmentation?.geography?.rows?.reduce((sum,row)=>sum+row.current,0);
+  const geographyPrior = segmentation?.geography?.rows?.reduce((sum,row)=>sum+row.prior,0);
+  assert(Math.abs(geographyCurrent-1121.454) < .001 && Math.abs(geographyPrior-826.760) < .001, "Geography rows must tie to Q2 2026 and Q2 2025 revenue");
+  assert(isOfficialDatadogSource(segmentation?.geography?.sourceUrl), "Geography segmentation needs an official filing source");
+  const customerSize = segmentation?.customerSize;
+  assert(customerSize?.totalCustomers >= customerSize?.largeCustomers && customerSize?.largeCustomers > customerSize?.millionCustomers, "Customer-size cohorts must nest logically");
+  assert(customerSize?.largeArrShare === .91 && customerSize?.priorLargeArrShare === .89, "Large-customer ARR concentration must retain disclosed rounded shares");
+  const growthBridge = segmentation?.growthBridge;
+  assert(Math.abs(growthBridge?.q2?.existingShare+growthBridge?.q2?.newShare-1) < .000001 && Math.abs(growthBridge?.firstHalf?.existingShare+growthBridge?.firstHalf?.newShare-1) < .000001, "Existing and new customer growth contributions must sum to 100%");
+  assert(Math.abs(growthBridge?.q2?.revenueIncrease-(1121.454-826.760)) < .001, "Q2 customer growth bridge must tie to reported revenue increase");
+  assert(Math.abs(growthBridge?.firstHalf?.revenueIncrease-(1006.426+1121.454-761.553-826.760)) < .001, "H1 customer growth bridge must tie to reported revenue increase");
+  assert(segmentation?.multiProduct?.rows?.length === 5 && segmentation.multiProduct.rows.every(row => row.current >= row.prior), "Multi-product segmentation must contain five non-declining YoY cohorts");
+  const ai = segmentation?.ai;
+  const priorQuarterRevenue = 826.760;
+  const currentQuarterRevenue = 1121.454;
+  const impliedAiShare = nonAiGrowth => (currentQuarterRevenue-priorQuarterRevenue*(1-ai.historicalRevenueShare)*(1+nonAiGrowth))/currentQuarterRevenue;
+  assert(Math.abs(impliedAiShare(ai.nonAiGrowthScenarioRange[1])-ai.scenarioRevenueShareRange[0]) < .001 && Math.abs(impliedAiShare(ai.nonAiGrowthScenarioRange[0])-ai.scenarioRevenueShareRange[1]) < .001, "AI share scenario must tie to the disclosed historical mix and stated non-AI growth assumptions");
+  assert(ai.customers >= ai.customersAbove1mAnnualSpend && ai.customersAbove1mAnnualSpend >= ai.customersAbove10mAnnualSpend, "AI customer spend thresholds must nest logically");
+  assert([ai.currentSourceUrl,ai.priorSourceUrl,ai.integrationSourceUrl].every(isOfficialDatadogSource), "AI segmentation needs official source routes");
   assert(kpis.nrr.every(row => row[1] >= 1 && row[1] <= 1.5), "NRR visualization values must be stored as 1.00-based percentages");
   assert(kpis.grr.every(row => row[1] >= .9 && row[1] <= 1), "GRR visualization values must be stored as 1.00-based percentages");
   const auditableSeries = [

@@ -17,7 +17,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./styles.css?v=20260813-8">
+  <link rel="stylesheet" href="./styles.css?v=20260814-8">
 </head>
 <body>
   <main class="wrap">
@@ -539,6 +539,7 @@ AI-рішення для моніторингу, OpenTelemetry та вбудов
           <span>Growth drivers</span>
           <p>Збільшення обсягів моніторингу в наявних клієнтів, підключення більшої кількості продуктів Datadog, зростання кількості великих клієнтів, розширення workloads та перетворення нових продуктів на значні джерела виручки.</p>
         </article>
+        <p class="hypothesis-inline-note"><b>Segmented read · Q2 2026:</b> North America формує 73.5% revenue і зростає на 40.6% проти 23.6% International; приблизно 70% річного приросту прийшло від existing customers; ≈14% customer logos із понад $100K ARR генерують ≈91% ARR. Поточна AI revenue share не розкрита; відтворюваний analyst scenario дає 14.7–16.0%, а продуктові disclosures залишаються лише ARR floors, не audited revenue mix. <a href="#segmentation-dashboard">Відкрити повну сегментацію →</a></p>
         <div class="hypothesis-catalyst-grid">
           <article><span>01 · AI concentration</span><h3>De-risk найбільшого клієнта</h3><p>Q3 beat-and-raise, Q4 growth ≥26%, non-AI growth ≥25%, стабільний low-120s NRR і початковий FY2027 revenue guidance ≥$5.5 млрд мають підтвердити, що ширша база компенсує скорочення usage найбільшого AI-клієнта.</p></article>
           <article><span>02 · Regulated market</span><h3>FedRAMP &amp; GovRAMP High</h3><p>Перший матеріальний контракт із державною або регульованою організацією підтвердить нове джерело виручки: FedRAMP High — для чутливих федеральних систем США, GovRAMP High — для державних і місцевих органів влади та освіти.</p></article>
@@ -867,6 +868,59 @@ AI-рішення для моніторингу, OpenTelemetry та вбудов
         </div>
 
         <div class="kpi-snapshot" id="kpi-snapshot" aria-label="Latest KPI snapshot"></div>
+
+        <section class="segmentation-dashboard kpi-section" id="segmentation-dashboard" aria-labelledby="segmentation-dashboard-title">
+          <div class="section-head compact segmentation-head">
+            <div><span class="section-kicker">Revenue architecture · reported, derived &amp; proxy</span><h2 id="segmentation-dashboard-title">Segmentation dashboard</h2></div>
+            <p>Six complementary lenses show where Datadog’s scale and incremental growth come from without treating overlapping cohorts as additive revenue segments.</p>
+          </div>
+
+          <div class="segmentation-evidence-key" aria-label="Segmentation evidence labels">
+            <span class="is-reported"><i></i><b>Reported</b> company disclosure</span>
+            <span class="is-derived"><i></i><b>Derived</b> filing-based calculation</span>
+            <span class="is-proxy"><i></i><b>Proxy</b> analyst estimate</span>
+            <span class="is-scenario"><i></i><b>Scenario</b> illustrative, not disclosed</span>
+          </div>
+
+          <div class="segmentation-net-read" id="segmentation-net-read"></div>
+
+          <div class="segmentation-grid">
+            <article class="segmentation-card segmentation-card-wide" id="segmentation-product">
+              <div class="segmentation-card-head"><div><span>01 · Product</span><h3>Reported ARR floors</h3></div><span class="evidence-pill is-reported">Reported bounds</span></div>
+              <div class="segmentation-card-body" data-segmentation-body></div>
+            </article>
+
+            <article class="segmentation-card" id="segmentation-ai">
+              <div class="segmentation-card-head"><div><span>02 · AI cohort</span><h3>AI versus non-AI revenue mix</h3></div><span class="evidence-pill is-scenario">Disclosed + scenario</span></div>
+              <div class="segmentation-card-body" id="ai-revenue-mix" data-segmentation-body></div>
+            </article>
+
+            <article class="segmentation-card" id="segmentation-geography">
+              <div class="segmentation-card-head"><div><span>03 · Geography</span><h3>North America drives acceleration</h3></div><span class="evidence-pill is-reported">Reported $</span></div>
+              <div class="segmentation-card-body" data-segmentation-body></div>
+            </article>
+
+            <article class="segmentation-card" id="segmentation-customer-size">
+              <div class="segmentation-card-head"><div><span>04 · Customer size</span><h3>ARR is enterprise-heavy</h3></div><span class="evidence-pill is-derived">Mixed evidence</span></div>
+              <div class="segmentation-card-body" data-segmentation-body></div>
+            </article>
+
+            <article class="segmentation-card" id="segmentation-new-existing">
+              <div class="segmentation-card-head"><div><span>05 · Growth source</span><h3>Existing versus new customers</h3></div><span class="evidence-pill is-derived">Derived $</span></div>
+              <div class="segmentation-card-body" data-segmentation-body></div>
+            </article>
+
+            <article class="segmentation-card segmentation-card-wide" id="segmentation-multi-product">
+              <div class="segmentation-card-head"><div><span>06 · Multi-product</span><h3>Cross-sell is broadening across the base</h3></div><span class="evidence-pill is-reported">Reported adoption</span></div>
+              <div class="segmentation-card-body" data-segmentation-body></div>
+            </article>
+          </div>
+
+          <aside class="segmentation-gaps" aria-labelledby="segmentation-gaps-title">
+            <div><span class="kpi-card-kicker">Disclosure boundary</span><h3 id="segmentation-gaps-title">What Datadog still does not segment</h3></div>
+            <div id="segmentation-gaps-list"></div>
+          </aside>
+        </section>
 
         <div class="kpi-chart-grid">
           <article class="kpi-chart-card kpi-chart-card-wide retention-card">
@@ -1550,10 +1604,10 @@ AI-рішення для моніторингу, OpenTelemetry та вбудов
   <div class="chart-tooltip" id="chart-tooltip" hidden></div>
 
   <script src="./data/product-map-data.js?v=20260813-1"></script>
-  <script src="./data/kpi-data.js?v=20260813-1"></script>
+  <script src="./data/kpi-data.js?v=20260814-6"></script>
   <script src="./data/peer-comps-data.js?v=20260813-1"></script>
   <script src="./data/valuation-context-data.js?v=20260813-1"></script>
   <script src="./data/intrinsic-valuation-data.js?v=20260813-1"></script>
-  <script src="./app.js?v=20260813-4"></script>
+  <script src="./app.js?v=20260814-8"></script>
 </body>
 </html>
