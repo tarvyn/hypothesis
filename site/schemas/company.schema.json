@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hypothesis.local/schemas/company.schema.json",
+  "title": "Hypothesis company manifest",
+  "type": "object",
+  "required": ["schemaVersion", "slug", "name", "ticker", "exchange", "route", "defaultView", "asOf", "views"],
+  "properties": {
+    "schemaVersion": {"const": 1},
+    "slug": {"type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"},
+    "name": {"type": "string", "minLength": 1},
+    "legalName": {"type": "string"},
+    "ticker": {"type": "string", "minLength": 1},
+    "exchange": {"type": "string", "minLength": 1},
+    "route": {"type": "string", "pattern": "^\\./companies/[a-z0-9-]+/$"},
+    "defaultView": {"type": "string", "minLength": 1},
+    "asOf": {"type": "string", "minLength": 1},
+    "views": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "label", "kind"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "label": {"type": "string", "minLength": 1},
+          "kind": {"type": "string", "minLength": 1},
+          "data": {"type": "string"}
+        }
+      }
+    }
+  }
+}

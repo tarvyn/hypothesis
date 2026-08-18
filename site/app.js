@@ -1,5 +1,5 @@
 (() => {
-  const library = window.COMPANY_INDEX;
+  const library = window.COMPANY_REGISTRY;
   if (!library) throw new Error("Company index did not load.");
 
   const grid = document.getElementById("company-grid");
@@ -22,7 +22,7 @@
 
   const card = company => `
     <article class="company-card" style="--company-accent:${esc(company.accent)}">
-      <a class="company-card-link" href="${esc(company.href)}" aria-label="Open the full ${esc(company.name)} investment hypothesis">
+      <a class="company-card-link" href="${esc(company.href)}" aria-label="${esc(company.openLabel || "Open research")} for ${esc(company.name)}">
         <div class="company-card-top">
           <span class="company-monogram" aria-hidden="true">${esc(company.initials)}</span>
           <span class="company-status status-${esc(company.status)}"><i></i>${esc(company.statusLabel)}</span>
@@ -41,7 +41,7 @@
         </div>
         <div class="company-card-foot">
           <span>Current as of <b>${esc(company.currentAsOf)}</b> · updated ${esc(company.updatedAt)}</span>
-          <strong>Open hypothesis <i aria-hidden="true">↗</i></strong>
+          <strong>${esc(company.openLabel || "Open research")} <i aria-hidden="true">↗</i></strong>
         </div>
       </a>
     </article>`;

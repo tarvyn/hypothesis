@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="A source-backed investor product map of Dynatrace's observability, security, software delivery, developer, and business portfolio.">
+  <meta property="og:title" content="Dynatrace · investor product map">
+  <meta property="og:description" content="Nineteen current product leaves, the shared platform spine, and a clearly separated M&A and preview radar.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="../../og.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Dynatrace · investor product map">
+  <meta name="twitter:description" content="A source-backed map of Dynatrace's products, platform technologies, and strategic optionality.">
+  <title>Dynatrace · investor product map</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../src/styles/product-map.css?v=20260816-1">
+  <link rel="stylesheet" href="./styles.css?v=20260816-1">
+</head>
+<body>
+  <main class="wrap">
+    <nav class="company-breadcrumb" aria-label="Company navigation">
+      <a href="../../"><span aria-hidden="true">←</span> All companies</a>
+      <span>NYSE · DT · evidence through 13 Aug 2026</span>
+    </nav>
+
+    <header class="company-hero">
+      <div>
+        <span class="eyebrow">Investor product architecture</span>
+        <h1>Dynatrace <em>product map.</em></h1>
+        <p>
+          A hybrid market map: comparable market lanes on the outside, Dynatrace-native
+          solution families inside, and the shared data, context, and intelligence spine
+          kept outside product counts.
+        </p>
+      </div>
+      <div class="hero-metrics" aria-label="Latest company and map signals">
+        <div><strong>19</strong><span>Current canonical product leaves</span></div>
+        <div><strong>+17%</strong><span>Q1 FY27 ARR growth</span></div>
+        <div><strong>~$200M</strong><span>Annualized logs consumption</span></div>
+        <div><strong>4,100</strong><span>Customers at FY2026 year-end</span></div>
+      </div>
+    </header>
+
+    <nav class="top-tabs" role="tablist" aria-label="Dynatrace research views">
+      <button
+        class="top-tab is-active"
+        id="product-map-tab"
+        type="button"
+        role="tab"
+        aria-selected="true"
+        aria-controls="product-map-panel"
+        data-tab="product-map"
+      >
+        Product map
+      </button>
+    </nav>
+
+    <section
+      class="tab-panel"
+      id="product-map-panel"
+      role="tabpanel"
+      aria-labelledby="product-map-tab"
+      data-panel="product-map"
+    >
+      <section class="controls" aria-label="Map controls">
+        <div class="control-row display-row">
+          <div class="control-copy">
+            <span class="control-kicker">Display</span>
+            <span>Choose the level of detail shown on each product tile</span>
+          </div>
+          <div class="display-setting">
+            <div>
+              <span class="display-setting-kicker">Optional detail</span>
+              <b>Product scorecards</b>
+              <span>Show maturity, position, momentum, and moat histograms</span>
+            </div>
+            <button
+              class="toggle"
+              id="product-scores-toggle"
+              type="button"
+              role="switch"
+              aria-checked="false"
+              aria-label="Show product scorecard histograms"
+            ><span aria-hidden="true"></span></button>
+          </div>
+        </div>
+        <div class="control-row filters-row">
+          <div class="control-copy">
+            <span class="control-kicker">Overlay</span>
+            <span>Highlight cross-cutting cohorts without changing the market spine</span>
+          </div>
+          <div class="filters" id="filters" aria-label="Product overlays"></div>
+          <button class="clear-filters" id="clear-filters" type="button">Clear</button>
+        </div>
+        <div class="active-explainer" id="active-explainer" aria-live="polite"></div>
+      </section>
+
+      <section class="enablers-section" aria-labelledby="enablers-title">
+        <div class="section-head">
+          <div>
+            <span class="section-kicker">Outside the taxonomy</span>
+            <h2 id="enablers-title">Platform data, context &amp; intelligence spine</h2>
+          </div>
+          <p>Shared technologies can reinforce several solutions at once, but they are shown once and excluded from incremental TAM and product counts.</p>
+        </div>
+        <div class="enablers" id="enablers"></div>
+      </section>
+
+      <section class="map-section" aria-labelledby="map-title">
+        <div class="section-head compact">
+          <div>
+            <span class="section-kicker">Market → solution family → product</span>
+            <h2 id="map-title">Current product &amp; market map</h2>
+          </div>
+          <div class="legend" id="legend"></div>
+        </div>
+        <div class="lanes" id="lanes"></div>
+        <p class="map-hint" id="map-hint">Select a product tile for its assessment, evidence, competitive set, and switching-cost mechanics.</p>
+      </section>
+
+      <section class="change-section" aria-labelledby="change-title">
+        <div class="section-head">
+          <div>
+            <span class="section-kicker">Not included in the current product count</span>
+            <h2 id="change-title">Integration, preview &amp; transaction radar</h2>
+          </div>
+          <p>Status is explicit so expected capabilities do not leak into the current portfolio assessment.</p>
+        </div>
+        <div class="change-grid">
+          <article class="change-card status-current">
+            <span>Acquired · integrating</span>
+            <h3>Bindplane</h3>
+            <p>Closed in April 2026. Adds an open-standards telemetry pipeline at the edge and strengthens control over ingest, routing, data quality, cost, and sensitive data.</p>
+            <small>Current platform technology · Q1 FY27 included $13M of acquired ARR</small>
+          </article>
+          <article class="change-card status-preview">
+            <span>Private preview</span>
+            <h3>Dynatrace Bluebox</h3>
+            <p>An observability offering for AI-first teams announced in the Q1 FY27 business highlights. It is strategic optionality, not a generally available canonical leaf.</p>
+            <small>Preview only · adoption and commercial packaging not disclosed</small>
+          </article>
+          <article class="change-card status-planned">
+            <span>Planned acquisition</span>
+            <h3>Arize</h3>
+            <p>The signed $915M transaction could extend AI Observability from experimentation and evaluation through production, but it remains subject to review and closing conditions.</p>
+            <small>Not owned as of the evidence date · excluded from current products and scores</small>
+          </article>
+        </div>
+      </section>
+
+      <section class="foot" aria-label="Methodology and source discipline">
+        <article class="note">
+          <h3>Canonical leaf rule</h3>
+          <p>A leaf needs a distinct customer use case, buyer, commercial capability, or land-and-expand role. Ingest, retention, and query are billing meters—not three products.</p>
+        </article>
+        <article class="note">
+          <h3>Evidence discipline</h3>
+          <p>Product pages and DPS documentation establish capability and billing. Momentum requires usage, adoption, revenue, or retention evidence scoped to that product.</p>
+          <p class="note-accent">Point estimate and evidence confidence are deliberately separate.</p>
+        </article>
+        <article class="note">
+          <h3>Disclosure boundary</h3>
+          <p>Dynatrace reports one consolidated platform business rather than product segments. Except for logs and acquired ARR, most product momentum remains directionally assessed.</p>
+        </article>
+      </section>
+
+      <p class="src">
+        Source posture: FY2026 Form 10-K, Q1 FY2027 results, Dynatrace Platform Subscription documentation,
+        current product documentation, and issuer transaction announcements. Evidence date: 13 August 2026.
+      </p>
+    </section>
+  </main>
+
+  <div id="backdrop"></div>
+  <aside id="reader" aria-hidden="true" aria-label="Product detail">
+    <div class="r-head">
+      <button class="r-close" id="r-close" aria-label="Close product detail">×</button>
+      <div class="r-cat" id="r-cat"></div>
+      <div class="r-name" id="r-name"></div>
+      <div class="r-tags" id="r-tags"></div>
+    </div>
+    <div class="r-body" id="r-body"></div>
+  </aside>
+
+  <script src="./company.js?v=20260816-1"></script>
+  <script src="../../src/core/company-shell.js?v=20260815-1"></script>
+  <script src="../../src/views/product-map/product-map.js?v=20260815-1"></script>
+  <script src="./data/product-map-data.js?v=20260816-1"></script>
+  <script src="./app.js?v=20260816-1"></script>
+</body>
+</html>

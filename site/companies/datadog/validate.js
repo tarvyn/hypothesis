@@ -5,13 +5,11 @@ import path from "node:path";
 import vm from "node:vm";
 import {fileURLToPath} from "node:url";
 
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const companyRoot = path.join(root, "companies", "datadog");
-const companyIndexSource = fs.readFileSync(path.join(root, "data", "companies.js"), "utf8");
+const companyRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)));
+const root = path.resolve(companyRoot, "../..");
 const source = fs.readFileSync(path.join(companyRoot, "data", "product-map-data.js"), "utf8");
 const sandbox = {window:{}};
 vm.createContext(sandbox);
-vm.runInContext(companyIndexSource, sandbox, {filename:"companies.js"});
 vm.runInContext(source, sandbox, {filename:"product-map-data.js"});
 
 const model = sandbox.window.PRODUCT_MAP;
@@ -21,11 +19,6 @@ const assert = (condition, message) => {
 };
 const isOfficialDatadogSource = url => /^https:\/\/(www\.)?(sec\.gov|investors\.datadoghq\.com)\//.test(url || "");
 const isChronological = rows => rows.every((row,index) => index === 0 || rows[index-1][0] < row[0]);
-
-const companyIndex = sandbox.window.COMPANY_INDEX;
-assert(companyIndex?.companies?.length > 0, "Company index must contain at least one company");
-assert(companyIndex?.companies?.some(company => company.slug === "datadog" && company.href === "./companies/datadog/"), "Company index must link to the Datadog hypothesis route");
-assert(new Set(companyIndex?.companies?.map(company => company.slug)).size === companyIndex?.companies?.length, "Company slugs must be unique");
 
 assert(model, "window.PRODUCT_MAP must be exported");
 if(!model){

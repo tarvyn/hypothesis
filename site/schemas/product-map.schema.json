@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hypothesis.local/schemas/product-map.schema.json",
+  "title": "Hypothesis investor product map",
+  "type": "object",
+  "required": ["categories", "maturity", "position", "momentum", "moatConviction", "evidenceConfidence", "entityTypes", "underwriting", "sources", "meta"],
+  "properties": {
+    "categories": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "catName", "suites"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "catName": {"type": "string", "minLength": 1},
+          "suites": {"type": "array", "minItems": 1}
+        }
+      }
+    },
+    "evidenceConfidence": {
+      "type": "object",
+      "required": ["high", "medium", "low"]
+    },
+    "sources": {"type": "object", "minProperties": 1},
+    "meta": {"type": "object"}
+  }
+}

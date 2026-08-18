@@ -1,0 +1,28 @@
+window.COMPANY_MANIFEST = {
+  schemaVersion: 1,
+  slug: "datadog",
+  name: "Datadog",
+  legalName: "Datadog, Inc.",
+  ticker: "DDOG",
+  exchange: "NASDAQ",
+  route: "./companies/datadog/",
+  accent: "#8b7cf6",
+  defaultView: "investment-hypothesis",
+  asOf: "2026-Q2",
+  sourceDomains: [
+    "sec.gov",
+    "investors.datadoghq.com",
+    "datadoghq.com",
+    "docs.datadoghq.com",
+  ],
+  views: [
+    { id: "investment-hypothesis", label: "Investment hypothesis", kind: "investment-hypothesis" },
+    { id: "product-map", label: "Product map", kind: "product-map", data: "./data/product-map-data.js" },
+    { id: "business-model", label: "Business model", kind: "business-model", data: "./data/product-map-data.js" },
+    { id: "economic-moat", label: "Economic moat", kind: "economic-moat", data: "./data/product-map-data.js" },
+    { id: "kpis", label: "KPI dashboard", kind: "kpis", data: "./data/kpi-data.js" },
+    { id: "financials", label: "Financial analysis", kind: "financials", data: "./data/kpi-data.js" },
+    { id: "peer-comps", label: "Peers and relative valuation", kind: "peer-comps", data: "./data/peer-comps-data.js" },
+    { id: "intrinsic-valuation", label: "Intrinsic valuation", kind: "intrinsic-valuation", data: "./data/intrinsic-valuation-data.js" },
+  ],
+};

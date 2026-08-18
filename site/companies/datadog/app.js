@@ -1,4 +1,6 @@
 (() => {
+  const company = window.COMPANY_MANIFEST;
+  if (!company) throw new Error("Company manifest did not load.");
   const model = window.PRODUCT_MAP;
   if (!model) throw new Error("Product map data did not load.");
   const kpiModel = window.KPI_DATA;
@@ -124,7 +126,7 @@
     },
   ];
 
-  const TAB_IDS = ["investment-hypothesis","product-map","business-model","economic-moat","kpis","financials","intrinsic-valuation","peer-comps"];
+  const TAB_IDS = company.views.map(view => typeof view === "string" ? view : view.id);
   const chartSlug = value => String(value || "chart")
     .toLowerCase()
     .replace(/[^a-z0-9]+/g,"-")
@@ -151,7 +153,7 @@
   const state = {
     filters:new Set(),
     selected:null,
-    activeTab:initialTargetTab || (TAB_IDS.includes(initialHash) ? initialHash : "investment-hypothesis"),
+    activeTab:initialTargetTab || (TAB_IDS.includes(initialHash) ? initialHash : company.defaultView),
     showProductScores:false,
     peerFilter:"all",
     peerSort:{
@@ -1796,39 +1798,16 @@
     clearFilters.disabled = state.filters.size === 0;
   }
 
-  function render(){
+  function renderCompanyViews(){
     renderBusinessModel();
     renderEconomicMoat();
-    renderLegend();
-    renderEnablers();
-    renderLanes();
-    renderExplainer();
-    filters.querySelectorAll("button").forEach(button => button.setAttribute("aria-pressed",state.filters.has(button.dataset.filter)));
-    productScoresToggle.setAttribute("aria-checked",String(state.showProductScores));
-    mapHint.textContent = state.showProductScores
-      ? "Bar length is the point estimate. Fill treatment and H/M/L show evidence confidence. Select a tile for sources and moat mechanics."
-      : "Select a product tile for its assessment, sources, and moat mechanics.";
   }
 
-  function activateTab(tabId,{focus=false,updateUrl=true}={}){
-    if(!tabButtons.some(button => button.dataset.tab === tabId)) return;
+  let companyShell;
+  let productMapView;
+
+  function handleViewActivation(tabId){
     state.activeTab = tabId;
-    closeReader();
-    tabButtons.forEach(button => {
-      const active = button.dataset.tab === tabId;
-      button.classList.toggle("is-active",active);
-      button.setAttribute("aria-selected",String(active));
-      button.tabIndex = active ? 0 : -1;
-      if(active && focus) button.focus();
-    });
-    const activeTabButton=tabButtons.find(button=>button.dataset.tab===tabId);
-    if(activeTabButton && tabList.scrollWidth>tabList.clientWidth){
-      const centeredLeft=activeTabButton.offsetLeft-(tabList.clientWidth-activeTabButton.offsetWidth)/2;
-      tabList.scrollTo({left:Math.max(0,centeredLeft),behavior:focus?"smooth":"auto"});
-    }
-    tabPanels.forEach(panel => {
-      panel.hidden = panel.dataset.panel !== tabId;
-    });
     if(tabId === "kpis"){
       requestAnimationFrame(() => {
         if(!kpisInitialized){
@@ -1867,9 +1846,10 @@
         }
       });
     }
-    if(updateUrl){
-      history.replaceState(null,"",`#${tabId}`);
-    }
+  }
+
+  function activateTab(tabId,options={}){
+    companyShell?.activate(tabId,options);
   }
 
   function revealDeepLink(targetId,{behavior="auto"}={}){
@@ -2128,37 +2108,6 @@
     state.selected = null;
   }
 
-  filters.addEventListener("click",event => {
-    const button = event.target.closest("[data-filter]");
-    if(!button) return;
-    const id = button.dataset.filter;
-    state.filters.has(id) ? state.filters.delete(id) : state.filters.add(id);
-    closeReader();
-    render();
-  });
-
-  clearFilters.addEventListener("click",() => {
-    state.filters.clear();
-    closeReader();
-    render();
-  });
-
-  productScoresToggle.addEventListener("click",() => {
-    state.showProductScores = !state.showProductScores;
-    closeReader();
-    renderLegend();
-    renderLanes();
-    productScoresToggle.setAttribute("aria-checked",String(state.showProductScores));
-    mapHint.textContent = state.showProductScores
-      ? "Bar length is the point estimate. Fill treatment and H/M/L show evidence confidence. Select a tile for sources and moat mechanics."
-      : "Select a product tile for its assessment, sources, and moat mechanics.";
-  });
-
-  tabList.addEventListener("click",event => {
-    const button = event.target.closest("[data-tab]");
-    if(button) activateTab(button.dataset.tab);
-  });
-
   document.addEventListener("click",async event => {
     const button = event.target.closest(".chart-link-copy");
     if(!button) return;
@@ -2222,30 +2171,6 @@
     renderPeerTable();
   });
 
-  tabList.addEventListener("keydown",event => {
-    if(!["ArrowLeft","ArrowRight","Home","End"].includes(event.key)) return;
-    event.preventDefault();
-    const currentIndex = tabButtons.findIndex(button => button.dataset.tab === state.activeTab);
-    const nextIndex = event.key === "Home"
-      ? 0
-      : event.key === "End"
-        ? tabButtons.length - 1
-        : (currentIndex + (event.key === "ArrowRight" ? 1 : -1) + tabButtons.length) % tabButtons.length;
-    activateTab(tabButtons[nextIndex].dataset.tab,{focus:true});
-  });
-
-  lanes.addEventListener("click",event => {
-    const cell = event.target.closest("[data-item]");
-    if(!cell) return;
-    openReader(refs[cell.dataset.item],cell);
-  });
-
-  document.getElementById("r-close").addEventListener("click",closeReader);
-  backdrop.addEventListener("click",closeReader);
-  document.addEventListener("keydown",event => {
-    if(event.key === "Escape") closeReader();
-  });
-
   let resizeFrame = 0;
   window.addEventListener("resize",() => {
     if(state.activeTab === "kpis" && !kpisInitialized) return;
@@ -2262,8 +2187,15 @@
     );
   });
 
+  productMapView = window.HYPOTHESIS_PRODUCT_MAP.mount({model,company});
+  companyShell = window.HYPOTHESIS_COMPANY_SHELL.create({
+    manifest:company,
+    initialView:state.activeTab,
+    onBeforeActivate:()=>productMapView?.close(),
+    onActivate:handleViewActivation,
+  });
   installChartShareControls();
   activateTab(state.activeTab,{updateUrl:false});
-  render();
+  renderCompanyViews();
   revealDeepLink(initialHash);
 })();
